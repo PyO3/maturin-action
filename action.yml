@@ -12,6 +12,12 @@ inputs:
   maturin-version:
     description: Version of maturin to install like "v0.10.0". Defaults to "latest".
     default: 'latest'
+  manylinux:
+    description: Control the manylinux platform tag on linux.
+    required: false
+  container:
+    description: Docker container image name. Defaults to "konstin2/maturin"
+    default: 'konstin2/maturin'
 
 runs:
   using: 'node12'

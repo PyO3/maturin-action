@@ -29,6 +29,7 @@ __nccwpck_require__.r(__webpack_exports__);
 
 const IS_MACOS = process.platform == 'darwin';
 const IS_WINDOWS = process.platform == 'win32';
+const IS_LINUX = process.platform == 'linux';
 
 async function findVersion() {
     const version = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('maturin-version');
@@ -79,6 +80,37 @@ async function downloadMaturin(tag) {
     return Promise.resolve(exe);
 }
 
+async function dockerBuild(tag, args) {
+    let image;
+    const container = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('container');
+    if (container.indexOf(':') !== -1) {
+        image = container;
+    } else {
+        image = `${container}:${tag}`;
+    }
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Using ${image} Docker image`);
+    // Copy environment variables from parent process
+    const env = { ...process.env };
+    const workspace = env.GITHUB_WORKSPACE;
+    let exitCode = await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
+        'docker',
+        [
+            'run',
+            '--rm',
+            '--workdir',
+            workspace,
+            '-v',
+            `${workspace}:${workspace}`,
+            image,
+            ...args
+        ],
+        { env }
+    );
+    if (exitCode != 0) {
+        throw `maturin: returned ${exitCode}`;
+    }
+}
+
 async function innerMain() {
     const inputArgs = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('args');
     const args = (0,string_argv__WEBPACK_IMPORTED_MODULE_6__/* .default */ .ZP)(inputArgs);
@@ -86,16 +118,24 @@ async function innerMain() {
     args.unshift(command);
 
     const tag = await findVersion();
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Downloading 'maturin' from tag '${tag}'`);
-    const maturinPath = await downloadMaturin(tag);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Downloaded 'maturin' to ${maturinPath}`);
 
-    let exitCode = await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
-        maturinPath,
-        args
-    );
-    if (exitCode != 0) {
-        throw `maturin: returned ${exitCode}`;
+    const manylinux = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('manylinux');
+    if (manylinux.length > 0 && IS_LINUX) {
+        // build using docker
+        args.push('--manylinux', manylinux);
+        await dockerBuild(tag, args);
+    } else {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Downloading 'maturin' from tag '${tag}'`);
+        const maturinPath = await downloadMaturin(tag);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Downloaded 'maturin' to ${maturinPath}`);
+
+        let exitCode = await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
+            maturinPath,
+            args
+        );
+        if (exitCode != 0) {
+            throw `maturin: returned ${exitCode}`;
+        }
     }
 }
 

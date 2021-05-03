@@ -8,6 +8,7 @@ import stringArgv from "string-argv";
 
 const IS_MACOS = process.platform == 'darwin';
 const IS_WINDOWS = process.platform == 'win32';
+const IS_LINUX = process.platform == 'linux';
 
 async function findVersion() {
     const version = core.getInput('maturin-version');
@@ -58,6 +59,37 @@ async function downloadMaturin(tag) {
     return Promise.resolve(exe);
 }
 
+async function dockerBuild(tag, args) {
+    let image;
+    const container = core.getInput('container');
+    if (container.indexOf(':') !== -1) {
+        image = container;
+    } else {
+        image = `${container}:${tag}`;
+    }
+    core.info(`Using ${image} Docker image`);
+    // Copy environment variables from parent process
+    const env = { ...process.env };
+    const workspace = env.GITHUB_WORKSPACE;
+    let exitCode = await exec.exec(
+        'docker',
+        [
+            'run',
+            '--rm',
+            '--workdir',
+            workspace,
+            '-v',
+            `${workspace}:${workspace}`,
+            image,
+            ...args
+        ],
+        { env }
+    );
+    if (exitCode != 0) {
+        throw `maturin: returned ${exitCode}`;
+    }
+}
+
 async function innerMain() {
     const inputArgs = core.getInput('args');
     const args = stringArgv(inputArgs);
@@ -65,16 +97,24 @@ async function innerMain() {
     args.unshift(command);
 
     const tag = await findVersion();
-    core.info(`Downloading 'maturin' from tag '${tag}'`);
-    const maturinPath = await downloadMaturin(tag);
-    core.info(`Downloaded 'maturin' to ${maturinPath}`);
 
-    let exitCode = await exec.exec(
-        maturinPath,
-        args
-    );
-    if (exitCode != 0) {
-        throw `maturin: returned ${exitCode}`;
+    const manylinux = core.getInput('manylinux');
+    if (manylinux.length > 0 && IS_LINUX) {
+        // build using docker
+        args.push('--manylinux', manylinux);
+        await dockerBuild(tag, args);
+    } else {
+        core.info(`Downloading 'maturin' from tag '${tag}'`);
+        const maturinPath = await downloadMaturin(tag);
+        core.info(`Downloaded 'maturin' to ${maturinPath}`);
+
+        let exitCode = await exec.exec(
+            maturinPath,
+            args
+        );
+        if (exitCode != 0) {
+            throw `maturin: returned ${exitCode}`;
+        }
     }
 }
 
