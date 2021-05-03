@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as httpclient from '@actions/http-client';
-import { promises as fs } from 'fs';
+import { promises as fs, writeFileSync } from 'fs';
 import * as tc from '@actions/tool-cache';
 import * as exec from '@actions/exec';
 import * as io from '@actions/io';
@@ -11,7 +11,7 @@ const IS_MACOS = process.platform == 'darwin';
 const IS_WINDOWS = process.platform == 'win32';
 const IS_LINUX = process.platform == 'linux';
 
-async function findVersion() {
+async function findVersion(): Promise<string> {
     const version = core.getInput('maturin-version');
     if (version !== 'latest') {
         return version;
@@ -30,8 +30,8 @@ async function findVersion() {
  * Download and return the path to an executable maturin tool
  * @param string tag The tag to download
  */
-async function downloadMaturin(tag) {
-    let name;
+async function downloadMaturin(tag: string): Promise<string> {
+    let name: string;
     let zip = false;
     if (IS_WINDOWS) {
         name = 'maturin-x86_64-pc-windows-msvc.zip';
@@ -43,14 +43,14 @@ async function downloadMaturin(tag) {
     }
     const url = `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`;
     const tool = await tc.downloadTool(url);
-    let toolPath;
+    let toolPath: string;
     if (zip) {
         toolPath = await tc.extractZip(tool);
     } else {
         toolPath = await tc.extractTar(tool);
     }
 
-    let exe;
+    let exe: string;
     if (!IS_WINDOWS) {
         exe = path.join(toolPath, 'maturin');
         await fs.chmod(exe, 0o755);
@@ -60,7 +60,7 @@ async function downloadMaturin(tag) {
     return Promise.resolve(exe);
 }
 
-async function installMaturin(tag) {
+async function installMaturin(tag: string): Promise<string> {
     try {
         return await io.which('maturin', true);
     } catch (error) {
@@ -70,8 +70,8 @@ async function installMaturin(tag) {
     }
 }
 
-async function dockerBuild(tag, args) {
-    let image;
+async function dockerBuild(tag: string, args: string[]) {
+    let image: string;
     const container = core.getInput('container');
     if (container.indexOf(':') !== -1) {
         image = container;
@@ -79,23 +79,47 @@ async function dockerBuild(tag, args) {
         image = `${container}:${tag}`;
     }
     core.info(`Using ${image} Docker image`);
-    // Copy environment variables from parent process
-    const env = { ...process.env };
-    const workspace = env.GITHUB_WORKSPACE;
+    const workspace = process.env.GITHUB_WORKSPACE!;
+
+    const commands = ['#!/bin/bash'];
+    const target = core.getInput('target');
+    if (target.length > 0) {
+        commands.push(`rustup target add ${target}`);
+    }
+    commands.push(`maturin ${args.join(' ')}`);
+    const scriptPath = path.join(workspace, 'run-maturin-action.sh');
+    writeFileSync(
+        scriptPath,
+        commands.join('\n'),
+    );
+    await fs.chmod(scriptPath, 0o755);
+
     return await exec.exec(
         'docker',
         [
             'run',
             '--rm',
+            '--entrypoint',
+            '/bin/bash',
             '--workdir',
             workspace,
             '-v',
             `${workspace}:${workspace}`,
             image,
-            ...args
-        ],
-        { env }
+            scriptPath
+        ]
     );
+}
+
+/**
+ * Install Rust target using rustup
+ * @param target Rust target name
+ */
+async function installRustTarget(target: string) {
+    if (!target || target.length == 0) {
+        return;
+    }
+    await exec.exec('rustup', ['target', 'add', target]);
 }
 
 async function innerMain() {
@@ -106,16 +130,24 @@ async function innerMain() {
 
     const tag = await findVersion();
     const manylinux = core.getInput('manylinux');
+    const target = core.getInput('target');
+    if (target.length > 0) {
+        args.push('--target', target);
+    }
 
-    let exitCode;
+    let exitCode: number;
     if (manylinux.length > 0 && IS_LINUX) {
         // build using docker
         args.push('--manylinux', manylinux);
         exitCode = await dockerBuild(tag, args);
     } else {
+        await installRustTarget(target);
+
+        core.startGroup('install maturin');
         core.info(`Installing 'maturin' from tag '${tag}'`);
         const maturinPath = await installMaturin(tag);
         core.info(`Installed 'maturin' to ${maturinPath}`);
+        core.endGroup();
 
         exitCode = await exec.exec(
             maturinPath,

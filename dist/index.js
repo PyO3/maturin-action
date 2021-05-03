@@ -2,166 +2,6 @@ require('./sourcemap-register.js');module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 932:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(186);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_http_client__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(925);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(747);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nccwpck_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _actions_tool_cache__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(784);
-/* harmony import */ var _actions_tool_cache__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nccwpck_require__.n(_actions_tool_cache__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _actions_exec__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(514);
-/* harmony import */ var _actions_exec__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nccwpck_require__.n(_actions_exec__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _actions_io__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(436);
-/* harmony import */ var _actions_io__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nccwpck_require__.n(_actions_io__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(622);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nccwpck_require__.n(path__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var string_argv__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(453);
-
-
-
-
-
-
-
-
-
-const IS_MACOS = process.platform == 'darwin';
-const IS_WINDOWS = process.platform == 'win32';
-const IS_LINUX = process.platform == 'linux';
-
-async function findVersion() {
-    const version = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('maturin-version');
-    if (version !== 'latest') {
-        return version;
-    }
-
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info('Searching the latest version of maturin ...');
-    const http = new _actions_http_client__WEBPACK_IMPORTED_MODULE_1__.HttpClient('messense/maturin-action', [], {
-        allowRetries: false
-    });
-    const response = await http.get('https://api.github.com/repos/PyO3/maturin/releases/latest');
-    const body = await response.readBody();
-    return Promise.resolve(JSON.parse(body).tag_name);
-}
-
-/**
- * Download and return the path to an executable maturin tool
- * @param string tag The tag to download
- */
-async function downloadMaturin(tag) {
-    let name;
-    let zip = false;
-    if (IS_WINDOWS) {
-        name = 'maturin-x86_64-pc-windows-msvc.zip';
-        zip = true;
-    } else if (IS_MACOS) {
-        name = 'maturin-x86_64-apple-darwin.tar.gz';
-    } else {
-        name = 'maturin-x86_64-unknown-linux-musl.tar.gz';
-    }
-    const url = `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`;
-    const tool = await _actions_tool_cache__WEBPACK_IMPORTED_MODULE_3__.downloadTool(url);
-    let toolPath;
-    if (zip) {
-        toolPath = await _actions_tool_cache__WEBPACK_IMPORTED_MODULE_3__.extractZip(tool);
-    } else {
-        toolPath = await _actions_tool_cache__WEBPACK_IMPORTED_MODULE_3__.extractTar(tool);
-    }
-
-    let exe;
-    if (!IS_WINDOWS) {
-        exe = path__WEBPACK_IMPORTED_MODULE_6__.join(toolPath, 'maturin');
-        await fs__WEBPACK_IMPORTED_MODULE_2__.promises.chmod(exe, 0o755);
-    } else {
-        exe = path__WEBPACK_IMPORTED_MODULE_6__.join(toolPath, 'maturin.exe');
-    }
-    return Promise.resolve(exe);
-}
-
-async function installMaturin(tag) {
-    try {
-        return await _actions_io__WEBPACK_IMPORTED_MODULE_5__.which('maturin', true);
-    } catch (error) {
-        const exe = await downloadMaturin(tag);
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.addPath(path__WEBPACK_IMPORTED_MODULE_6__.dirname(exe));
-        return exe;
-    }
-}
-
-async function dockerBuild(tag, args) {
-    let image;
-    const container = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('container');
-    if (container.indexOf(':') !== -1) {
-        image = container;
-    } else {
-        image = `${container}:${tag}`;
-    }
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Using ${image} Docker image`);
-    // Copy environment variables from parent process
-    const env = { ...process.env };
-    const workspace = env.GITHUB_WORKSPACE;
-    return await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
-        'docker',
-        [
-            'run',
-            '--rm',
-            '--workdir',
-            workspace,
-            '-v',
-            `${workspace}:${workspace}`,
-            image,
-            ...args
-        ],
-        { env }
-    );
-}
-
-async function innerMain() {
-    const inputArgs = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('args');
-    const args = (0,string_argv__WEBPACK_IMPORTED_MODULE_7__/* .default */ .ZP)(inputArgs);
-    const command = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('command');
-    args.unshift(command);
-
-    const tag = await findVersion();
-    const manylinux = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('manylinux');
-
-    let exitCode;
-    if (manylinux.length > 0 && IS_LINUX) {
-        // build using docker
-        args.push('--manylinux', manylinux);
-        exitCode = await dockerBuild(tag, args);
-    } else {
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Installing 'maturin' from tag '${tag}'`);
-        const maturinPath = await installMaturin(tag);
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Installed 'maturin' to ${maturinPath}`);
-
-        exitCode = await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
-            maturinPath,
-            args
-        );
-    }
-    if (exitCode != 0) {
-        throw `maturin: returned ${exitCode}`;
-    }
-}
-
-async function main() {
-    try {
-        await innerMain();
-    } catch (error) {
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error.message);
-    }
-}
-
-main();
-
-/***/ }),
-
 /***/ 351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -4762,9 +4602,8 @@ function coerce (version, options) {
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-var __webpack_unused_export__;
 
-__webpack_unused_export__ = true;
+exports.__esModule = true;
 function parseArgsStringToArgv(value, env, file) {
     // ([^\s'"]([^\s'"]*(['"])([^\3]*?)\3)+[^\s'"]*) Matches nested quotes until the first space outside of quotes
     // [^\s'"]+ or Match if not a space ' or "
@@ -4791,8 +4630,8 @@ function parseArgsStringToArgv(value, env, file) {
     } while (match !== null);
     return myArray;
 }
-exports.ZP = parseArgsStringToArgv;
-__webpack_unused_export__ = parseArgsStringToArgv;
+exports.default = parseArgsStringToArgv;
+exports.parseArgsStringToArgv = parseArgsStringToArgv;
 // Accepts any number of arguments, and returns the first one that is a string
 // (even an empty string)
 function firstString() {
@@ -5175,6 +5014,181 @@ module.exports = v4;
 
 /***/ }),
 
+/***/ 177:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const httpclient = __importStar(__nccwpck_require__(925));
+const fs_1 = __nccwpck_require__(747);
+const tc = __importStar(__nccwpck_require__(784));
+const exec = __importStar(__nccwpck_require__(514));
+const io = __importStar(__nccwpck_require__(436));
+const path = __importStar(__nccwpck_require__(622));
+const string_argv_1 = __importDefault(__nccwpck_require__(453));
+const IS_MACOS = process.platform == 'darwin';
+const IS_WINDOWS = process.platform == 'win32';
+const IS_LINUX = process.platform == 'linux';
+async function findVersion() {
+    const version = core.getInput('maturin-version');
+    if (version !== 'latest') {
+        return version;
+    }
+    core.info('Searching the latest version of maturin ...');
+    const http = new httpclient.HttpClient('messense/maturin-action', [], {
+        allowRetries: false
+    });
+    const response = await http.get('https://api.github.com/repos/PyO3/maturin/releases/latest');
+    const body = await response.readBody();
+    return Promise.resolve(JSON.parse(body).tag_name);
+}
+async function downloadMaturin(tag) {
+    let name;
+    let zip = false;
+    if (IS_WINDOWS) {
+        name = 'maturin-x86_64-pc-windows-msvc.zip';
+        zip = true;
+    }
+    else if (IS_MACOS) {
+        name = 'maturin-x86_64-apple-darwin.tar.gz';
+    }
+    else {
+        name = 'maturin-x86_64-unknown-linux-musl.tar.gz';
+    }
+    const url = `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`;
+    const tool = await tc.downloadTool(url);
+    let toolPath;
+    if (zip) {
+        toolPath = await tc.extractZip(tool);
+    }
+    else {
+        toolPath = await tc.extractTar(tool);
+    }
+    let exe;
+    if (!IS_WINDOWS) {
+        exe = path.join(toolPath, 'maturin');
+        await fs_1.promises.chmod(exe, 0o755);
+    }
+    else {
+        exe = path.join(toolPath, 'maturin.exe');
+    }
+    return Promise.resolve(exe);
+}
+async function installMaturin(tag) {
+    try {
+        return await io.which('maturin', true);
+    }
+    catch (error) {
+        const exe = await downloadMaturin(tag);
+        core.addPath(path.dirname(exe));
+        return exe;
+    }
+}
+async function dockerBuild(tag, args) {
+    let image;
+    const container = core.getInput('container');
+    if (container.indexOf(':') !== -1) {
+        image = container;
+    }
+    else {
+        image = `${container}:${tag}`;
+    }
+    core.info(`Using ${image} Docker image`);
+    const workspace = process.env.GITHUB_WORKSPACE;
+    const commands = ['#!/bin/bash'];
+    const target = core.getInput('target');
+    if (target.length > 0) {
+        commands.push(`rustup target add ${target}`);
+    }
+    commands.push(`maturin ${args.join(' ')}`);
+    const scriptPath = path.join(workspace, 'run-maturin-action.sh');
+    fs_1.writeFileSync(scriptPath, commands.join('\n'));
+    await fs_1.promises.chmod(scriptPath, 0o755);
+    return await exec.exec('docker', [
+        'run',
+        '--rm',
+        '--entrypoint',
+        '/bin/bash',
+        '--workdir',
+        workspace,
+        '-v',
+        `${workspace}:${workspace}`,
+        image,
+        scriptPath
+    ]);
+}
+async function installRustTarget(target) {
+    if (!target || target.length == 0) {
+        return;
+    }
+    await exec.exec('rustup', ['target', 'add', target]);
+}
+async function innerMain() {
+    const inputArgs = core.getInput('args');
+    const args = string_argv_1.default(inputArgs);
+    const command = core.getInput('command');
+    args.unshift(command);
+    const tag = await findVersion();
+    const manylinux = core.getInput('manylinux');
+    const target = core.getInput('target');
+    if (target.length > 0) {
+        args.push('--target', target);
+    }
+    let exitCode;
+    if (manylinux.length > 0 && IS_LINUX) {
+        args.push('--manylinux', manylinux);
+        exitCode = await dockerBuild(tag, args);
+    }
+    else {
+        await installRustTarget(target);
+        core.startGroup('install maturin');
+        core.info(`Installing 'maturin' from tag '${tag}'`);
+        const maturinPath = await installMaturin(tag);
+        core.info(`Installed 'maturin' to ${maturinPath}`);
+        core.endGroup();
+        exitCode = await exec.exec(maturinPath, args);
+    }
+    if (exitCode != 0) {
+        throw `maturin: returned ${exitCode}`;
+    }
+}
+async function main() {
+    try {
+        await innerMain();
+    }
+    catch (error) {
+        core.setFailed(error.message);
+    }
+}
+main();
+
+
+/***/ }),
+
 /***/ 357:
 /***/ ((module) => {
 
@@ -5311,53 +5325,13 @@ module.exports = require("util");;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => module['default'] :
-/******/ 				() => module;
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(932);
+/******/ 	return __nccwpck_require__(177);
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map

@@ -2,11 +2,10 @@
   "name": "maturin-action",
   "version": "1.2.0",
   "description": "GitHub Action to install and run a custom maturin command",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "lint": "eslint .",
-    "build": "ncc build index.js -o dist --source-map --license licenses.txt",
-    "all": "npm run lint && npm run build"
+    "build": "ncc build index.ts -o dist --source-map --license licenses.txt",
+    "all": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -24,9 +23,11 @@
     "@actions/http-client": "^1.0.11",
     "@actions/io": "^1.1.0",
     "@actions/tool-cache": "^1.6.1",
-    "string-argv": "^0.3.1"
+    "string-argv": "^0.3.1",
+    "typescript": "^4.2.4"
   },
   "devDependencies": {
+    "@types/node": "^15.0.1",
     "@vercel/ncc": "^0.27.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.25.0"

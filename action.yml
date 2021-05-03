@@ -18,6 +18,9 @@ inputs:
   container:
     description: Docker container image name. Defaults to "konstin2/maturin"
     default: 'konstin2/maturin'
+  target:
+    description: The --target option for cargo
+    required: false
 
 runs:
   using: 'node12'
