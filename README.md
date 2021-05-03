@@ -12,7 +12,7 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
     profile: minimal
     toolchain: stable
     override: true
-- uses: messense/maturin-action@main
+- uses: messense/maturin-action@v1
   with:
     maturin-version: latest
     command: build
