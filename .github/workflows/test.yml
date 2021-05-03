@@ -1,0 +1,26 @@
+name: Test
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: PyO3/maturin
+          ref: main
+          path: maturin
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: maturin build
+        uses: ./
+        with:
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml

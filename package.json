@@ -1,0 +1,33 @@
+{
+  "name": "maturin-action",
+  "version": "1.0.0",
+  "description": "GitHub Action to install and run a custom maturin command",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "prepare": "ncc build index.js -o dist --source-map --license licenses.txt",
+    "test": "jest",
+    "all": "npm run lint && npm run prepare && npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/messense/maturin-action.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/messense/maturin-action/issues"
+  },
+  "homepage": "https://github.com/messense/maturin-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.7",
+    "@actions/exec": "^1.0.4",
+    "@actions/http-client": "^1.0.11",
+    "@actions/tool-cache": "^1.6.1",
+    "string-argv": "^0.3.1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.27.0",
+    "eslint": "^7.4.0"
+  }
+}

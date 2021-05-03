@@ -1,0 +1,18 @@
+name: 'maturin-action'
+description: 'GitHub Action to install and run a custom maturin command'
+author: messense
+
+inputs:
+  command:
+    description: maturin command to run. Defaults to "build".
+    default: 'build'
+  args:
+    description: Arguments for the maturin command
+    required: false
+  maturin-version:
+    description: Version of maturin to install like "v0.10.0". Defaults to "latest".
+    default: 'latest'
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
