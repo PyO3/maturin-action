@@ -5,9 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "prepare": "ncc build index.js -o dist --source-map --license licenses.txt",
-    "test": "jest",
-    "all": "npm run lint && npm run prepare && npm run test"
+    "build": "ncc build index.js -o dist --source-map --license licenses.txt",
+    "all": "npm run lint && npm run build"
   },
   "repository": {
     "type": "git",
@@ -28,6 +27,7 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.27.0",
-    "eslint": "^7.4.0"
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.25.0"
   }
 }
