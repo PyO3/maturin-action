@@ -4,6 +4,21 @@
 
 GitHub Action to install and run a custom [maturin](https://github.com/PyO3/maturin) command
 
+## Usage
+
+```yaml
+- uses: actions-rs/toolchain@v1
+  with:
+    profile: minimal
+    toolchain: stable
+    override: true
+- uses: messense/maturin-action@main
+  with:
+    maturin-version: latest
+    command: build
+    args: --release
+```
+
 ## Inputs
 
 ### `command`
@@ -20,20 +35,14 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 
 See: https://github.com/PyO3/maturin/releases
 
-## Usage
+### `manylinux`
 
-```yaml
-- uses: actions-rs/toolchain@v1
-  with:
-    profile: minimal
-    toolchain: stable
-    override: true
-- uses: messense/maturin-action@main
-  with:
-    maturin-version: latest
-    command: build
-    args: --release
-```
+**Optional** Control the manylinux platform tag on linux, ignored on other platforms.
+
+### `container`
+
+**Optional** manylinux docker container image name, it should have Rust and maturin preinstalled.
+Defaults to [`konstin2/maturin`](https://hub.docker.com/r/konstin2/maturin)
 
 ## License
 
