@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as httpclient from '@actions/http-client';
+import { promises as fs } from 'fs';
 import * as tc from '@actions/tool-cache';
 import * as exec from '@actions/exec';
 import * as path from 'path';
