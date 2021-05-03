@@ -3,6 +3,7 @@ import * as httpclient from '@actions/http-client';
 import { promises as fs } from 'fs';
 import * as tc from '@actions/tool-cache';
 import * as exec from '@actions/exec';
+import * as io from '@actions/io';
 import * as path from 'path';
 import stringArgv from "string-argv";
 
@@ -59,6 +60,16 @@ async function downloadMaturin(tag) {
     return Promise.resolve(exe);
 }
 
+async function installMaturin(tag) {
+    try {
+        return await io.which('maturin', true);
+    } catch (error) {
+        const exe = await downloadMaturin(tag);
+        core.addPath(path.dirname(exe));
+        return exe;
+    }
+}
+
 async function dockerBuild(tag, args) {
     let image;
     const container = core.getInput('container');
@@ -71,7 +82,7 @@ async function dockerBuild(tag, args) {
     // Copy environment variables from parent process
     const env = { ...process.env };
     const workspace = env.GITHUB_WORKSPACE;
-    let exitCode = await exec.exec(
+    return await exec.exec(
         'docker',
         [
             'run',
@@ -85,9 +96,6 @@ async function dockerBuild(tag, args) {
         ],
         { env }
     );
-    if (exitCode != 0) {
-        throw `maturin: returned ${exitCode}`;
-    }
 }
 
 async function innerMain() {
@@ -97,24 +105,25 @@ async function innerMain() {
     args.unshift(command);
 
     const tag = await findVersion();
-
     const manylinux = core.getInput('manylinux');
+
+    let exitCode;
     if (manylinux.length > 0 && IS_LINUX) {
         // build using docker
         args.push('--manylinux', manylinux);
-        await dockerBuild(tag, args);
+        exitCode = await dockerBuild(tag, args);
     } else {
-        core.info(`Downloading 'maturin' from tag '${tag}'`);
-        const maturinPath = await downloadMaturin(tag);
-        core.info(`Downloaded 'maturin' to ${maturinPath}`);
+        core.info(`Installing 'maturin' from tag '${tag}'`);
+        const maturinPath = await installMaturin(tag);
+        core.info(`Installed 'maturin' to ${maturinPath}`);
 
-        let exitCode = await exec.exec(
+        exitCode = await exec.exec(
             maturinPath,
             args
         );
-        if (exitCode != 0) {
-            throw `maturin: returned ${exitCode}`;
-        }
+    }
+    if (exitCode != 0) {
+        throw `maturin: returned ${exitCode}`;
     }
 }
 

@@ -16,9 +16,12 @@ __nccwpck_require__.r(__webpack_exports__);
 /* harmony import */ var _actions_tool_cache__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nccwpck_require__.n(_actions_tool_cache__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _actions_exec__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(514);
 /* harmony import */ var _actions_exec__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nccwpck_require__.n(_actions_exec__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(622);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nccwpck_require__.n(path__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var string_argv__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(453);
+/* harmony import */ var _actions_io__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(436);
+/* harmony import */ var _actions_io__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nccwpck_require__.n(_actions_io__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(622);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nccwpck_require__.n(path__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var string_argv__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(453);
+
 
 
 
@@ -72,12 +75,22 @@ async function downloadMaturin(tag) {
 
     let exe;
     if (!IS_WINDOWS) {
-        exe = path__WEBPACK_IMPORTED_MODULE_5__.join(toolPath, 'maturin');
+        exe = path__WEBPACK_IMPORTED_MODULE_6__.join(toolPath, 'maturin');
         await fs__WEBPACK_IMPORTED_MODULE_2__.promises.chmod(exe, 0o755);
     } else {
-        exe = path__WEBPACK_IMPORTED_MODULE_5__.join(toolPath, 'maturin.exe');
+        exe = path__WEBPACK_IMPORTED_MODULE_6__.join(toolPath, 'maturin.exe');
     }
     return Promise.resolve(exe);
+}
+
+async function installMaturin(tag) {
+    try {
+        return await _actions_io__WEBPACK_IMPORTED_MODULE_5__.which('maturin', true);
+    } catch (error) {
+        const exe = await downloadMaturin(tag);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.addPath(path__WEBPACK_IMPORTED_MODULE_6__.dirname(exe));
+        return exe;
+    }
 }
 
 async function dockerBuild(tag, args) {
@@ -92,7 +105,7 @@ async function dockerBuild(tag, args) {
     // Copy environment variables from parent process
     const env = { ...process.env };
     const workspace = env.GITHUB_WORKSPACE;
-    let exitCode = await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
+    return await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
         'docker',
         [
             'run',
@@ -106,36 +119,34 @@ async function dockerBuild(tag, args) {
         ],
         { env }
     );
-    if (exitCode != 0) {
-        throw `maturin: returned ${exitCode}`;
-    }
 }
 
 async function innerMain() {
     const inputArgs = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('args');
-    const args = (0,string_argv__WEBPACK_IMPORTED_MODULE_6__/* .default */ .ZP)(inputArgs);
+    const args = (0,string_argv__WEBPACK_IMPORTED_MODULE_7__/* .default */ .ZP)(inputArgs);
     const command = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('command');
     args.unshift(command);
 
     const tag = await findVersion();
-
     const manylinux = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('manylinux');
+
+    let exitCode;
     if (manylinux.length > 0 && IS_LINUX) {
         // build using docker
         args.push('--manylinux', manylinux);
-        await dockerBuild(tag, args);
+        exitCode = await dockerBuild(tag, args);
     } else {
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Downloading 'maturin' from tag '${tag}'`);
-        const maturinPath = await downloadMaturin(tag);
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Downloaded 'maturin' to ${maturinPath}`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Installing 'maturin' from tag '${tag}'`);
+        const maturinPath = await installMaturin(tag);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Installed 'maturin' to ${maturinPath}`);
 
-        let exitCode = await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
+        exitCode = await _actions_exec__WEBPACK_IMPORTED_MODULE_4__.exec(
             maturinPath,
             args
         );
-        if (exitCode != 0) {
-            throw `maturin: returned ${exitCode}`;
-        }
+    }
+    if (exitCode != 0) {
+        throw `maturin: returned ${exitCode}`;
     }
 }
 

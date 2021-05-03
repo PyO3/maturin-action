@@ -24,6 +24,8 @@ jobs:
         uses: ./
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+      - name: check maturin in PATH
+        run: maturin --version
       - name: maturin build manylinux2010
         uses: ./
         with:
