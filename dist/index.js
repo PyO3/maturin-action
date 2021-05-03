@@ -82,6 +82,8 @@ async function downloadMaturin(tag) {
 async function innerMain() {
     const inputArgs = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('args');
     const args = (0,string_argv__WEBPACK_IMPORTED_MODULE_6__/* .default */ .ZP)(inputArgs);
+    const command = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('command');
+    args.unshift(command);
 
     const tag = await findVersion();
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Downloading 'maturin' from tag '${tag}'`);

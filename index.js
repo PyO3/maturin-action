@@ -61,6 +61,8 @@ async function downloadMaturin(tag) {
 async function innerMain() {
     const inputArgs = core.getInput('args');
     const args = stringArgv(inputArgs);
+    const command = core.getInput('command');
+    args.unshift(command);
 
     const tag = await findVersion();
     core.info(`Downloading 'maturin' from tag '${tag}'`);
