@@ -19,6 +19,10 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
     args: --release
 ```
 
+### Examples
+
+* [messense/crfs-rs](https://github.com/messense/crfs-rs/blob/main/.github/workflows/Python.yml)
+
 ## Inputs
 
 ### `command`
