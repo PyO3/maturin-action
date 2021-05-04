@@ -12,6 +12,9 @@ const IS_WINDOWS = process.platform == 'win32';
 const IS_LINUX = process.platform == 'linux';
 const DEFAULT_MATURIN_VERSION = 'v0.10.4';
 
+/**
+ * Find maturin version
+ */
 async function findVersion(): Promise<string> {
     const version = core.getInput('maturin-version');
     if (version !== 'latest') {
@@ -72,14 +75,22 @@ async function downloadMaturin(tag: string): Promise<string> {
 
 async function installMaturin(tag: string): Promise<string> {
     try {
-        return await io.which('maturin', true);
+        const exe = await io.which('maturin', true);
+        core.info(`Found 'maturin' at ${exe}`);
+        return exe;
     } catch (error) {
         const exe = await downloadMaturin(tag);
+        core.info(`Installed 'maturin' to ${exe}`);
         core.addPath(path.dirname(exe));
         return exe;
     }
 }
 
+/**
+ * Build manylinux wheel using Docker
+ * @param tag maturin release tag, ie. version
+ * @param args Docker args
+ */
 async function dockerBuild(tag: string, args: string[]) {
     let image: string;
     const container = core.getInput('container');
@@ -185,7 +196,7 @@ async function innerMain() {
             args.push('--manylinux', manylinux);
             const container = core.getInput('container')
             // User can force non-Docker manylinux build by clearing the `container` input
-            useDocker = container.length > 0;
+            useDocker = manylinux !== 'off' && container.length > 0;
         }
 
         const target = core.getInput('target');
@@ -211,7 +222,6 @@ async function innerMain() {
         core.startGroup('Install maturin');
         core.info(`Installing 'maturin' from tag '${tag}'`);
         const maturinPath = await installMaturin(tag);
-        core.info(`Installed 'maturin' to ${maturinPath}`);
         core.endGroup();
 
         // Setup additional env vars for macOS universal2 build
