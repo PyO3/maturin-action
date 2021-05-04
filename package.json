@@ -4,7 +4,7 @@
   "description": "GitHub Action to install and run a custom maturin command",
   "main": "index.ts",
   "scripts": {
-    "build": "ncc build index.ts -o dist --source-map --license licenses.txt",
+    "build": "ncc build index.ts -o dist --minify",
     "all": "npm run build"
   },
   "repository": {

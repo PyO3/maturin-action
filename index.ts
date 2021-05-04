@@ -128,21 +128,32 @@ async function innerMain() {
     const command = core.getInput('command');
     args.unshift(command);
 
-    const tag = await findVersion();
     const manylinux = core.getInput('manylinux');
-    const target = core.getInput('target');
-    if (target.length > 0) {
-        args.push('--target', target);
+    const container = core.getInput('container')
+    // User can force non-Docker manylinux build by clearing the `container` input
+    let useDocker = IS_LINUX && manylinux.length > 0 && container.length > 0;
+    // Only build and publish commands has --manylinux and --target options
+    if (['build', 'publish'].includes(command)) {
+        if (manylinux.length > 0 && IS_LINUX) {
+            args.push('--manylinux', manylinux);
+            useDocker = true;
+        }
+
+        const target = core.getInput('target');
+        if (target.length > 0) {
+            args.push('--target', target);
+        }
+        if (!useDocker) {
+            await installRustTarget(target);
+        }
     }
 
+    const tag = await findVersion();
+
     let exitCode: number;
-    if (manylinux.length > 0 && IS_LINUX) {
-        // build using docker
-        args.push('--manylinux', manylinux);
+    if (useDocker) {
         exitCode = await dockerBuild(tag, args);
     } else {
-        await installRustTarget(target);
-
         core.startGroup('install maturin');
         core.info(`Installing 'maturin' from tag '${tag}'`);
         const maturinPath = await installMaturin(tag);
