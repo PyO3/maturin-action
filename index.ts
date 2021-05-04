@@ -19,13 +19,13 @@ async function findVersion(): Promise<string> {
     const version = core.getInput('maturin-version');
     if (version !== 'latest') {
         if (!version.startsWith('v')) {
-            core.info(`Corrected maturin-version from '${version}' to 'v${version}'`)
+            core.warning(`Corrected 'maturin-version' from '${version}' to 'v${version}'`)
             return `v${version}`;
         }
         return version;
     }
 
-    core.info('Searching the latest version of maturin ...');
+    core.debug('Searching the latest version of maturin ...');
     const http = new httpclient.HttpClient('messense/maturin-action', [], {
         allowRetries: true
     });
@@ -35,6 +35,7 @@ async function findVersion(): Promise<string> {
     if (!tag) {
         // Just in case fetch latest maturin version failed
         tag = DEFAULT_MATURIN_VERSION;
+        core.warning(`Fetch latest maturin tag name failed, fallback to '${tag}'`);
     }
     return Promise.resolve(tag);
 }
