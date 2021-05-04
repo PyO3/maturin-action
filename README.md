@@ -38,6 +38,11 @@ See: https://github.com/PyO3/maturin/releases
 ### `manylinux`
 
 **Optional** Control the manylinux platform tag on linux, ignored on other platforms.
+Only passed to maturin `build` and `publish` commands.
+
+### `target`
+
+**Optional** The `--target` option for Cargo. Only passed to maturin `build` and `publish` commands.
 
 ### `container`
 
