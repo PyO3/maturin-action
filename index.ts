@@ -128,15 +128,15 @@ async function innerMain() {
     const command = core.getInput('command');
     args.unshift(command);
 
-    const manylinux = core.getInput('manylinux');
-    const container = core.getInput('container')
-    // User can force non-Docker manylinux build by clearing the `container` input
-    let useDocker = IS_LINUX && manylinux.length > 0 && container.length > 0;
+    let useDocker = false;
     // Only build and publish commands has --manylinux and --target options
     if (['build', 'publish'].includes(command)) {
+        const manylinux = core.getInput('manylinux');
         if (manylinux.length > 0 && IS_LINUX) {
             args.push('--manylinux', manylinux);
-            useDocker = true;
+            const container = core.getInput('container')
+            // User can force non-Docker manylinux build by clearing the `container` input
+            useDocker = container.length > 0;
         }
 
         const target = core.getInput('target');
