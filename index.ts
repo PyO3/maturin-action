@@ -10,6 +10,7 @@ import stringArgv from "string-argv";
 const IS_MACOS = process.platform == 'darwin';
 const IS_WINDOWS = process.platform == 'win32';
 const IS_LINUX = process.platform == 'linux';
+const DEFAULT_MATURIN_VERSION = 'v0.10.4';
 
 async function findVersion(): Promise<string> {
     const version = core.getInput('maturin-version');
@@ -27,7 +28,12 @@ async function findVersion(): Promise<string> {
     });
     const response = await http.get('https://api.github.com/repos/PyO3/maturin/releases/latest');
     const body = await response.readBody();
-    return Promise.resolve(JSON.parse(body).tag_name);
+    let tag = JSON.parse(body).tag_name;
+    if (!tag) {
+        // Just in case fetch latest maturin version failed
+        tag = DEFAULT_MATURIN_VERSION;
+    }
+    return Promise.resolve(tag);
 }
 
 /**
