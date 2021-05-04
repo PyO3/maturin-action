@@ -197,9 +197,27 @@ async function innerMain() {
         core.info(`Installed 'maturin' to ${maturinPath}`);
         core.endGroup();
 
+        // Setup additional env vars for macOS universal2 build
+        const isUniversal2 = args.includes('--universal2');
+        const env: Record<string, string> = {};
+        for (const [k, v] of Object.entries(process.env)) {
+            if (v !== undefined) {
+                env[k] = v;
+            }
+        }
+        if (isUniversal2) {
+            core.startGroup('Prepare macOS universal2 build environment')
+            await installRustTarget('x86_64-apple-darwin');
+            await installRustTarget('aarch64-apple-darwin');
+            env.DEVELOPER_DIR = '/Applications/Xcode.app/Contents/Developer';
+            env.MACOSX_DEPLOYMENT_TARGET = '10.9';
+            env.PYO3_CROSS_LIB_DIR = '/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.8/lib';
+            core.endGroup();
+        }
         exitCode = await exec.exec(
             maturinPath,
-            args
+            args,
+            { env }
         );
     }
     if (exitCode != 0) {
