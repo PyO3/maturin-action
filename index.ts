@@ -12,6 +12,25 @@ const IS_WINDOWS = process.platform == 'win32';
 const IS_LINUX = process.platform == 'linux';
 const DEFAULT_MATURIN_VERSION = 'v0.10.4';
 
+const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
+    'x86_64-unknown-linux-gnu': {
+        '2010': 'quay.io/pypa/manylinux2010_x86_64:latest',
+        '2014': 'quay.io/pypa/manylinux2014_x86_64:latest',
+        '2_24': 'quay.io/pypa/manylinux_2_24_x86_64:latest',
+    },
+    'i686-unknown-linux-gnu': {
+        '2010': 'quay.io/pypa/manylinux2010_i686:latest',
+        '2014': 'quay.io/pypa/manylinux2014_i686:latest',
+        '2_24': 'quay.io/pypa/manylinux_2_24_i686:latest',
+    },
+    'aarch64-unknown-linux-gnu': {
+        '2014': 'messense/manylinux2014-cross:aarch64',
+    },
+    'armv7-unknown-linux-gnueabihf': {
+        '2014': 'messense/manylinux2014-cross:armv7',
+    },
+};
+
 /**
  * Find maturin version
  */
@@ -93,9 +112,16 @@ async function installMaturin(tag: string): Promise<string> {
  * @param args Docker args
  */
 async function dockerBuild(tag: string, args: string[]) {
-    let image: string;
-    const container = core.getInput('container');
+    const manylinux = core.getInput('manylinux');
+    const target = core.getInput('target');
+    let container = core.getInput('container');
+    if (container.length === 0) {
+        // Get default Docker container with fallback to konstin2/maturin
+        container = DEFAULT_CONTAINERS[target]?.[manylinux] || 'konstin2/maturin';
+    }
+
     let dockerArgs = [];
+    let image: string;
     if (container.indexOf(':') !== -1 || !container.startsWith('konstin2/maturin')) {
         image = container;
     } else {
@@ -133,7 +159,6 @@ async function dockerBuild(tag: string, args: string[]) {
         `curl -L ${url} | tar -xz -C /usr/local/bin`,
         'echo "::endgroup::"',
     ];
-    const target = core.getInput('target');
     if (target.length > 0) {
         commands.push(
             'echo "::group::Install Rust target"',
@@ -209,9 +234,7 @@ async function innerMain() {
         const manylinux = core.getInput('manylinux');
         if (manylinux.length > 0 && IS_LINUX) {
             args.push('--manylinux', manylinux);
-            const container = core.getInput('container')
-            // User can force non-Docker manylinux build by clearing the `container` input
-            useDocker = manylinux !== 'off' && container.length > 0;
+            useDocker = manylinux !== 'off';
         }
 
         const target = core.getInput('target');

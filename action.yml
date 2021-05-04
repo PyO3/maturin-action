@@ -16,8 +16,8 @@ inputs:
     description: Control the manylinux platform tag on linux.
     required: false
   container:
-    description: Docker container image name. Defaults to "konstin2/maturin"
-    default: 'konstin2/maturin'
+    description: Docker container image name. Default depends on "target" and "manylinux" options.
+    required: false
   target:
     description: The --target option for cargo
     required: false

@@ -52,25 +52,21 @@ jobs:
           {
             manylinux: '2010',
             target: 'x86_64-unknown-linux-gnu',
-            container: 'quay.io/pypa/manylinux2010_x86_64',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
           {
             manylinux: '2010',
             target: 'i686-unknown-linux-gnu',
-            container: 'quay.io/pypa/manylinux2010_i686',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
           {
             manylinux: '2014',
             target: 'aarch64-unknown-linux-gnu',
-            container: 'messense/manylinux2014-cross:aarch64',
             test-crate: 'maturin/test-crates/pyo3-pure'  # abi3
           },
           {
             manylinux: '2014',
             target: 'armv7-unknown-linux-gnueabihf',
-            container: 'messense/manylinux2014-cross:armv7',
             test-crate: 'maturin/test-crates/pyo3-pure'  # abi3
           },
         ]
@@ -90,4 +86,3 @@ jobs:
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
-          container: ${{ matrix.platform.container }}
