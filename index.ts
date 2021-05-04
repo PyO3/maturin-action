@@ -94,7 +94,7 @@ async function dockerBuild(tag: string, args: string[]) {
         // Stop on first error
         'set -e',
         // Install Rust
-        'which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable',
+        'which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable',
         'export PATH="$HOME/.cargo/bin:$PATH"',
         // Add all supported python versions to PATH
         'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
