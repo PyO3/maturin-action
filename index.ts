@@ -86,7 +86,14 @@ async function dockerBuild(tag: string, args: string[]) {
         // override entrypoint
         dockerArgs.push('--entrypoint', '/bin/bash');
     }
+
+    core.startGroup('Pull Docker image');
     core.info(`Using ${image} Docker image`);
+    const exitCode = await exec.exec('docker', ['pull', image]);
+    if (exitCode != 0) {
+        throw `maturin: 'docker pull' returned ${exitCode}`;
+    }
+    core.endGroup();
 
     const url = `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-x86_64-unknown-linux-musl.tar.gz`;
     const commands = [
@@ -102,7 +109,7 @@ async function dockerBuild(tag: string, args: string[]) {
         'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
         // Install maturin
         'echo "::group::Install maturin"',
-        `curl -sqL ${url} | tar -xz -C /usr/local/bin`,
+        `curl -L ${url} | tar -xz -C /usr/local/bin`,
         'echo "::endgroup::"',
     ];
     const target = core.getInput('target');
