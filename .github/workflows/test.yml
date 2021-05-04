@@ -31,3 +31,30 @@ jobs:
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: '2010'
+
+  test-manylinux:
+    name: Manylinux Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [
+          { manylinux: '2010', target: 'x86_64-unknown-linux-gnu', container: 'quay.io/pypa/manylinux2010_x86_64' },
+          { manylinux: '2010', target: 'i686-unknown-linux-gnu', container: 'quay.io/pypa/manylinux2010_i686' },
+          # { manylinux: '2014', target: 'aarch64-unknown-linux-gnu', container: 'messense/manylinux2014-cross:aarch64' },
+          # { manylinux: '2014', target: 'armv7-unknown-linux-gnueabihf', container: 'messense/manylinux2014-cross:armv7' },
+        ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: PyO3/maturin
+          ref: main
+          path: maturin
+      - name: maturin build
+        uses: ./
+        with:
+          maturin-version: '0.10.2'
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          manylinux: ${{ matrix.platform.manylinux }}
+          target: ${{ matrix.platform.target }}
+          container: ${{ matrix.platform.container }}

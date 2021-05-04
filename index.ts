@@ -14,12 +14,16 @@ const IS_LINUX = process.platform == 'linux';
 async function findVersion(): Promise<string> {
     const version = core.getInput('maturin-version');
     if (version !== 'latest') {
+        if (!version.startsWith('v')) {
+            core.info(`Corrected maturin-version from '${version}' to 'v${version}'`)
+            return `v${version}`;
+        }
         return version;
     }
 
     core.info('Searching the latest version of maturin ...');
     const http = new httpclient.HttpClient('messense/maturin-action', [], {
-        allowRetries: false
+        allowRetries: true
     });
     const response = await http.get('https://api.github.com/repos/PyO3/maturin/releases/latest');
     const body = await response.readBody();
@@ -73,20 +77,37 @@ async function installMaturin(tag: string): Promise<string> {
 async function dockerBuild(tag: string, args: string[]) {
     let image: string;
     const container = core.getInput('container');
-    if (container.indexOf(':') !== -1) {
+    let dockerArgs = [];
+    if (container.indexOf(':') !== -1 || !container.startsWith('konstin2/maturin')) {
         image = container;
     } else {
+        // konstin2/maturin support
         image = `${container}:${tag}`;
+        // override entrypoint
+        dockerArgs.push('--entrypoint', '/bin/bash');
     }
     core.info(`Using ${image} Docker image`);
-    const workspace = process.env.GITHUB_WORKSPACE!;
 
-    const commands = ['#!/bin/bash'];
+    const url = `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-x86_64-unknown-linux-musl.tar.gz`;
+    const commands = [
+        '#!/bin/bash',
+        // Stop on first error
+        'set -e',
+        // Install Rust
+        'which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable',
+        'export PATH="$HOME/.cargo/bin:$PATH"',
+        // Add all supported python versions to PATH
+        'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
+        // Install maturin
+        `curl -sqL ${url} | tar -xz -C /usr/local/bin`
+    ];
     const target = core.getInput('target');
     if (target.length > 0) {
         commands.push(`rustup target add ${target}`);
     }
     commands.push(`maturin ${args.join(' ')}`);
+
+    const workspace = process.env.GITHUB_WORKSPACE!;
     const scriptPath = path.join(workspace, 'run-maturin-action.sh');
     writeFileSync(
         scriptPath,
@@ -99,12 +120,11 @@ async function dockerBuild(tag: string, args: string[]) {
         [
             'run',
             '--rm',
-            '--entrypoint',
-            '/bin/bash',
             '--workdir',
             workspace,
             '-v',
             `${workspace}:${workspace}`,
+            ...dockerArgs,
             image,
             scriptPath
         ]
