@@ -53,6 +53,10 @@ Only passed to maturin `build` and `publish` commands.
 **Optional** manylinux docker container image name, it should have Rust and maturin preinstalled.
 Defaults to [`konstin2/maturin`](https://hub.docker.com/r/konstin2/maturin)
 
+### `rust-toolchain`
+
+**Optional** Rust toolchain name. Defaults to `stable` for Docker build.
+
 ## License
 
 This work is released under the MIT license. A copy of the license is provided in the [LICENSE](./LICENSE) file.

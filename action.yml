@@ -21,6 +21,11 @@ inputs:
   target:
     description: The --target option for cargo
     required: false
+  rust-toolchain:
+    description: |
+      Rust toolchain name.
+      See https://rust-lang.github.io/rustup/concepts/toolchains.html#toolchain-specification
+    required: false
 
 runs:
   using: 'node12'

@@ -102,14 +102,17 @@ async function dockerBuild(tag: string, args: string[]) {
     core.endGroup();
 
     const url = `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-x86_64-unknown-linux-musl.tar.gz`;
+    // Defaults to stable for Docker build
+    const rustToolchain = core.getInput('rust-toolchain') || 'stable';
     const commands = [
         '#!/bin/bash',
         // Stop on first error
         'set -e',
         // Install Rust
         'echo "::group::Install Rust"',
-        'which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable',
+        `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
         'export PATH="$HOME/.cargo/bin:$PATH"',
+        `rustup override set ${rustToolchain}`,
         'echo "::endgroup::"',
         // Add all supported python versions to PATH
         'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
@@ -120,7 +123,11 @@ async function dockerBuild(tag: string, args: string[]) {
     ];
     const target = core.getInput('target');
     if (target.length > 0) {
-        commands.push(`rustup target add ${target}`);
+        commands.push(
+            'echo "::group::Install Rust target"',
+            `rustup target add ${target}`,
+            'echo "::endgroup::"'
+        );
     }
     commands.push(`maturin ${args.join(' ')}`);
 
@@ -152,14 +159,19 @@ async function dockerBuild(tag: string, args: string[]) {
  * Install Rust target using rustup
  * @param target Rust target name
  */
-async function installRustTarget(target: string) {
+async function installRustTarget(target: string, toolchain: string) {
     if (!target || target.length == 0) {
         return;
     }
-    await exec.exec('rustup', ['target', 'add', target]);
+    if (toolchain.length > 0) {
+        await exec.exec('rustup', ['target', 'add', '--toolchain', toolchain, target]);
+    } else {
+        await exec.exec('rustup', ['target', 'add', target]);
+    }
 }
 
 async function innerMain() {
+    const rustToolchain = core.getInput('rust-toolchain');
     const inputArgs = core.getInput('args');
     const args = stringArgv(inputArgs);
     const command = core.getInput('command');
@@ -181,7 +193,12 @@ async function innerMain() {
             args.push('--target', target);
         }
         if (!useDocker) {
-            await installRustTarget(target);
+            core.startGroup('Install Rust target')
+            if (rustToolchain.length > 0) {
+                await exec.exec('rustup', ['override', 'set', rustToolchain]);
+            }
+            await installRustTarget(target, rustToolchain);
+            core.endGroup();
         }
     }
 
@@ -207,8 +224,8 @@ async function innerMain() {
         }
         if (isUniversal2) {
             core.startGroup('Prepare macOS universal2 build environment')
-            await installRustTarget('x86_64-apple-darwin');
-            await installRustTarget('aarch64-apple-darwin');
+            await installRustTarget('x86_64-apple-darwin', rustToolchain);
+            await installRustTarget('aarch64-apple-darwin', rustToolchain);
             env.DEVELOPER_DIR = '/Applications/Xcode.app/Contents/Developer';
             env.MACOSX_DEPLOYMENT_TARGET = '10.9';
             env.PYO3_CROSS_LIB_DIR = '/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.8/lib';
