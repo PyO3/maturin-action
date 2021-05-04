@@ -94,12 +94,16 @@ async function dockerBuild(tag: string, args: string[]) {
         // Stop on first error
         'set -e',
         // Install Rust
+        'echo "::group::Install Rust"',
         'which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable',
         'export PATH="$HOME/.cargo/bin:$PATH"',
+        'echo "::endgroup::"',
         // Add all supported python versions to PATH
         'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
         // Install maturin
-        `curl -sqL ${url} | tar -xz -C /usr/local/bin`
+        'echo "::group::Install maturin"',
+        `curl -sqL ${url} | tar -xz -C /usr/local/bin`,
+        'echo "::endgroup::"',
     ];
     const target = core.getInput('target');
     if (target.length > 0) {
@@ -174,7 +178,7 @@ async function innerMain() {
     if (useDocker) {
         exitCode = await dockerBuild(tag, args);
     } else {
-        core.startGroup('install maturin');
+        core.startGroup('Install maturin');
         core.info(`Installing 'maturin' from tag '${tag}'`);
         const maturinPath = await installMaturin(tag);
         core.info(`Installed 'maturin' to ${maturinPath}`);
