@@ -2,9 +2,23 @@ name: Test
 on: [push, pull_request]
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: npm install
+        run: npm install
+      - name: lint
+        run: npm run lint
+
   test:
     name: Test Suite
     runs-on: ${{ matrix.os }}
+    needs: [lint]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -46,6 +60,7 @@ jobs:
   test-manylinux:
     name: Manylinux Test Suite
     runs-on: ubuntu-latest
+    needs: [lint]
     strategy:
       matrix:
         platform: [
