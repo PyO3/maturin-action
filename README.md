@@ -50,8 +50,7 @@ Only passed to maturin `build` and `publish` commands.
 
 ### `container`
 
-**Optional** manylinux docker container image name, it should have Rust and maturin preinstalled.
-Defaults to [`konstin2/maturin`](https://hub.docker.com/r/konstin2/maturin)
+**Optional** manylinux docker container image name, Default depends on `target` and `manylinux` options.
 
 ### `rust-toolchain`
 
