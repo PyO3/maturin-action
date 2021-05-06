@@ -15,19 +15,25 @@ const DEFAULT_MATURIN_VERSION = 'v0.10.4'
 const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'x86_64-unknown-linux-gnu': {
     '2010': 'quay.io/pypa/manylinux2010_x86_64:latest',
+    '2_12': 'quay.io/pypa/manylinux2010_x86_64:latest',
     '2014': 'quay.io/pypa/manylinux2014_x86_64:latest',
+    '2_17': 'quay.io/pypa/manylinux2014_x86_64:latest',
     '2_24': 'quay.io/pypa/manylinux_2_24_x86_64:latest'
   },
   'i686-unknown-linux-gnu': {
     '2010': 'quay.io/pypa/manylinux2010_i686:latest',
+    '2_12': 'quay.io/pypa/manylinux2010_i686:latest',
     '2014': 'quay.io/pypa/manylinux2014_i686:latest',
+    '2_17': 'quay.io/pypa/manylinux2014_i686:latest',
     '2_24': 'quay.io/pypa/manylinux_2_24_i686:latest'
   },
   'aarch64-unknown-linux-gnu': {
-    '2014': 'messense/manylinux2014-cross:aarch64'
+    '2014': 'messense/manylinux2014-cross:aarch64',
+    '2_17': 'messense/manylinux2014-cross:aarch64'
   },
   'armv7-unknown-linux-gnueabihf': {
-    '2014': 'messense/manylinux2014-cross:armv7'
+    '2014': 'messense/manylinux2014-cross:armv7',
+    '2_17': 'messense/manylinux2014-cross:armv7'
   }
 }
 
