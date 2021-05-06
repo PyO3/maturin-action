@@ -60,7 +60,7 @@ jobs:
         uses: ./
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
-          manylinux: '2010'
+          manylinux: '2_24'
           container: 'off'
 
   test-manylinux:
