@@ -51,6 +51,7 @@ Only passed to maturin `build` and `publish` commands.
 ### `container`
 
 **Optional** manylinux docker container image name, Default depends on `target` and `manylinux` options.
+Set to `off` to disable manylinux docker build and build on the host instead.
 
 ### `rust-toolchain`
 

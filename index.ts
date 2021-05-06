@@ -243,7 +243,8 @@ async function innerMain(): Promise<void> {
     const manylinux = core.getInput('manylinux')
     if (manylinux.length > 0 && IS_LINUX) {
       args.push('--manylinux', manylinux)
-      useDocker = manylinux !== 'off'
+      // User can disable Docker build by set manylinux/container to off
+      useDocker = manylinux !== 'off' && core.getInput('container') !== 'off'
     }
 
     const target = core.getInput('target')
