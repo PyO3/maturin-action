@@ -95,11 +95,11 @@ jobs:
             target: 'powerpc64le-unknown-linux-gnu',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
-          {
-            manylinux: '2014',
-            target: 's390x-unknown-linux-gnu',
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
+          # {
+          #   manylinux: '2014',
+          #   target: 's390x-unknown-linux-gnu',
+          #   test-crate: 'maturin/test-crates/pyo3-mixed'
+          # },
         ]
         toolchain: [stable, nightly]
     steps:
