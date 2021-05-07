@@ -29,7 +29,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   },
   'aarch64-unknown-linux-gnu': {
     '2014': 'messense/manylinux2014-cross:aarch64',
-    '2_17': 'messense/manylinux2014-cross:aarch64'
+    '2_17': 'messense/manylinux2014-cross:aarch64',
+    '2_24': 'quay.io/pypa/manylinux_2_24_aarch64:latest'
   },
   'armv7-unknown-linux-gnueabihf': {
     '2014': 'messense/manylinux2014-cross:armv7',

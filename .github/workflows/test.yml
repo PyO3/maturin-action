@@ -95,11 +95,11 @@ jobs:
             target: 'powerpc64le-unknown-linux-gnu',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
-          # {
-          #   manylinux: '2014',
-          #   target: 's390x-unknown-linux-gnu',
-          #   test-crate: 'maturin/test-crates/pyo3-mixed'
-          # },
+          {
+            manylinux: '2014',
+            target: 's390x-unknown-linux-gnu',
+            test-crate: 'maturin/test-crates/pyo3-mixed'
+          },
         ]
         toolchain: [stable, nightly]
     steps:
@@ -117,9 +117,11 @@ jobs:
           platforms: all
       - name: maturin build
         uses: ./
+        env:
+          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
-          maturin-version: '0.10.2'
+          maturin-version: 'v0.10.5-beta.3'
           rust-toolchain: ${{ matrix.toolchain }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
