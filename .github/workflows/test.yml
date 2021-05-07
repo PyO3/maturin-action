@@ -90,6 +90,16 @@ jobs:
             target: 'armv7-unknown-linux-gnueabihf',
             test-crate: 'maturin/test-crates/pyo3-pure'  # abi3
           },
+          {
+            manylinux: '2014',
+            target: 'powerpc64le-unknown-linux-gnu',
+            test-crate: 'maturin/test-crates/pyo3-mixed'
+          },
+          {
+            manylinux: '2014',
+            target: 's390x-unknown-linux-gnu',
+            test-crate: 'maturin/test-crates/pyo3-mixed'
+          },
         ]
         toolchain: [stable, nightly]
     steps:
@@ -99,6 +109,12 @@ jobs:
           repository: PyO3/maturin
           ref: main
           path: maturin
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
       - name: maturin build
         uses: ./
         with:

@@ -34,6 +34,16 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'armv7-unknown-linux-gnueabihf': {
     '2014': 'messense/manylinux2014-cross:armv7',
     '2_17': 'messense/manylinux2014-cross:armv7'
+  },
+  'powerpc64le-unknown-linux-gnu': {
+    '2014': 'quay.io/pypa/manylinux2014_ppc64le:latest',
+    '2_17': 'quay.io/pypa/manylinux2014_ppc64le:latest',
+    '2_24': 'quay.io/pypa/manylinux_2_24_ppc64le:latest'
+  },
+  's390x-unknown-linux-gnu': {
+    '2014': 'quay.io/pypa/manylinux2014_s390x',
+    '2_17': 'quay.io/pypa/manylinux2014_s390x',
+    '2_24': 'quay.io/pypa/manylinux_2_24_s390x'
   }
 }
 
