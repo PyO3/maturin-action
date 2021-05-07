@@ -42,8 +42,10 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_24': 'quay.io/pypa/manylinux_2_24_ppc64le:latest'
   },
   's390x-unknown-linux-gnu': {
-    '2014': 'quay.io/pypa/manylinux2014_s390x',
-    '2_17': 'quay.io/pypa/manylinux2014_s390x',
+    // '2014': 'quay.io/pypa/manylinux2014_s390x',
+    // '2_17': 'quay.io/pypa/manylinux2014_s390x',
+    '2014': 'messense/manylinux2014-cross:s390x',
+    '2_17': 'messense/manylinux2014-cross:s390x',
     '2_24': 'quay.io/pypa/manylinux_2_24_s390x'
   }
 }
