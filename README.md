@@ -12,6 +12,13 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
     profile: minimal
     toolchain: stable
     override: true
+# Use QEMU for platforms lacks cross compilers
+- name: Set up QEMU
+  id: qemu
+  uses: docker/setup-qemu-action@v1
+  with:
+    image: tonistiigi/binfmt:latest
+    platforms: all
 - uses: messense/maturin-action@v1
   with:
     maturin-version: latest
@@ -25,38 +32,40 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 
 ## Inputs
 
-### `command`
+| Name            | Required | Description                                                             | Type                                  | Default                                                                                                                            |
+| --------------- | :------: | ----------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| command         |    No    | `maturin` command to run                                                | string                                | `build`                                                                                                                            |
+| args            |    No    | Arguments to pass to `maturin` subcommand                               | string                                |                                                                                                                                    |
+| maturin-version |    No    | The version of `maturin` to use. Must match a [tagged release]          | string                                | `latest`                                                                                                                           |
+| manylinux       |    No    | Control the manylinux platform tag on linux, ignored on other platforms | string                                |                                                                                                                                    |
+| target          |    No    | The `--target` option for Cargo                                         | string                                |                                                                                                                                    |
+| container       |    No    | manylinux docker container image name                                   | string                                | Default depends on `target` and `manylinux` options, Set to `off` to disable manylinux docker build and build on the host instead. |
+| rust-toolchain  |    No    | Rust toolchain name                                                     | Defaults to `stable` for Docker build |
 
-**Optional** `maturin` command to run. Defaults to `build`.
+## `manylinux` Docker container
 
-### `args`
+By default, this action uses the following containers for supported architectures and manylinux versions.
 
-**Optional** Arguments to pass to the `maturin` command.
+| Architecture | Manylinux version     | Default container                            | Requires QEMU |
+| ------------ | --------------------- | -------------------------------------------- | ------------- |
+| x86_64       | 2010/2_12             | quay.io/pypa/manylinux2010_x86_64:latest     | No            |
+| x86_64       | 2014/2_17             | quay.io/pypa/manylinux2014_x86_64:latest     | No            |
+| x86_64       | 2_24                  | quay.io/pypa/manylinux_2_24_x86_64:latest    | No            |
+| i686         | 2010/2_12             | quay.io/pypa/manylinux2010_i686:latest       | No            |
+| i686         | 2014/2_17             | quay.io/pypa/manylinux2014_i686:latest       | No            |
+| i686         | 2_24                  | quay.io/pypa/manylinux_2_24_i686:latest      | No            |
+| aarch64      | 2014/2_27             | messense/manylinux2014-cross:aarch64         | No            |
+| aarch64      | 2_24                  | quay.io/pypa/manylinux_2_24_aarch64:latest   | Yes           |
+| armv7l       | 2014/2_17             | messense/manylinux2014-cross:armv7           | No            |
+| ppc64le      | 2014/2_17             | quay.io/pypa/manylinux2014_ppc64le:latest    | Yes           |
+| ppc64le      | 2_24                  | messense/manylinux_2_24-cross:ppc64le        | No            |
+| s390x        | 2014/2_27             | messense/manylinux2014-cross:s390x           | No            |
+| s390x        | 2_24                  | quay.io/pypa/manylinux_2_24_s390x:latest     | Yes           |
 
-### `maturin-version`
-
-**Optional** The version of `maturin` to use. Must match a tagged release. Defaults to `latest`.
-
-See: https://github.com/PyO3/maturin/releases
-
-### `manylinux`
-
-**Optional** Control the manylinux platform tag on linux, ignored on other platforms.
-Only passed to maturin `build` and `publish` commands.
-
-### `target`
-
-**Optional** The `--target` option for Cargo. Only passed to maturin `build` and `publish` commands.
-
-### `container`
-
-**Optional** manylinux docker container image name, Default depends on `target` and `manylinux` options.
-Set to `off` to disable manylinux docker build and build on the host instead.
-
-### `rust-toolchain`
-
-**Optional** Rust toolchain name. Defaults to `stable` for Docker build.
+You can override it by supplying the `container` input.
 
 ## License
 
 This work is released under the MIT license. A copy of the license is provided in the [LICENSE](./LICENSE) file.
+
+[tagged release]: https://github.com/PyO3/maturin/releases
