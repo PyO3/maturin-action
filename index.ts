@@ -14,6 +14,7 @@ const DEFAULT_MATURIN_VERSION = 'v0.10.4'
 
 const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'x86_64-unknown-linux-gnu': {
+    auto: 'quay.io/pypa/manylinux2010_x86_64:latest',
     '2010': 'quay.io/pypa/manylinux2010_x86_64:latest',
     '2_12': 'quay.io/pypa/manylinux2010_x86_64:latest',
     '2014': 'quay.io/pypa/manylinux2014_x86_64:latest',
@@ -21,6 +22,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_24': 'quay.io/pypa/manylinux_2_24_x86_64:latest'
   },
   'i686-unknown-linux-gnu': {
+    auto: 'quay.io/pypa/manylinux2010_i686:latest',
     '2010': 'quay.io/pypa/manylinux2010_i686:latest',
     '2_12': 'quay.io/pypa/manylinux2010_i686:latest',
     '2014': 'quay.io/pypa/manylinux2014_i686:latest',
@@ -28,21 +30,25 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_24': 'quay.io/pypa/manylinux_2_24_i686:latest'
   },
   'aarch64-unknown-linux-gnu': {
+    auto: 'messense/manylinux2014-cross:aarch64',
     '2014': 'messense/manylinux2014-cross:aarch64',
     '2_17': 'messense/manylinux2014-cross:aarch64',
     '2_24': 'quay.io/pypa/manylinux_2_24_aarch64:latest'
   },
   'armv7-unknown-linux-gnueabihf': {
+    auto: 'messense/manylinux2014-cross:armv7',
     '2014': 'messense/manylinux2014-cross:armv7',
     '2_17': 'messense/manylinux2014-cross:armv7'
   },
   'powerpc64le-unknown-linux-gnu': {
+    auto: 'messense/manylinux_2_24-cross:ppc64le',
     '2014': 'quay.io/pypa/manylinux2014_ppc64le:latest',
     '2_17': 'quay.io/pypa/manylinux2014_ppc64le:latest',
     // '2_24': 'quay.io/pypa/manylinux_2_24_ppc64le:latest'
     '2_24': 'messense/manylinux_2_24-cross:ppc64le'
   },
   's390x-unknown-linux-gnu': {
+    auto: 'messense/manylinux2014-cross:s390x',
     // '2014': 'quay.io/pypa/manylinux2014_s390x',
     // '2_17': 'quay.io/pypa/manylinux2014_s390x',
     '2014': 'messense/manylinux2014-cross:s390x',
@@ -268,7 +274,10 @@ async function innerMain(): Promise<void> {
   if (['build', 'publish'].includes(command)) {
     const manylinux = core.getInput('manylinux')
     if (manylinux.length > 0 && IS_LINUX) {
-      args.push('--manylinux', manylinux)
+      if (manylinux !== 'auto') {
+        // Use lowest compatible manylinux version
+        args.push('--manylinux', manylinux)
+      }
       // User can disable Docker build by set manylinux/container to off
       useDocker = manylinux !== 'off' && core.getInput('container') !== 'off'
     }
