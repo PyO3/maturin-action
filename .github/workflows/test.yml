@@ -111,6 +111,11 @@ jobs:
             target: 's390x-unknown-linux-gnu',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
+          {
+            manylinux: 'auto',
+            target: 'x86_64-unknown-linux-musl',  # MUSL
+            test-crate: 'maturin/test-crates/hello-world'  # binary
+          },
         ]
         toolchain: [stable, nightly]
     steps:

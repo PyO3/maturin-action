@@ -21,6 +21,9 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_17': 'quay.io/pypa/manylinux2014_x86_64:latest',
     '2_24': 'quay.io/pypa/manylinux_2_24_x86_64:latest'
   },
+  'x86_64-unknown-linux-musl': {
+    auto: 'messense/rust-musl-cross:x86_64-musl'
+  },
   'i686-unknown-linux-gnu': {
     auto: 'quay.io/pypa/manylinux2010_i686:latest',
     '2010': 'quay.io/pypa/manylinux2010_i686:latest',
@@ -29,16 +32,25 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_17': 'quay.io/pypa/manylinux2014_i686:latest',
     '2_24': 'quay.io/pypa/manylinux_2_24_i686:latest'
   },
+  'i686-unknown-linux-musl': {
+    auto: 'messense/rust-musl-cross:i686-musl'
+  },
   'aarch64-unknown-linux-gnu': {
     auto: 'messense/manylinux2014-cross:aarch64',
     '2014': 'messense/manylinux2014-cross:aarch64',
     '2_17': 'messense/manylinux2014-cross:aarch64',
     '2_24': 'quay.io/pypa/manylinux_2_24_aarch64:latest'
   },
+  'aarch64-unknown-linux-musl': {
+    auto: 'messense/rust-musl-cross:aarch64-musl'
+  },
   'armv7-unknown-linux-gnueabihf': {
     auto: 'messense/manylinux2014-cross:armv7',
     '2014': 'messense/manylinux2014-cross:armv7',
     '2_17': 'messense/manylinux2014-cross:armv7'
+  },
+  'armv7-unknown-linux-musleabihf': {
+    auto: 'messense/rust-musl-cross:armv7-musleabihf'
   },
   'powerpc64le-unknown-linux-gnu': {
     auto: 'messense/manylinux_2_24-cross:ppc64le',
@@ -46,6 +58,9 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_17': 'quay.io/pypa/manylinux2014_ppc64le:latest',
     // '2_24': 'quay.io/pypa/manylinux_2_24_ppc64le:latest'
     '2_24': 'messense/manylinux_2_24-cross:ppc64le'
+  },
+  'powerpc64le-unknown-linux-musl': {
+    auto: 'messense/rust-musl-cross:powerpc64le-musl'
   },
   's390x-unknown-linux-gnu': {
     auto: 'messense/manylinux2014-cross:s390x',
