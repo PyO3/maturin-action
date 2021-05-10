@@ -78,7 +78,7 @@ jobs:
         platform: [
           {
             manylinux: '2010',
-            target: 'x86_64-unknown-linux-gnu',
+            target: 'x86_64',  # Test target alias
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
           {
@@ -108,7 +108,7 @@ jobs:
           },
           {
             manylinux: '2014',
-            target: 's390x-unknown-linux-gnu',
+            target: 's390x',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
           {

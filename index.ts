@@ -72,6 +72,24 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   }
 }
 
+const TARGET_ALIASES: Record<string, string> = {
+  x86_64: 'x86_64-unknown-linux-gnu',
+  i686: 'i686-unknown-linux-gnu',
+  aarch64: 'aarch64-unknown-linux-gnu',
+  armv7: 'armv7-unknown-linux-gnueabihf',
+  armv7l: 'armv7-unknown-linux-gnueabihf',
+  ppc64le: 'powerpc64le-unknown-linux-gnu',
+  s390x: 's390x-unknown-linux-gnu'
+}
+
+/**
+ * Get Rust target full name
+ */
+function getRustTarget(): string {
+  const target = core.getInput('target')
+  return TARGET_ALIASES[target] || target
+}
+
 /**
  * Find maturin version
  */
@@ -158,7 +176,7 @@ async function installMaturin(tag: string): Promise<string> {
  */
 async function dockerBuild(tag: string, args: string[]): Promise<number> {
   const manylinux = core.getInput('manylinux')
-  const target = core.getInput('target')
+  const target = getRustTarget()
   let container = core.getInput('container')
   if (container.length === 0) {
     // Get default Docker container with fallback to konstin2/maturin
@@ -297,7 +315,7 @@ async function innerMain(): Promise<void> {
       useDocker = manylinux !== 'off' && core.getInput('container') !== 'off'
     }
 
-    const target = core.getInput('target')
+    const target = getRustTarget()
     if (target.length > 0) {
       args.push('--target', target)
     }
