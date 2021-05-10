@@ -72,14 +72,28 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   }
 }
 
-const TARGET_ALIASES: Record<string, string> = {
-  x86_64: 'x86_64-unknown-linux-gnu',
-  i686: 'i686-unknown-linux-gnu',
-  aarch64: 'aarch64-unknown-linux-gnu',
-  armv7: 'armv7-unknown-linux-gnueabihf',
-  armv7l: 'armv7-unknown-linux-gnueabihf',
-  ppc64le: 'powerpc64le-unknown-linux-gnu',
-  s390x: 's390x-unknown-linux-gnu'
+/**
+ * Rust target aliases by platform
+ */
+const TARGET_ALIASES: Record<string, Record<string, string>> = {
+  darwin: {
+    x86_64: 'x86_64-apple-darwin',
+    aarch64: 'aarch64-apple-darwin'
+  },
+  linux: {
+    x86_64: 'x86_64-unknown-linux-gnu',
+    i686: 'i686-unknown-linux-gnu',
+    aarch64: 'aarch64-unknown-linux-gnu',
+    armv7: 'armv7-unknown-linux-gnueabihf',
+    armv7l: 'armv7-unknown-linux-gnueabihf',
+    ppc64le: 'powerpc64le-unknown-linux-gnu',
+    s390x: 's390x-unknown-linux-gnu'
+  },
+  win32: {
+    x86_64: 'x86_64-pc-windows-msvc',
+    i686: 'i686-pc-windows-msvc',
+    aarch64: 'aarch64-pc-windows-msvc'
+  }
 }
 
 /**
@@ -87,7 +101,7 @@ const TARGET_ALIASES: Record<string, string> = {
  */
 function getRustTarget(): string {
   const target = core.getInput('target')
-  return TARGET_ALIASES[target] || target
+  return TARGET_ALIASES[process.platform]?.[target] || target
 }
 
 /**
