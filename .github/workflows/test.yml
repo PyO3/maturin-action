@@ -62,6 +62,7 @@ jobs:
         uses: ./
         with:
           rust-toolchain: nightly
+          maturin-version: 'v0.10.5-beta.5'
           args: -m maturin/test-crates/hello-world/Cargo.toml
           manylinux: 'auto'
           target: 'powerpc64le-unknown-linux-musl'
