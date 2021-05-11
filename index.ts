@@ -240,7 +240,7 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
   if (target.length > 0) {
     commands.push(
       'echo "::group::Install Rust target"',
-      `rustup target add ${target}`,
+      `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`,
       'echo "::endgroup::"'
     )
   }
