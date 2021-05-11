@@ -1,11 +1,13 @@
 import * as core from '@actions/core'
 import * as httpclient from '@actions/http-client'
-import {promises as fs, writeFileSync} from 'fs'
+import {promises as fs, writeFileSync, existsSync} from 'fs'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as path from 'path'
 import stringArgv from 'string-argv'
+
+import * as mexec from './exec'
 
 const IS_MACOS = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'
@@ -294,6 +296,17 @@ async function installRustTarget(
   toolchain: string
 ): Promise<void> {
   if (!target || target.length === 0) {
+    return
+  }
+  const args = ['--print', 'target-libdir', '--target', target]
+  if (toolchain.length > 0) {
+    args.unshift(`+${toolchain}`)
+  }
+  const res = await mexec.exec('rustc', args, true)
+  if (res.stderr !== '' && !res.success) {
+    throw new Error(res.stderr)
+  } else if (existsSync(res.stdout.trim())) {
+    // Target already installed
     return
   }
   if (toolchain.length > 0) {

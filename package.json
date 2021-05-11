@@ -2,9 +2,9 @@
   "name": "maturin-action",
   "version": "1.8.1",
   "description": "GitHub Action to install and run a custom maturin command",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build index.ts -o dist --minify",
+    "build": "ncc build src/index.ts -o dist --minify",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint **/*.ts",
