@@ -137,7 +137,7 @@ jobs:
           RUST_BACKTRACE: '1'
           PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
-          maturin-version: 'v0.10.5-beta.4'
+          maturin-version: 'v0.10.5-beta.5'
           container: ${{ matrix.platform.container }}
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
