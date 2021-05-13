@@ -55,9 +55,9 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     auto: 'messense/rust-musl-cross:armv7-musleabihf'
   },
   'powerpc64le-unknown-linux-gnu': {
-    auto: 'messense/manylinux_2_24-cross:ppc64le',
-    '2014': 'quay.io/pypa/manylinux2014_ppc64le:latest',
-    '2_17': 'quay.io/pypa/manylinux2014_ppc64le:latest',
+    auto: 'messense/manylinux2014-cross:ppc64le',
+    '2014': 'messense/manylinux2014-cross:ppc64le',
+    '2_17': 'messense/manylinux2014-cross:ppc64le',
     // '2_24': 'quay.io/pypa/manylinux_2_24_ppc64le:latest'
     '2_24': 'messense/manylinux_2_24-cross:ppc64le'
   },
