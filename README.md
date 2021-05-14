@@ -56,13 +56,13 @@ By default, this action uses the following containers for supported architecture
 | i686         | 2010/2_12         | quay.io/pypa/manylinux2010_i686:latest     | No            |
 | i686         | 2014/2_17         | quay.io/pypa/manylinux2014_i686:latest     | No            |
 | i686         | 2_24              | quay.io/pypa/manylinux_2_24_i686:latest    | No            |
-| aarch64      | 2014/2_27         | messense/manylinux2014-cross:aarch64       | No            |
+| aarch64      | 2014/2_17         | messense/manylinux2014-cross:aarch64       | No            |
 | aarch64      | 2_24              | quay.io/pypa/manylinux_2_24_aarch64:latest | Yes           |
 | armv7l       | 2014/2_17         | messense/manylinux2014-cross:armv7         | No            |
 | ppc64le      | 2014/2_17         | messense/manylinux2014-cross:ppc64le       | No            |
 | ppc64le      | 2_24              | messense/manylinux_2_24-cross:ppc64le      | No            |
-| ppc64        | 2104/2_b7         | messense/manylinux2014-cross:ppc64         | No            |
-| s390x        | 2014/2_27         | messense/manylinux2014-cross:s390x         | No            |
+| ppc64        | 2014/2_17         | messense/manylinux2014-cross:ppc64         | No            |
+| s390x        | 2014/2_17         | messense/manylinux2014-cross:s390x         | No            |
 | s390x        | 2_24              | quay.io/pypa/manylinux_2_24_s390x:latest   | Yes           |
 
 You can override it by supplying the `container` input.
