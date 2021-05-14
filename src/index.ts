@@ -94,6 +94,7 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
     armv7: 'armv7-unknown-linux-gnueabihf',
     armv7l: 'armv7-unknown-linux-gnueabihf',
     ppc64le: 'powerpc64le-unknown-linux-gnu',
+    ppc64: 'powerpc64-unknown-linux-gnu',
     s390x: 's390x-unknown-linux-gnu'
   },
   win32: {
