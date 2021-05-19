@@ -84,12 +84,15 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
  */
 const TARGET_ALIASES: Record<string, Record<string, string>> = {
   darwin: {
+    x64: 'x86_64-apple-darwin',
     x86_64: 'x86_64-apple-darwin',
     aarch64: 'aarch64-apple-darwin'
   },
   linux: {
+    x64: 'x86_64-unknown-linux-gnu',
     x86_64: 'x86_64-unknown-linux-gnu',
     i686: 'i686-unknown-linux-gnu',
+    x86: 'i686-unknown-linux-gnu',
     aarch64: 'aarch64-unknown-linux-gnu',
     armv7: 'armv7-unknown-linux-gnueabihf',
     armv7l: 'armv7-unknown-linux-gnueabihf',
@@ -98,8 +101,10 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
     s390x: 's390x-unknown-linux-gnu'
   },
   win32: {
+    x64: 'x86_64-pc-windows-msvc',
     x86_64: 'x86_64-pc-windows-msvc',
     i686: 'i686-pc-windows-msvc',
+    x86: 'i686-pc-windows-msvc',
     aarch64: 'aarch64-pc-windows-msvc'
   }
 }
