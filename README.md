@@ -12,13 +12,6 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
     profile: minimal
     toolchain: stable
     override: true
-# Use QEMU for platforms lacks cross compilers
-- name: Set up QEMU
-  id: qemu
-  uses: docker/setup-qemu-action@v1
-  with:
-    image: tonistiigi/binfmt:latest
-    platforms: all
 - uses: messense/maturin-action@v1
   with:
     maturin-version: latest
@@ -48,24 +41,42 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 
 By default, this action uses the following containers for supported architectures and manylinux versions.
 
-| Architecture | Manylinux version | Default container                          | Requires QEMU |
-| ------------ | ----------------- | ------------------------------------------ | ------------- |
-| x86_64       | 2010/2_12         | quay.io/pypa/manylinux2010_x86_64:latest   | No            |
-| x86_64       | 2014/2_17         | quay.io/pypa/manylinux2014_x86_64:latest   | No            |
-| x86_64       | 2_24              | quay.io/pypa/manylinux_2_24_x86_64:latest  | No            |
-| i686         | 2010/2_12         | quay.io/pypa/manylinux2010_i686:latest     | No            |
-| i686         | 2014/2_17         | quay.io/pypa/manylinux2014_i686:latest     | No            |
-| i686         | 2_24              | quay.io/pypa/manylinux_2_24_i686:latest    | No            |
-| aarch64      | 2014/2_17         | messense/manylinux2014-cross:aarch64       | No            |
-| aarch64      | 2_24              | quay.io/pypa/manylinux_2_24_aarch64:latest | Yes           |
-| armv7l       | 2014/2_17         | messense/manylinux2014-cross:armv7         | No            |
-| ppc64le      | 2014/2_17         | messense/manylinux2014-cross:ppc64le       | No            |
-| ppc64le      | 2_24              | messense/manylinux_2_24-cross:ppc64le      | No            |
-| ppc64        | 2014/2_17         | messense/manylinux2014-cross:ppc64         | No            |
-| s390x        | 2014/2_17         | messense/manylinux2014-cross:s390x         | No            |
-| s390x        | 2_24              | quay.io/pypa/manylinux_2_24_s390x:latest   | Yes           |
+| Architecture | Manylinux version | Default container                         |
+| ------------ | ----------------- | ----------------------------------------- |
+| x86_64       | 2010/2_12         | quay.io/pypa/manylinux2010_x86_64:latest  |
+| x86_64       | 2014/2_17         | quay.io/pypa/manylinux2014_x86_64:latest  |
+| x86_64       | 2_24              | quay.io/pypa/manylinux_2_24_x86_64:latest |
+| i686         | 2010/2_12         | quay.io/pypa/manylinux2010_i686:latest    |
+| i686         | 2014/2_17         | quay.io/pypa/manylinux2014_i686:latest    |
+| i686         | 2_24              | quay.io/pypa/manylinux_2_24_i686:latest   |
+| aarch64      | 2014/2_17         | messense/manylinux2014-cross:aarch64      |
+| aarch64      | 2_24              | messense/manylinux_2_24-cross:aarch64     |
+| armv7l       | 2014/2_17         | messense/manylinux2014-cross:armv7        |
+| armv7l       | 2_24              | messense/manylinux_2_24-cross:armv7       |
+| ppc64le      | 2014/2_17         | messense/manylinux2014-cross:ppc64le      |
+| ppc64le      | 2_24              | messense/manylinux_2_24-cross:ppc64le     |
+| ppc64        | 2014/2_17         | messense/manylinux2014-cross:ppc64        |
+| ppc64        | 2_24              | messense/manylinux_2_24-cross:ppc64       |
+| s390x        | 2014/2_17         | messense/manylinux2014-cross:s390x        |
+| s390x        | 2_24              | messense/manylinux_2_24-cross:s390x       |
 
 You can override it by supplying the `container` input.
+Note that if use official manylinux docker images for platforms other than `x86_64` and `i686`,
+you will need to setup QEMU before using this action, for example
+
+```yaml
+- name: Set up QEMU
+  id: qemu
+  uses: docker/setup-qemu-action@v1
+  with:
+    image: tonistiigi/binfmt:latest
+    platforms: all
+- uses: messense/maturin-action@v1
+  with:
+    maturin-version: latest
+    command: build
+    args: --release
+```
 
 ## License
 

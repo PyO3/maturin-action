@@ -41,7 +41,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     auto: 'messense/manylinux2014-cross:aarch64',
     '2014': 'messense/manylinux2014-cross:aarch64',
     '2_17': 'messense/manylinux2014-cross:aarch64',
-    '2_24': 'quay.io/pypa/manylinux_2_24_aarch64:latest'
+    '2_24': 'messense/manylinux_2_24-cross:aarch64'
   },
   'aarch64-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:aarch64-musl'
@@ -49,7 +49,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'armv7-unknown-linux-gnueabihf': {
     auto: 'messense/manylinux2014-cross:armv7',
     '2014': 'messense/manylinux2014-cross:armv7',
-    '2_17': 'messense/manylinux2014-cross:armv7'
+    '2_17': 'messense/manylinux2014-cross:armv7',
+    '2_24': 'messense/manylinux_2_24-cross:armv7'
   },
   'armv7-unknown-linux-musleabihf': {
     auto: 'messense/rust-musl-cross:armv7-musleabihf'
@@ -57,13 +58,13 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'powerpc64-unknown-linux-gnu': {
     auto: 'messense/manylinux2014-cross:ppc64',
     '2014': 'messense/manylinux2014-cross:ppc64',
-    '2_17': 'messense/manylinux2014-cross:ppc64'
+    '2_17': 'messense/manylinux2014-cross:ppc64',
+    '2_24': 'messense/manylinux_2_24-cross:ppc64'
   },
   'powerpc64le-unknown-linux-gnu': {
     auto: 'messense/manylinux2014-cross:ppc64le',
     '2014': 'messense/manylinux2014-cross:ppc64le',
     '2_17': 'messense/manylinux2014-cross:ppc64le',
-    // '2_24': 'quay.io/pypa/manylinux_2_24_ppc64le:latest'
     '2_24': 'messense/manylinux_2_24-cross:ppc64le'
   },
   'powerpc64le-unknown-linux-musl': {
@@ -71,11 +72,9 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   },
   's390x-unknown-linux-gnu': {
     auto: 'messense/manylinux2014-cross:s390x',
-    // '2014': 'quay.io/pypa/manylinux2014_s390x',
-    // '2_17': 'quay.io/pypa/manylinux2014_s390x',
     '2014': 'messense/manylinux2014-cross:s390x',
     '2_17': 'messense/manylinux2014-cross:s390x',
-    '2_24': 'quay.io/pypa/manylinux_2_24_s390x:latest'
+    '2_24': 'messense/manylinux_2_24-cross:s390x'
   }
 }
 
