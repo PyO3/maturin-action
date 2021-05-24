@@ -110,12 +110,12 @@ jobs:
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
           {
-            manylinux: '2_24',
+            manylinux: 'manylinux_2_24',
             target: 'powerpc64le-unknown-linux-gnu',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
           {
-            manylinux: '2014',
+            manylinux: 'manylinux2014',
             target: 's390x',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },

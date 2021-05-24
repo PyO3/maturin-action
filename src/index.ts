@@ -201,7 +201,8 @@ async function installMaturin(tag: string): Promise<string> {
  * @param args Docker args
  */
 async function dockerBuild(tag: string, args: string[]): Promise<number> {
-  const manylinux = core.getInput('manylinux')
+  // Strip `manylinux` and `manylinx_` prefix
+  const manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '')
   const target = getRustTarget()
   let container = core.getInput('container')
   if (container.length === 0) {
@@ -342,7 +343,7 @@ async function innerMain(): Promise<void> {
   let useDocker = false
   // Only build and publish commands has --manylinux and --target options
   if (['build', 'publish'].includes(command)) {
-    const manylinux = core.getInput('manylinux')
+    const manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '')
     if (manylinux.length > 0 && IS_LINUX) {
       if (manylinux !== 'auto') {
         // Use lowest compatible manylinux version
