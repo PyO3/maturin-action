@@ -58,8 +58,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'powerpc64-unknown-linux-gnu': {
     auto: 'messense/manylinux2014-cross:ppc64',
     '2014': 'messense/manylinux2014-cross:ppc64',
-    '2_17': 'messense/manylinux2014-cross:ppc64',
-    '2_24': 'messense/manylinux_2_24-cross:ppc64'
+    '2_17': 'messense/manylinux2014-cross:ppc64'
   },
   'powerpc64le-unknown-linux-gnu': {
     auto: 'messense/manylinux2014-cross:ppc64le',

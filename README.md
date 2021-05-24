@@ -56,7 +56,6 @@ By default, this action uses the following containers for supported architecture
 | ppc64le      | 2014/2_17         | messense/manylinux2014-cross:ppc64le      |
 | ppc64le      | 2_24              | messense/manylinux_2_24-cross:ppc64le     |
 | ppc64        | 2014/2_17         | messense/manylinux2014-cross:ppc64        |
-| ppc64        | 2_24              | messense/manylinux_2_24-cross:ppc64       |
 | s390x        | 2014/2_17         | messense/manylinux2014-cross:s390x        |
 | s390x        | 2_24              | messense/manylinux_2_24-cross:s390x       |
 
