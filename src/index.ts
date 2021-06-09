@@ -288,6 +288,8 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
     'PYO3_CROSS_LIB_DIR',
     '-e',
     'PYO3_CROSS_PYTHON_VERSION',
+    '-e',
+    '_PYTHON_SYSCONFIGDATA_NAME',
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
     `${workspace}:${workspace}`,
