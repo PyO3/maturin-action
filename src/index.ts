@@ -154,13 +154,14 @@ async function findVersion(): Promise<string> {
 async function downloadMaturin(tag: string): Promise<string> {
   let name: string
   let zip = false
+  const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
   if (IS_WINDOWS) {
-    name = 'maturin-x86_64-pc-windows-msvc.zip'
+    name = `maturin-${arch}-pc-windows-msvc.zip`
     zip = true
   } else if (IS_MACOS) {
-    name = 'maturin-x86_64-apple-darwin.tar.gz'
+    name = `maturin-${arch}-apple-darwin.tar.gz`
   } else {
-    name = 'maturin-x86_64-unknown-linux-musl.tar.gz'
+    name = `maturin-${arch}-unknown-linux-musl.tar.gz`
   }
   const url = `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`
   const tool = await tc.downloadTool(url)
@@ -228,7 +229,8 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
   }
   core.endGroup()
 
-  const url = `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-x86_64-unknown-linux-musl.tar.gz`
+  const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
+  const url = `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
   // Defaults to stable for Docker build
   const rustToolchain = core.getInput('rust-toolchain') || 'stable'
   const commands = [
