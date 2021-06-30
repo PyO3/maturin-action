@@ -4,7 +4,7 @@
   "description": "GitHub Action to install and run a custom maturin command",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist --minify",
+    "build": "ncc build src/index.ts -o dist",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint **/*.ts",
