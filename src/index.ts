@@ -14,6 +14,11 @@ const IS_WINDOWS = process.platform === 'win32'
 const IS_LINUX = process.platform === 'linux'
 const DEFAULT_MATURIN_VERSION = 'v0.10.6'
 
+const DEFAULT_TARGET: Record<string, string> = {
+  x64: 'x86_64-unknown-linux-gnu',
+  arm64: 'aarch64-unknown-linux-gnu'
+}
+
 const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'x86_64-unknown-linux-gnu': {
     auto: 'quay.io/pypa/manylinux2010_x86_64:latest',
@@ -76,6 +81,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_24': 'messense/manylinux_2_24-cross:s390x'
   }
 }
+
+const DEFAULT_CONTAINER = DEFAULT_CONTAINERS[DEFAULT_TARGET[process.arch]]
 
 /**
  * Rust target aliases by platform
@@ -206,8 +213,9 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
   const target = getRustTarget()
   let container = core.getInput('container')
   if (container.length === 0) {
-    // Get default Docker container with fallback to konstin2/maturin
-    container = DEFAULT_CONTAINERS[target]?.[manylinux] || 'konstin2/maturin'
+    // Get default Docker container with fallback
+    container =
+      DEFAULT_CONTAINERS[target]?.[manylinux] || DEFAULT_CONTAINER[manylinux]
   }
 
   const dockerArgs = []

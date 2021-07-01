@@ -5227,6 +5227,10 @@ const IS_MACOS = process.platform === 'darwin';
 const IS_WINDOWS = process.platform === 'win32';
 const IS_LINUX = process.platform === 'linux';
 const DEFAULT_MATURIN_VERSION = 'v0.10.6';
+const DEFAULT_TARGET = {
+    x64: 'x86_64-unknown-linux-gnu',
+    arm64: 'aarch64-unknown-linux-gnu'
+};
 const DEFAULT_CONTAINERS = {
     'x86_64-unknown-linux-gnu': {
         auto: 'quay.io/pypa/manylinux2010_x86_64:latest',
@@ -5289,6 +5293,7 @@ const DEFAULT_CONTAINERS = {
         '2_24': 'messense/manylinux_2_24-cross:s390x'
     }
 };
+const DEFAULT_CONTAINER = DEFAULT_CONTAINERS[DEFAULT_TARGET[process.arch]];
 const TARGET_ALIASES = {
     darwin: {
         x64: 'x86_64-apple-darwin',
@@ -5394,7 +5399,8 @@ async function dockerBuild(tag, args) {
     const target = getRustTarget();
     let container = core.getInput('container');
     if (container.length === 0) {
-        container = ((_a = DEFAULT_CONTAINERS[target]) === null || _a === void 0 ? void 0 : _a[manylinux]) || 'konstin2/maturin';
+        container =
+            ((_a = DEFAULT_CONTAINERS[target]) === null || _a === void 0 ? void 0 : _a[manylinux]) || DEFAULT_CONTAINER[manylinux];
     }
     const dockerArgs = [];
     let image;
