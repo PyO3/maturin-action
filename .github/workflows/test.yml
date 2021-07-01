@@ -29,7 +29,7 @@ jobs:
         uses: messense/huaweicloud-github-runner@main
         with:
           mode: start
-          count: 5
+          count: 2
           github-token: ${{ secrets.GH_PAT }}
           huawei-cloud-ak: ${{ secrets.HUAWEI_CLOUD_AK }}
           huawei-cloud-sk: ${{ secrets.HUAWEI_CLOUD_SK }}
@@ -76,17 +76,17 @@ jobs:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml --universal2
       - name: check maturin in PATH
         run: maturin --version
-      - name: maturin build manylinux2010
-        uses: ./
-        with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
-          manylinux: '2010'
       - name: maturin build manylinux auto
         if: matrix.os == 'ubuntu-latest'
         uses: ./
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: 'auto'
+      - name: maturin build manylinux2014
+        uses: ./
+        with:
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          manylinux: '2014'
       - name: maturin build nightly powerpc64le musl
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
         uses: ./
@@ -115,7 +115,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ${{ needs.start-runner.outputs.label }}
         platform: [
           {
             manylinux: '2010',
@@ -186,7 +185,7 @@ jobs:
 
   stop-runner:
     name: Stop self-hosted ECS runner
-    needs: [start-runner, test, test-manylinux]
+    needs: [start-runner, test]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
