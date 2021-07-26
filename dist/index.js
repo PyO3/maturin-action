@@ -5336,7 +5336,8 @@ async function findVersion() {
     }
     core.debug('Searching the latest version of maturin ...');
     const http = new http_client.HttpClient('messense/maturin-action', [], {
-        allowRetries: true
+        allowRetries: true,
+        maxRetries: 3
     });
     const response = await http.get('https://api.github.com/repos/PyO3/maturin/releases/latest');
     const body = await response.readBody();
