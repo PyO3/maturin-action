@@ -140,7 +140,7 @@ async function findVersion(): Promise<string> {
   core.debug('Searching the latest version of maturin ...')
   const http = new httpclient.HttpClient('messense/maturin-action', [], {
     allowRetries: true,
-    maxRetries: 3
+    maxRetries: 10
   })
   const response = await http.get(
     'https://api.github.com/repos/PyO3/maturin/releases/latest'
