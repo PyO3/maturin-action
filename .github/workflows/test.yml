@@ -106,8 +106,6 @@ jobs:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: '2_24'
           container: 'off'
-      - name: maturin build --cargo-extra-args directly
-        run: maturin build -m tests/pyo3-pure/Cargo.toml --cargo-extra-args="--features python"
       - name: maturin build --cargo-extra-args
         uses: ./
         with:

@@ -411,7 +411,8 @@ async function innerMain(): Promise<void> {
         '/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.8/lib'
       core.endGroup()
     }
-    exitCode = await exec.exec(maturinPath, args, {env})
+    const fullCommand = `${maturinPath} ${args.join(' ')}`
+    exitCode = await exec.exec(fullCommand, undefined, {env})
   }
   if (exitCode !== 0) {
     throw new Error(`maturin: returned ${exitCode}`)
