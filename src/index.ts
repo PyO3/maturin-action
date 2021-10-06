@@ -12,7 +12,7 @@ import * as mexec from './exec'
 const IS_MACOS = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'
 const IS_LINUX = process.platform === 'linux'
-const DEFAULT_MATURIN_VERSION = 'v0.11.3'
+const DEFAULT_MATURIN_VERSION = 'v0.11.4'
 
 const DEFAULT_TARGET: Record<string, string> = {
   x64: 'x86_64-unknown-linux-gnu',
