@@ -60,14 +60,6 @@ jobs:
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: '2014'
-      - name: maturin build nightly powerpc64le musl
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
-        uses: ./
-        with:
-          rust-toolchain: nightly
-          args: -m maturin/test-crates/hello-world/Cargo.toml
-          manylinux: 'auto'
-          target: 'powerpc64le-unknown-linux-musl'
       - name: maturin build manylinux off
         uses: ./
         with:
