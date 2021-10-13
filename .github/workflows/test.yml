@@ -15,43 +15,16 @@ jobs:
       - name: lint
         run: npm run lint
 
-  start-runner:
-    name: Start self-hosted ECS runner
-    runs-on: ubuntu-latest
-    needs: lint
-    outputs:
-      label: ${{ steps.start-ecs-runner.outputs.label }}
-      ecs-instance-id: ${{ steps.start-ecs-runner.outputs.ecs-instance-id }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Start ECS runner
-        id: start-ecs-runner
-        uses: messense/huaweicloud-github-runner@main
-        with:
-          mode: start
-          count: 2
-          github-token: ${{ secrets.GH_PAT }}
-          huawei-cloud-ak: ${{ secrets.HUAWEI_CLOUD_AK }}
-          huawei-cloud-sk: ${{ secrets.HUAWEI_CLOUD_SK }}
-          project-id: ${{ secrets.PROJECT_ID }}
-          availability-zone: ap-southeast-1b
-          ecs-image-id: 41442587-b248-48db-b1b8-7aadac9dc273
-          ecs-instance-type: kc1.large.2
-          vpc-id: ${{ secrets.VPC_ID }}
-          subnet-id: ${{ secrets.SUBNET_ID }}
-          security-group-id: ${{ secrets.SECURITY_GROUP_ID }}
-
   test:
     name: Test Suite
     runs-on: ${{ matrix.os }}
-    needs: [lint, start-runner]
+    needs: [lint]
     strategy:
       matrix:
         os:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-          - ${{ needs.start-runner.outputs.label }}
         toolchain: [stable, nightly]
     steps:
       - uses: actions/checkout@v2
@@ -115,7 +88,7 @@ jobs:
   test-manylinux:
     name: Manylinux Test Suite
     runs-on: ${{ matrix.os }}
-    needs: [lint, start-runner]
+    needs: [lint]
     strategy:
       matrix:
         os:
@@ -183,23 +156,3 @@ jobs:
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
-
-  stop-runner:
-    name: Stop self-hosted ECS runner
-    needs: [start-runner, test]
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Stop ECS runner
-        if: ${{ needs.start-runner.outputs.ecs-instance-id }}
-        uses: messense/huaweicloud-github-runner@main
-        with:
-          mode: stop
-          github-token: ${{ secrets.GH_PAT }}
-          huawei-cloud-ak: ${{ secrets.HUAWEI_CLOUD_AK }}
-          huawei-cloud-sk: ${{ secrets.HUAWEI_CLOUD_SK }}
-          project-id: ${{ secrets.PROJECT_ID }}
-          availability-zone: ap-southeast-1b
-          label: ${{ needs.start-runner.outputs.label }}
-          ecs-instance-id: ${{ needs.start-runner.outputs.ecs-instance-id }}
