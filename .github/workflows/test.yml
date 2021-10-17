@@ -134,6 +134,11 @@ jobs:
             target: 'x86_64-unknown-linux-musl',  # MUSL
             test-crate: 'maturin/test-crates/hello-world'  # binary
           },
+          {
+            manylinux: 'musllinux_1_2',
+            target: 'x86_64-unknown-linux-musl',  # MUSL
+            test-crate: 'maturin/test-crates/hello-world'  # binary
+          },
         ]
         toolchain: [stable, nightly]
     steps:
