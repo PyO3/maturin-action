@@ -350,6 +350,18 @@ async function installRustTarget(
   }
 }
 
+async function addToolCachePythonVersionsToPath(): Promise<void> {
+  const allPythonVersions = tc.findAllVersions('python')
+  for (const ver of allPythonVersions) {
+    const installDir = tc.find('Python', ver)
+    if (installDir) {
+      core.info(`Python version ${ver} was found in the local cache`)
+      core.addPath(installDir)
+      core.addPath(path.join(installDir, 'bin'))
+    }
+  }
+}
+
 async function innerMain(): Promise<void> {
   const rustToolchain = core.getInput('rust-toolchain')
   const inputArgs = core.getInput('args')
@@ -390,6 +402,10 @@ async function innerMain(): Promise<void> {
   if (useDocker) {
     exitCode = await dockerBuild(tag, args)
   } else {
+    if (IS_MACOS) {
+      addToolCachePythonVersionsToPath()
+    }
+
     core.startGroup('Install maturin')
     core.info(`Installing 'maturin' from tag '${tag}'`)
     const maturinPath = await installMaturin(tag)
