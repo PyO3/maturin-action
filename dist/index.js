@@ -5652,7 +5652,7 @@ async function innerMain() {
         exitCode = await dockerBuild(tag, args);
     }
     else {
-        if (IS_MACOS) {
+        if (IS_MACOS && !process.env.pythonLocation) {
             addToolCachePythonVersionsToPath();
         }
         core.startGroup('Install maturin');

@@ -402,7 +402,7 @@ async function innerMain(): Promise<void> {
   if (useDocker) {
     exitCode = await dockerBuild(tag, args)
   } else {
-    if (IS_MACOS) {
+    if (IS_MACOS && !process.env.pythonLocation) {
       addToolCachePythonVersionsToPath()
     }
 
