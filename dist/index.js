@@ -5324,7 +5324,7 @@ const exec_exec = async (command, args = [], silent) => {
 const IS_MACOS = process.platform === 'darwin';
 const IS_WINDOWS = process.platform === 'win32';
 const IS_LINUX = process.platform === 'linux';
-const DEFAULT_MATURIN_VERSION = 'v0.11.5';
+const DEFAULT_MATURIN_VERSION = 'v0.12.0';
 const DEFAULT_TARGET = {
     x64: 'x86_64-unknown-linux-gnu',
     arm64: 'aarch64-unknown-linux-gnu'
