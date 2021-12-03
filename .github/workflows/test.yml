@@ -77,7 +77,7 @@ jobs:
         uses: ./
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
-          manylinux: '2_24'
+          manylinux: 'off'
           container: 'off'
       - name: maturin build --cargo-extra-args
         uses: ./

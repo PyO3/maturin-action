@@ -5272,8 +5272,6 @@ __nccwpck_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(186);
-// EXTERNAL MODULE: ./node_modules/@actions/http-client/index.js
-var http_client = __nccwpck_require__(925);
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(747);
 // EXTERNAL MODULE: ./node_modules/@actions/tool-cache/lib/tool-cache.js
@@ -5320,11 +5318,9 @@ const exec_exec = async (command, args = [], silent) => {
 
 
 
-
 const IS_MACOS = process.platform === 'darwin';
 const IS_WINDOWS = process.platform === 'win32';
 const IS_LINUX = process.platform === 'linux';
-const DEFAULT_MATURIN_VERSION = 'v0.12.2';
 const DEFAULT_TARGET = {
     x64: 'x86_64-unknown-linux-gnu',
     arm64: 'aarch64-unknown-linux-gnu'
@@ -5428,28 +5424,15 @@ function getRustTarget() {
     const target = core.getInput('target');
     return ((_a = TARGET_ALIASES[process.platform]) === null || _a === void 0 ? void 0 : _a[target]) || target;
 }
-async function findVersion() {
-    const version = core.getInput('maturin-version');
+function findVersion() {
+    const version = core.getInput('maturin-version').toLowerCase();
     if (version !== 'latest') {
         if (!version.startsWith('v')) {
             core.warning(`Corrected 'maturin-version' from '${version}' to 'v${version}'`);
             return `v${version}`;
         }
-        return version;
     }
-    core.debug('Searching the latest version of maturin ...');
-    const http = new http_client.HttpClient('messense/maturin-action', [], {
-        allowRetries: true,
-        maxRetries: 10
-    });
-    const response = await http.get('https://api.github.com/repos/PyO3/maturin/releases/latest');
-    const body = await response.readBody();
-    let tag = JSON.parse(body).tag_name;
-    if (!tag) {
-        tag = DEFAULT_MATURIN_VERSION;
-        core.warning(`Fetch latest maturin tag name failed, fallback to '${tag}'`);
-    }
-    return Promise.resolve(tag);
+    return version;
 }
 async function downloadMaturin(tag) {
     let name;
@@ -5465,7 +5448,9 @@ async function downloadMaturin(tag) {
     else {
         name = `maturin-${arch}-unknown-linux-musl.tar.gz`;
     }
-    const url = `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`;
+    const url = tag === 'latest'
+        ? `https://github.com/PyO3/maturin/releases/latest/download/${name}`
+        : `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`;
     const tool = await tool_cache.downloadTool(url);
     let toolPath;
     if (zip) {
@@ -5523,7 +5508,9 @@ async function dockerBuild(tag, args) {
     }
     core.endGroup();
     const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
-    const url = `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`;
+    const url = tag === 'latest'
+        ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
+        : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`;
     const rustToolchain = core.getInput('rust-toolchain') || 'stable';
     const commands = [
         '#!/bin/bash',
@@ -5646,7 +5633,7 @@ async function innerMain() {
             core.endGroup();
         }
     }
-    const tag = await findVersion();
+    const tag = findVersion();
     let exitCode;
     if (useDocker) {
         exitCode = await dockerBuild(tag, args);
