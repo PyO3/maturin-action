@@ -1,12 +1,12 @@
+/* eslint-disable i18n-text/no-en */
 import * as core from '@actions/core'
-import {promises as fs, writeFileSync, existsSync} from 'fs'
-import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
-import * as path from 'path'
-import stringArgv from 'string-argv'
-
 import * as mexec from './exec'
+import * as path from 'path'
+import * as tc from '@actions/tool-cache'
+import {existsSync, promises as fs, writeFileSync} from 'fs'
+import stringArgv from 'string-argv'
 
 const IS_MACOS = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'
@@ -428,8 +428,10 @@ async function innerMain(): Promise<void> {
 async function main(): Promise<void> {
   try {
     await innerMain()
-  } catch (error) {
-    core.setFailed(error.message)
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      core.setFailed(err.message)
+    }
   }
 }
 
