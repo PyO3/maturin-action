@@ -1,18 +1,16 @@
+/* eslint-disable i18n-text/no-en */
 import * as core from '@actions/core'
-import * as httpclient from '@actions/http-client'
-import {promises as fs, writeFileSync, existsSync} from 'fs'
-import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
-import * as path from 'path'
-import stringArgv from 'string-argv'
-
 import * as mexec from './exec'
+import * as path from 'path'
+import * as tc from '@actions/tool-cache'
+import {existsSync, promises as fs, writeFileSync} from 'fs'
+import stringArgv from 'string-argv'
 
 const IS_MACOS = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'
 const IS_LINUX = process.platform === 'linux'
-const DEFAULT_MATURIN_VERSION = 'v0.12.2'
 
 const DEFAULT_TARGET: Record<string, string> = {
   x64: 'x86_64-unknown-linux-gnu',
@@ -130,8 +128,8 @@ function getRustTarget(): string {
 /**
  * Find maturin version
  */
-async function findVersion(): Promise<string> {
-  const version = core.getInput('maturin-version')
+function findVersion(): string {
+  const version = core.getInput('maturin-version').toLowerCase()
   if (version !== 'latest') {
     if (!version.startsWith('v')) {
       core.warning(
@@ -139,25 +137,8 @@ async function findVersion(): Promise<string> {
       )
       return `v${version}`
     }
-    return version
   }
-
-  core.debug('Searching the latest version of maturin ...')
-  const http = new httpclient.HttpClient('messense/maturin-action', [], {
-    allowRetries: true,
-    maxRetries: 10
-  })
-  const response = await http.get(
-    'https://api.github.com/repos/PyO3/maturin/releases/latest'
-  )
-  const body = await response.readBody()
-  let tag = JSON.parse(body).tag_name
-  if (!tag) {
-    // Just in case fetch latest maturin version failed
-    tag = DEFAULT_MATURIN_VERSION
-    core.warning(`Fetch latest maturin tag name failed, fallback to '${tag}'`)
-  }
-  return Promise.resolve(tag)
+  return version
 }
 
 /**
@@ -176,7 +157,10 @@ async function downloadMaturin(tag: string): Promise<string> {
   } else {
     name = `maturin-${arch}-unknown-linux-musl.tar.gz`
   }
-  const url = `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`
+  const url =
+    tag === 'latest'
+      ? `https://github.com/PyO3/maturin/releases/latest/download/${name}`
+      : `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`
   const tool = await tc.downloadTool(url)
   let toolPath: string
   if (zip) {
@@ -244,7 +228,10 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
   core.endGroup()
 
   const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
-  const url = `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
+  const url =
+    tag === 'latest'
+      ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
+      : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
   // Defaults to stable for Docker build
   const rustToolchain = core.getInput('rust-toolchain') || 'stable'
   const commands = [
@@ -396,7 +383,7 @@ async function innerMain(): Promise<void> {
     }
   }
 
-  const tag = await findVersion()
+  const tag = findVersion()
 
   let exitCode: number
   if (useDocker) {
@@ -441,8 +428,10 @@ async function innerMain(): Promise<void> {
 async function main(): Promise<void> {
   try {
     await innerMain()
-  } catch (error) {
-    core.setFailed(error.message)
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      core.setFailed(err.message)
+    }
   }
 }
 
