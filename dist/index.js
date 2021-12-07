@@ -5730,13 +5730,15 @@ async function dockerBuild(tag, args) {
         image = `${container}:${tag}`;
         dockerArgs.push('--entrypoint', '/bin/bash');
     }
-    core.startGroup('Pull Docker image');
-    core.info(`Using ${image} Docker image`);
-    const exitCode = await exec.exec('docker', ['pull', image]);
-    if (exitCode !== 0) {
-        throw new Error(`maturin: 'docker pull' returned ${exitCode}`);
+    if (container.includes('/')) {
+        core.startGroup('Pull Docker image');
+        core.info(`Using ${image} Docker image`);
+        const exitCode = await exec.exec('docker', ['pull', image]);
+        if (exitCode !== 0) {
+            throw new Error(`maturin: 'docker pull' returned ${exitCode}`);
+        }
+        core.endGroup();
     }
-    core.endGroup();
     const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
     const url = tag === 'latest'
         ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
