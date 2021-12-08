@@ -84,6 +84,16 @@ jobs:
         with:
           args: -m tests/pyo3-pure/Cargo.toml --cargo-extra-args="--features python"
           manylinux: 'auto'
+      - name: docker pull
+        if: matrix.os == 'ubuntu-latest'
+        run: docker pull quay.io/pypa/manylinux_2_24_x86_64:latest
+      - name: maturin build with existing docker image
+        if: matrix.os == 'ubuntu-latest'
+        uses: ./
+        with:
+          container: quay.io/pypa/manylinux_2_24_x86_64:latest
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          manylinux: 'auto'
 
   test-manylinux:
     name: Manylinux Test Suite
