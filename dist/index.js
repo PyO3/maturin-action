@@ -5730,7 +5730,11 @@ async function dockerBuild(tag, args) {
         image = `${container}:${tag}`;
         dockerArgs.push('--entrypoint', '/bin/bash');
     }
-    if (container.includes('/')) {
+    const imageExists = (await exec.exec('docker', ['inspect', '--type=image', image], {
+        silent: true,
+        ignoreReturnCode: true
+    })) === 0;
+    if (!imageExists) {
         core.startGroup('Pull Docker image');
         core.info(`Using ${image} Docker image`);
         const exitCode = await exec.exec('docker', ['pull', image]);
@@ -5738,6 +5742,9 @@ async function dockerBuild(tag, args) {
             throw new Error(`maturin: 'docker pull' returned ${exitCode}`);
         }
         core.endGroup();
+    }
+    else {
+        core.info(`Using existing ${image} Docker image`);
     }
     const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
     const url = tag === 'latest'
