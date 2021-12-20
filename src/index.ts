@@ -1,6 +1,7 @@
 /* eslint-disable i18n-text/no-en */
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
+import * as glob from '@actions/glob'
 import * as io from '@actions/io'
 import * as mexec from './exec'
 import * as path from 'path'
@@ -426,7 +427,23 @@ async function innerMain(): Promise<void> {
       env.MACOSX_DEPLOYMENT_TARGET = '10.9'
       core.endGroup()
     }
-    const fullCommand = `${maturinPath} ${args.join(' ')}`
+
+    let fullCommand = `${maturinPath} ${args.join(' ')}`
+    if (command === 'upload') {
+      // Expand globs for upload command
+      const uploadArgs = []
+      for (const arg of args.slice(1)) {
+        if (arg.startsWith('-')) {
+          uploadArgs.push(arg)
+        } else {
+          const globber = await glob.create(arg)
+          for await (const file of globber.globGenerator()) {
+            uploadArgs.push(file)
+          }
+        }
+      }
+      fullCommand = `${maturinPath} ${command} ${uploadArgs.join(' ')}`
+    }
     exitCode = await exec.exec(fullCommand, undefined, {env})
   }
   if (exitCode !== 0) {
