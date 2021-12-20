@@ -8266,6 +8266,7 @@ async function innerMain() {
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
     args.unshift(command);
+    const target = getRustTarget();
     let useDocker = false;
     if (['build', 'publish'].includes(command)) {
         const manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
@@ -8275,7 +8276,6 @@ async function innerMain() {
             }
             useDocker = manylinux !== 'off' && core.getInput('container') !== 'off';
         }
-        const target = getRustTarget();
         if (target.length > 0) {
             args.push('--target', target);
         }
@@ -8303,15 +8303,19 @@ async function innerMain() {
         await exec.exec(maturinPath, ['--version']);
         core.endGroup();
         const isUniversal2 = args.includes('--universal2');
+        const isArm64 = target.startsWith('aarch64');
         const env = {};
         for (const [k, v] of Object.entries(process.env)) {
             if (v !== undefined) {
                 env[k] = v;
             }
         }
-        if (isUniversal2) {
-            core.startGroup('Prepare macOS universal2 build environment');
-            await installRustTarget('x86_64-apple-darwin', rustToolchain);
+        if (isUniversal2 || isArm64) {
+            const buildEnvName = isUniversal2 ? 'universal2' : 'arm64';
+            core.startGroup(`Prepare macOS ${buildEnvName} build environment`);
+            if (isUniversal2) {
+                await installRustTarget('x86_64-apple-darwin', rustToolchain);
+            }
             await installRustTarget('aarch64-apple-darwin', rustToolchain);
             env.DEVELOPER_DIR = '/Applications/Xcode.app/Contents/Developer';
             env.SDKROOT =
