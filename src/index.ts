@@ -411,7 +411,7 @@ async function innerMain(): Promise<void> {
 
     // Setup additional env vars for macOS arm64/universal2 build
     const isUniversal2 = args.includes('--universal2')
-    const isArm64 = target.startsWith('aarch64')
+    const isArm64 = IS_MACOS && target.startsWith('aarch64')
     const env: Record<string, string> = {}
     for (const [k, v] of Object.entries(process.env)) {
       if (v !== undefined) {
