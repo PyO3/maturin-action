@@ -124,12 +124,38 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
 function getRustTarget(args: string[]): string {
   let target = core.getInput('target')
   if (!target && args.length > 0) {
-    const index = args.indexOf('--target')
-    if (index !== -1 && args[index + 1] !== undefined) {
-      target = args[index + 1]
+    const val = getCliValue(args, '--target')
+    if (val && val.length > 0) {
+      target = val
     }
   }
   return TARGET_ALIASES[process.platform]?.[target] || target
+}
+
+function getCliValue(args: string[], key: string): string | undefined {
+  const index = args.indexOf(key)
+  if (index !== -1 && args[index + 1] !== undefined) {
+    return args[index + 1]
+  }
+  return undefined
+}
+
+function getCargoTargetDir(args: string[]): string {
+  let targetDir = 'target'
+  const val = getCliValue(args, '--target-dir')
+  const manifestPath =
+    getCliValue(args, '--manifest-path') || getCliValue(args, '-m')
+  if (val && val.length > 0) {
+    targetDir = val
+  } else if (
+    process.env.CARGO_TARGET_DIR &&
+    process.env.CARGO_TARGET_DIR.length > 0
+  ) {
+    targetDir = process.env.CARGO_TARGET_DIR
+  } else if (manifestPath && manifestPath.length > 0) {
+    targetDir = path.join(path.dirname(manifestPath), 'target')
+  }
+  return targetDir
 }
 
 /**
@@ -306,7 +332,7 @@ async function dockerBuild(
   writeFileSync(scriptPath, commands.join('\n'))
   await fs.chmod(scriptPath, 0o755)
 
-  return await exec.exec('docker', [
+  const exitCode = await exec.exec('docker', [
     'run',
     '--rm',
     '--workdir',
@@ -314,6 +340,8 @@ async function dockerBuild(
     // A list of environment variables
     '-e',
     'DEBIAN_FRONTEND=noninteractive',
+    '-e',
+    'CARGO_TARGET_DIR',
     '-e',
     'RUSTFLAGS',
     '-e',
@@ -339,6 +367,19 @@ async function dockerBuild(
     image,
     scriptPath
   ])
+  // Fix file permissions
+  if (IS_LINUX || IS_MACOS) {
+    core.startGroup('Fix file permissions')
+    const targetDir = getCargoTargetDir(args)
+    core.info(`Fixing file permissions for target directory: ${targetDir}`)
+    const uid = process.getuid()
+    const gid = process.getgid()
+    await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
+      ignoreReturnCode: true
+    })
+    core.endGroup()
+  }
+  return exitCode
 }
 
 /**

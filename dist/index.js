@@ -7880,7 +7880,11 @@ module.exports = v4;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -7934,7 +7938,11 @@ exports.exec = exec;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -8069,12 +8077,35 @@ function getRustTarget(args) {
     var _a;
     let target = core.getInput('target');
     if (!target && args.length > 0) {
-        const index = args.indexOf('--target');
-        if (index !== -1 && args[index + 1] !== undefined) {
-            target = args[index + 1];
+        const val = getCliValue(args, '--target');
+        if (val && val.length > 0) {
+            target = val;
         }
     }
     return ((_a = TARGET_ALIASES[process.platform]) === null || _a === void 0 ? void 0 : _a[target]) || target;
+}
+function getCliValue(args, key) {
+    const index = args.indexOf(key);
+    if (index !== -1 && args[index + 1] !== undefined) {
+        return args[index + 1];
+    }
+    return undefined;
+}
+function getCargoTargetDir(args) {
+    let targetDir = 'target';
+    const val = getCliValue(args, '--target-dir');
+    const manifestPath = getCliValue(args, '--manifest-path') || getCliValue(args, '-m');
+    if (val && val.length > 0) {
+        targetDir = val;
+    }
+    else if (process.env.CARGO_TARGET_DIR &&
+        process.env.CARGO_TARGET_DIR.length > 0) {
+        targetDir = process.env.CARGO_TARGET_DIR;
+    }
+    else if (manifestPath && manifestPath.length > 0) {
+        targetDir = path.join(path.dirname(manifestPath), 'target');
+    }
+    return targetDir;
 }
 function findVersion() {
     const version = core.getInput('maturin-version').toLowerCase();
@@ -8207,13 +8238,15 @@ async function dockerBuild(tag, manylinux, args) {
     const scriptPath = path.join(workspace, 'run-maturin-action.sh');
     (0, fs_1.writeFileSync)(scriptPath, commands.join('\n'));
     await fs_1.promises.chmod(scriptPath, 0o755);
-    return await exec.exec('docker', [
+    const exitCode = await exec.exec('docker', [
         'run',
         '--rm',
         '--workdir',
         workspace,
         '-e',
         'DEBIAN_FRONTEND=noninteractive',
+        '-e',
+        'CARGO_TARGET_DIR',
         '-e',
         'RUSTFLAGS',
         '-e',
@@ -8238,6 +8271,18 @@ async function dockerBuild(tag, manylinux, args) {
         image,
         scriptPath
     ]);
+    if (IS_LINUX || IS_MACOS) {
+        core.startGroup('Fix file permissions');
+        const targetDir = getCargoTargetDir(args);
+        core.info(`Fixing file permissions for target directory: ${targetDir}`);
+        const uid = process.getuid();
+        const gid = process.getgid();
+        await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
+            ignoreReturnCode: true
+        });
+        core.endGroup();
+    }
+    return exitCode;
 }
 async function installRustTarget(target, toolchain) {
     if (!target || target.length === 0) {
