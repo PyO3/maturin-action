@@ -54,7 +54,7 @@ jobs:
           target: aarch64-apple-darwin
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
       - name: check maturin in PATH
-        run: maturin --version
+        run: maturin --help
       - name: maturin build manylinux auto
         if: matrix.os == 'ubuntu-latest'
         uses: ./
