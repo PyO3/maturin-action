@@ -259,7 +259,7 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
     // Install maturin
     'echo "::group::Install maturin"',
     `curl -L ${url} | tar -xz -C /usr/local/bin`,
-    'maturin --version',
+    'maturin --version || true',
     'echo "::endgroup::"'
   ]
   if (target.length > 0) {
@@ -406,7 +406,7 @@ async function innerMain(): Promise<void> {
     core.startGroup('Install maturin')
     core.info(`Installing 'maturin' from tag '${tag}'`)
     const maturinPath = await installMaturin(tag)
-    await exec.exec(maturinPath, ['--version'])
+    await exec.exec(maturinPath, ['--version'], {ignoreReturnCode: true})
     core.endGroup()
 
     // Setup additional env vars for macOS arm64/universal2 build

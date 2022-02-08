@@ -8178,7 +8178,7 @@ async function dockerBuild(tag, args) {
         'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
         'echo "::group::Install maturin"',
         `curl -L ${url} | tar -xz -C /usr/local/bin`,
-        'maturin --version',
+        'maturin --version || true',
         'echo "::endgroup::"'
     ];
     if (target.length > 0) {
@@ -8300,7 +8300,7 @@ async function innerMain() {
         core.startGroup('Install maturin');
         core.info(`Installing 'maturin' from tag '${tag}'`);
         const maturinPath = await installMaturin(tag);
-        await exec.exec(maturinPath, ['--version']);
+        await exec.exec(maturinPath, ['--version'], { ignoreReturnCode: true });
         core.endGroup();
         const isUniversal2 = args.includes('--universal2');
         const isArm64 = IS_MACOS && target.startsWith('aarch64');
