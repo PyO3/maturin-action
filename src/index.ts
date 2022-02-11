@@ -244,6 +244,7 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
       : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
   // Defaults to stable for Docker build
   const rustToolchain = core.getInput('rust-toolchain') || 'stable'
+  const rustupComponents = core.getInput('rustup-components')
   const commands = [
     '#!/bin/bash',
     // Stop on first error
@@ -267,6 +268,13 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
     commands.push(
       'echo "::group::Install Rust target"',
       `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`,
+      'echo "::endgroup::"'
+    )
+  }
+  if (rustupComponents.length > 0) {
+    commands.push(
+      'echo "::group::Install Extra Rust components"',
+      `rustup component add ${rustupComponents}`,
       'echo "::endgroup::"'
     )
   }
@@ -362,6 +370,7 @@ async function addToolCachePythonVersionsToPath(): Promise<void> {
 
 async function innerMain(): Promise<void> {
   const rustToolchain = core.getInput('rust-toolchain')
+  const rustupComponents = core.getInput('rustup-components')
   const inputArgs = core.getInput('args')
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
@@ -388,6 +397,12 @@ async function innerMain(): Promise<void> {
       core.startGroup('Install Rust target')
       if (rustToolchain.length > 0) {
         await exec.exec('rustup', ['override', 'set', rustToolchain])
+      }
+      if (rustupComponents.length > 0) {
+        const rustupArgs = ['component', 'add'].concat(
+          rustupComponents.split(' ')
+        )
+        await exec.exec('rustup', rustupArgs)
       }
       await installRustTarget(target, rustToolchain)
       core.endGroup()

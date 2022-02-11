@@ -8167,6 +8167,7 @@ async function dockerBuild(tag, args) {
         ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
         : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`;
     const rustToolchain = core.getInput('rust-toolchain') || 'stable';
+    const rustupComponents = core.getInput('rustup-components');
     const commands = [
         '#!/bin/bash',
         'set -e',
@@ -8184,6 +8185,9 @@ async function dockerBuild(tag, args) {
     ];
     if (target.length > 0) {
         commands.push('echo "::group::Install Rust target"', `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`, 'echo "::endgroup::"');
+    }
+    if (rustupComponents.length > 0) {
+        commands.push('echo "::group::Install Extra Rust components"', `rustup component add ${rustupComponents}`, 'echo "::endgroup::"');
     }
     commands.push(`maturin ${args.join(' ')}`);
     const workspace = process.env.GITHUB_WORKSPACE;
@@ -8263,6 +8267,7 @@ async function addToolCachePythonVersionsToPath() {
 }
 async function innerMain() {
     const rustToolchain = core.getInput('rust-toolchain');
+    const rustupComponents = core.getInput('rustup-components');
     const inputArgs = core.getInput('args');
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
@@ -8284,6 +8289,10 @@ async function innerMain() {
             core.startGroup('Install Rust target');
             if (rustToolchain.length > 0) {
                 await exec.exec('rustup', ['override', 'set', rustToolchain]);
+            }
+            if (rustupComponents.length > 0) {
+                let args = ['component', 'add'].concat(rustupComponents.split(' '));
+                await exec.exec('rustup', args);
             }
             await installRustTarget(target, rustToolchain);
             core.endGroup();
