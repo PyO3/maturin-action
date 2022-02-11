@@ -244,7 +244,7 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
       : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
   // Defaults to stable for Docker build
   const rustToolchain = core.getInput('rust-toolchain') || 'stable'
-  const rustupComponents = core.getInput('rustup-components') || ''
+  const rustupComponents = core.getInput('rustup-components')
   const commands = [
     '#!/bin/bash',
     // Stop on first error
@@ -254,7 +254,6 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
     `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
     'export PATH="$HOME/.cargo/bin:$PATH"',
     `rustup override set ${rustToolchain}`,
-    `[ -n ${rustupComponents} ] && rustup component add ${rustupComponents}`,
     'echo "::endgroup::"',
     // Add all supported python versions to PATH
     'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
@@ -269,6 +268,13 @@ async function dockerBuild(tag: string, args: string[]): Promise<number> {
     commands.push(
       'echo "::group::Install Rust target"',
       `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`,
+      'echo "::endgroup::"'
+    )
+  }
+  if (rustupComponents.length > 0) {
+    commands.push(
+      'echo "::group::Install Extra Rust components"',
+      `rustup component add ${rustupComponents}`,
       'echo "::endgroup::"'
     )
   }
@@ -364,6 +370,7 @@ async function addToolCachePythonVersionsToPath(): Promise<void> {
 
 async function innerMain(): Promise<void> {
   const rustToolchain = core.getInput('rust-toolchain')
+  const rustupComponents = core.getInput('rustup-components')
   const inputArgs = core.getInput('args')
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
@@ -390,6 +397,12 @@ async function innerMain(): Promise<void> {
       core.startGroup('Install Rust target')
       if (rustToolchain.length > 0) {
         await exec.exec('rustup', ['override', 'set', rustToolchain])
+      }
+      if (rustupComponents.length > 0) {
+        const rustupArgs = ['component', 'add'].concat(
+          rustupComponents.split(' ')
+        )
+        await exec.exec('rustup', rustupArgs)
       }
       await installRustTarget(target, rustToolchain)
       core.endGroup()
