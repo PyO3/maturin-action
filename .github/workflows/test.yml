@@ -82,6 +82,7 @@ jobs:
       - name: maturin build container off
         uses: ./
         with:
+          rustup-components: rustfmt
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: 'off'
           container: 'off'
@@ -97,6 +98,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ./
         with:
+          rustup-components: rustfmt
           container: quay.io/pypa/manylinux_2_24_x86_64:latest
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: 'auto'
