@@ -8291,8 +8291,8 @@ async function innerMain() {
                 await exec.exec('rustup', ['override', 'set', rustToolchain]);
             }
             if (rustupComponents.length > 0) {
-                let args = ['component', 'add'].concat(rustupComponents.split(' '));
-                await exec.exec('rustup', args);
+                const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '));
+                await exec.exec('rustup', rustupArgs);
             }
             await installRustTarget(target, rustToolchain);
             core.endGroup();
