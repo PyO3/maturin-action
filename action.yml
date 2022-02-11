@@ -26,6 +26,11 @@ inputs:
       Rust toolchain name.
       See https://rust-lang.github.io/rustup/concepts/toolchains.html#toolchain-specification
     required: false
+  rustup-components:
+    description: |
+      Rustup components.
+      See https://rust-lang.github.io/rustup/concepts/components.html
+    required: false
 
 runs:
   using: 'node12'

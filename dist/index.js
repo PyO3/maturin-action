@@ -8167,6 +8167,7 @@ async function dockerBuild(tag, args) {
         ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
         : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`;
     const rustToolchain = core.getInput('rust-toolchain') || 'stable';
+    const rustupComponents = core.getInput('rustup-components') || '';
     const commands = [
         '#!/bin/bash',
         'set -e',
@@ -8174,6 +8175,7 @@ async function dockerBuild(tag, args) {
         `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
         'export PATH="$HOME/.cargo/bin:$PATH"',
         `rustup override set ${rustToolchain}`,
+        `[ -n ${rustupComponents} ] && rustup component add ${rustupComponents}`,
         'echo "::endgroup::"',
         'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
         'echo "::group::Install maturin"',
