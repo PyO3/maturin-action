@@ -8275,7 +8275,10 @@ async function innerMain() {
     const target = getRustTarget();
     let useDocker = false;
     if (['build', 'publish'].includes(command)) {
-        const manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
+        let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
+        if (command === 'publish' && !manylinux) {
+            manylinux = 'auto';
+        }
         if (manylinux.length > 0 && IS_LINUX) {
             if (manylinux !== 'auto') {
                 args.push('--manylinux', manylinux);

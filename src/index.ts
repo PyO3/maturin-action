@@ -380,7 +380,12 @@ async function innerMain(): Promise<void> {
   let useDocker = false
   // Only build and publish commands has --manylinux and --target options
   if (['build', 'publish'].includes(command)) {
-    const manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '')
+    let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '')
+    // manylinux defaults to auto for the publish command
+    if (command === 'publish' && !manylinux) {
+      manylinux = 'auto'
+    }
+
     if (manylinux.length > 0 && IS_LINUX) {
       if (manylinux !== 'auto') {
         // Use lowest compatible manylinux version

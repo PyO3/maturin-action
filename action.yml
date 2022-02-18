@@ -5,12 +5,14 @@ author: messense
 inputs:
   command:
     description: maturin command to run. Defaults to "build".
+    required: false
     default: 'build'
   args:
     description: Arguments for the maturin command
     required: false
   maturin-version:
     description: Version of maturin to install like "v0.10.0". Defaults to "latest".
+    required: false
     default: 'latest'
   manylinux:
     description: Control the manylinux platform tag on linux.
