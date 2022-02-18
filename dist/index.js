@@ -8128,9 +8128,8 @@ async function installMaturin(tag) {
         return exe;
     }
 }
-async function dockerBuild(tag, args) {
+async function dockerBuild(tag, manylinux, args) {
     var _a;
-    const manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
     const target = getRustTarget();
     let container = core.getInput('container');
     if (container.length === 0) {
@@ -8274,8 +8273,8 @@ async function innerMain() {
     args.unshift(command);
     const target = getRustTarget();
     let useDocker = false;
+    let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
     if (['build', 'publish'].includes(command)) {
-        let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
         if (command === 'publish' && !manylinux) {
             manylinux = 'auto';
         }
@@ -8304,7 +8303,7 @@ async function innerMain() {
     const tag = findVersion();
     let exitCode;
     if (useDocker) {
-        exitCode = await dockerBuild(tag, args);
+        exitCode = await dockerBuild(tag, manylinux, args);
     }
     else {
         if (IS_MACOS && !process.env.pythonLocation) {

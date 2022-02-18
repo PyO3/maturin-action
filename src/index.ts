@@ -198,9 +198,12 @@ async function installMaturin(tag: string): Promise<string> {
  * @param tag maturin release tag, ie. version
  * @param args Docker args
  */
-async function dockerBuild(tag: string, args: string[]): Promise<number> {
+async function dockerBuild(
+  tag: string,
+  manylinux: string,
+  args: string[]
+): Promise<number> {
   // Strip `manylinux` and `manylinx_` prefix
-  const manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '')
   const target = getRustTarget()
   let container = core.getInput('container')
   if (container.length === 0) {
@@ -379,8 +382,8 @@ async function innerMain(): Promise<void> {
 
   let useDocker = false
   // Only build and publish commands has --manylinux and --target options
+  let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '')
   if (['build', 'publish'].includes(command)) {
-    let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '')
     // manylinux defaults to auto for the publish command
     if (command === 'publish' && !manylinux) {
       manylinux = 'auto'
@@ -418,7 +421,7 @@ async function innerMain(): Promise<void> {
 
   let exitCode: number
   if (useDocker) {
-    exitCode = await dockerBuild(tag, args)
+    exitCode = await dockerBuild(tag, manylinux, args)
   } else {
     if (IS_MACOS && !process.env.pythonLocation) {
       addToolCachePythonVersionsToPath()
