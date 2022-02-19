@@ -8182,6 +8182,9 @@ async function dockerBuild(tag, manylinux, args) {
         'which patchelf > /dev/null || python3 -m pip install patchelf',
         'echo "::endgroup::"'
     ];
+    if (args.includes('--zig')) {
+        commands.push('echo "::group::Install Zig"', 'python3 -m pip install ziglang', 'echo "::endgroup::"');
+    }
     if (target.length > 0) {
         commands.push('echo "::group::Install Rust target"', `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`, 'echo "::endgroup::"');
     }
@@ -8317,6 +8320,11 @@ async function innerMain() {
             await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf']);
         }
         core.endGroup();
+        if (args.includes('--zig')) {
+            core.startGroup('Install Zig');
+            await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang']);
+            core.endGroup();
+        }
         const isUniversal2 = args.includes('--universal2');
         const isArm64 = IS_MACOS && target.startsWith('aarch64');
         const env = {};

@@ -267,6 +267,13 @@ async function dockerBuild(
     'which patchelf > /dev/null || python3 -m pip install patchelf',
     'echo "::endgroup::"'
   ]
+  if (args.includes('--zig')) {
+    commands.push(
+      'echo "::group::Install Zig"',
+      'python3 -m pip install ziglang',
+      'echo "::endgroup::"'
+    )
+  }
   if (target.length > 0) {
     commands.push(
       'echo "::group::Install Rust target"',
@@ -435,6 +442,11 @@ async function innerMain(): Promise<void> {
       await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf'])
     }
     core.endGroup()
+    if (args.includes('--zig')) {
+      core.startGroup('Install Zig')
+      await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang'])
+      core.endGroup()
+    }
 
     // Setup additional env vars for macOS arm64/universal2 build
     const isUniversal2 = args.includes('--universal2')
