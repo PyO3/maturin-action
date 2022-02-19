@@ -102,6 +102,22 @@ jobs:
           container: quay.io/pypa/manylinux_2_24_x86_64:latest
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: 'auto'
+      - name: maturin build --zig container off
+        uses: ./
+        with:
+          rust-toolchain: ${{ matrix.toolchain }}
+          target: aarch64-unknown-linux-gnu
+          args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
+          manylinux: 'auto'
+          container: 'off'
+      - name: maturin build --zig
+        if: matrix.os == 'ubuntu-latest'
+        uses: ./
+        with:
+          rust-toolchain: ${{ matrix.toolchain }}
+          target: aarch64-unknown-linux-gnu
+          args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
+          manylinux: 'auto'
 
   test-manylinux:
     name: Manylinux Test Suite
