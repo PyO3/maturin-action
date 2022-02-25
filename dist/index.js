@@ -8074,7 +8074,6 @@ function findVersion() {
     const version = core.getInput('maturin-version').toLowerCase();
     if (version !== 'latest') {
         if (!version.startsWith('v')) {
-            core.warning(`Corrected 'maturin-version' from '${version}' to 'v${version}'`);
             return `v${version}`;
         }
     }
