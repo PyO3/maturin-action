@@ -121,8 +121,14 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
 /**
  * Get Rust target full name
  */
-function getRustTarget(): string {
-  const target = core.getInput('target')
+function getRustTarget(args: string[]): string {
+  let target = core.getInput('target')
+  if (!target && args.length > 0) {
+    const index = args.indexOf('--target')
+    if (index !== -1 && args[index + 1] !== undefined) {
+      target = args[index + 1]
+    }
+  }
   return TARGET_ALIASES[process.platform]?.[target] || target
 }
 
@@ -201,7 +207,7 @@ async function dockerBuild(
   args: string[]
 ): Promise<number> {
   // Strip `manylinux` and `manylinx_` prefix
-  const target = getRustTarget()
+  const target = getRustTarget(args)
   let container = core.getInput('container')
   if (container.length === 0) {
     // Get default Docker container with fallback
@@ -382,7 +388,7 @@ async function innerMain(): Promise<void> {
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
   args.unshift(command)
-  const target = getRustTarget()
+  const target = getRustTarget(args)
 
   let useDocker = false
   // Only build and publish commands has --manylinux and --target options
@@ -402,7 +408,7 @@ async function innerMain(): Promise<void> {
       useDocker = manylinux !== 'off' && core.getInput('container') !== 'off'
     }
 
-    if (target.length > 0) {
+    if (target.length > 0 && !args.includes('--target')) {
       args.push('--target', target)
     }
     if (!useDocker) {
