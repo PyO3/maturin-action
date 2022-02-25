@@ -8065,9 +8065,15 @@ const TARGET_ALIASES = {
         aarch64: 'aarch64-pc-windows-msvc'
     }
 };
-function getRustTarget() {
+function getRustTarget(args) {
     var _a;
-    const target = core.getInput('target');
+    let target = core.getInput('target');
+    if (!target && args.length > 0) {
+        const index = args.indexOf('--target');
+        if (index !== -1 && args[index + 1] !== undefined) {
+            target = args[index + 1];
+        }
+    }
     return ((_a = TARGET_ALIASES[process.platform]) === null || _a === void 0 ? void 0 : _a[target]) || target;
 }
 function findVersion() {
@@ -8129,7 +8135,7 @@ async function installMaturin(tag) {
 }
 async function dockerBuild(tag, manylinux, args) {
     var _a;
-    const target = getRustTarget();
+    const target = getRustTarget(args);
     let container = core.getInput('container');
     if (container.length === 0) {
         container =
@@ -8273,7 +8279,7 @@ async function innerMain() {
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
     args.unshift(command);
-    const target = getRustTarget();
+    const target = getRustTarget(args);
     let useDocker = false;
     let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
     if (['build', 'publish'].includes(command)) {
@@ -8286,7 +8292,7 @@ async function innerMain() {
             }
             useDocker = manylinux !== 'off' && core.getInput('container') !== 'off';
         }
-        if (target.length > 0) {
+        if (target.length > 0 && !args.includes('--target')) {
             args.push('--target', target);
         }
         if (!useDocker) {
