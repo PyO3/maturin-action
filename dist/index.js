@@ -8286,6 +8286,12 @@ async function innerMain() {
         if (command === 'publish' && !manylinux) {
             manylinux = 'auto';
         }
+        if (process.arch === 'x64' &&
+            !manylinux &&
+            target.includes('linux') &&
+            !(target.includes('x86_64') || target.includes('i686'))) {
+            manylinux = 'auto';
+        }
         if (manylinux.length > 0 && IS_LINUX) {
             if (manylinux !== 'auto') {
                 args.push('--manylinux', manylinux);

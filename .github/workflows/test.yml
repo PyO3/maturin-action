@@ -108,7 +108,6 @@ jobs:
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --target aarch64-unknown-linux-gnu
-          manylinux: 'auto'
       - run: sudo rm -rf maturin/test-crates/pyo3-pure/target
         if: matrix.os == 'ubuntu-latest'
       - name: maturin build --zig container off
