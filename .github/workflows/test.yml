@@ -23,6 +23,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [lint]
     strategy:
+      fail-fast: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-no-fail-fast') }}
       matrix:
         os:
           - ubuntu-latest
@@ -135,6 +136,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [lint]
     strategy:
+      fail-fast: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-no-fail-fast') }}
       matrix:
         os:
           - ubuntu-latest
