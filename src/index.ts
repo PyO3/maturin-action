@@ -332,6 +332,23 @@ async function dockerBuild(
   writeFileSync(scriptPath, commands.join('\n'))
   await fs.chmod(scriptPath, 0o755)
 
+  const targetDir = getCargoTargetDir(args)
+
+  core.startGroup('Cleanup build scripts artifact directory')
+  const debugBuildDir = path.join(targetDir, 'debug', 'build')
+  if (existsSync(debugBuildDir)) {
+    await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
+      ignoreReturnCode: true
+    })
+  }
+  const releaseBuildDir = path.join(targetDir, 'release', 'build')
+  if (existsSync(debugBuildDir)) {
+    await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
+      ignoreReturnCode: true
+    })
+  }
+  core.endGroup()
+
   const exitCode = await exec.exec('docker', [
     'run',
     '--rm',
@@ -370,7 +387,6 @@ async function dockerBuild(
   // Fix file permissions
   if (IS_LINUX || IS_MACOS) {
     core.startGroup('Fix file permissions')
-    const targetDir = getCargoTargetDir(args)
     core.info(`Fixing file permissions for target directory: ${targetDir}`)
     const uid = process.getuid()
     const gid = process.getgid()
