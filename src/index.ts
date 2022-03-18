@@ -217,13 +217,20 @@ async function dockerBuild(
 
   const dockerArgs = []
   let image: string
-  if (container.includes(':') || !container.startsWith('konstin2/maturin')) {
-    image = container
+  if (
+    container.startsWith('pyo3/maturin') ||
+    container.startsWith('konstin2/maturin')
+  ) {
+    if (container.includes(':')) {
+      image = container
+    } else {
+      // pyo3/maturin support
+      image = `${container}:${tag}`
+      // override entrypoint
+      dockerArgs.push('--entrypoint', '/bin/bash')
+    }
   } else {
-    // konstin2/maturin support
-    image = `${container}:${tag}`
-    // override entrypoint
-    dockerArgs.push('--entrypoint', '/bin/bash')
+    image = container
   }
 
   const imageExists =

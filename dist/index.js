@@ -8143,12 +8143,18 @@ async function dockerBuild(tag, manylinux, args) {
     }
     const dockerArgs = [];
     let image;
-    if (container.includes(':') || !container.startsWith('konstin2/maturin')) {
-        image = container;
+    if (container.startsWith('pyo3/maturin') ||
+        container.startsWith('konstin2/maturin')) {
+        if (container.includes(':')) {
+            image = container;
+        }
+        else {
+            image = `${container}:${tag}`;
+            dockerArgs.push('--entrypoint', '/bin/bash');
+        }
     }
     else {
-        image = `${container}:${tag}`;
-        dockerArgs.push('--entrypoint', '/bin/bash');
+        image = container;
     }
     const imageExists = (await exec.exec('docker', ['inspect', '--type=image', image], {
         silent: true,
