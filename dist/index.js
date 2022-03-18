@@ -8238,6 +8238,21 @@ async function dockerBuild(tag, manylinux, args) {
     const scriptPath = path.join(workspace, 'run-maturin-action.sh');
     (0, fs_1.writeFileSync)(scriptPath, commands.join('\n'));
     await fs_1.promises.chmod(scriptPath, 0o755);
+    const targetDir = getCargoTargetDir(args);
+    core.startGroup('Cleanup build scripts artifact directory');
+    const debugBuildDir = path.join(targetDir, 'debug', 'build');
+    if ((0, fs_1.existsSync)(debugBuildDir)) {
+        await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
+            ignoreReturnCode: true
+        });
+    }
+    const releaseBuildDir = path.join(targetDir, 'release', 'build');
+    if ((0, fs_1.existsSync)(debugBuildDir)) {
+        await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
+            ignoreReturnCode: true
+        });
+    }
+    core.endGroup();
     const exitCode = await exec.exec('docker', [
         'run',
         '--rm',
@@ -8273,7 +8288,6 @@ async function dockerBuild(tag, manylinux, args) {
     ]);
     if (IS_LINUX || IS_MACOS) {
         core.startGroup('Fix file permissions');
-        const targetDir = getCargoTargetDir(args);
         core.info(`Fixing file permissions for target directory: ${targetDir}`);
         const uid = process.getuid();
         const gid = process.getgid();
