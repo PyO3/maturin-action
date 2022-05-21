@@ -293,6 +293,7 @@ async function dockerBuild(
     `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
     'export PATH="$HOME/.cargo/bin:$PATH"',
     `rustup override set ${rustToolchain}`,
+    `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
     // Add all supported python versions to PATH
     'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
@@ -488,6 +489,9 @@ async function innerMain(): Promise<void> {
       core.startGroup('Install Rust target')
       if (rustToolchain.length > 0) {
         await exec.exec('rustup', ['override', 'set', rustToolchain])
+        await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
+          ignoreReturnCode: true
+        })
       }
       if (rustupComponents.length > 0) {
         const rustupArgs = ['component', 'add'].concat(

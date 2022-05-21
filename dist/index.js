@@ -8216,6 +8216,7 @@ async function dockerBuild(tag, manylinux, args) {
         `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
         'export PATH="$HOME/.cargo/bin:$PATH"',
         `rustup override set ${rustToolchain}`,
+        `rustup component add llvm-tools-preview || true`,
         'echo "::endgroup::"',
         'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
         'echo "::group::Install maturin"',
@@ -8370,6 +8371,9 @@ async function innerMain() {
             core.startGroup('Install Rust target');
             if (rustToolchain.length > 0) {
                 await exec.exec('rustup', ['override', 'set', rustToolchain]);
+                await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
+                    ignoreReturnCode: true
+                });
             }
             if (rustupComponents.length > 0) {
                 const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '));
