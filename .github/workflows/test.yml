@@ -50,7 +50,6 @@ jobs:
       - name: maturin build
         uses: ./
         with:
-          maturin-version: v0.12.18-beta.1 
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
       - name: maturin build universal2
