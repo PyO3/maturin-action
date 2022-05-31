@@ -1,6 +1,6 @@
 {
   "name": "maturin-action",
-  "version": "1.24.1",
+  "version": "1.25.0",
   "description": "GitHub Action to install and run a custom maturin command",
   "main": "dist/index.js",
   "scripts": {
