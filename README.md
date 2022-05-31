@@ -2,7 +2,7 @@
 
 [![GitHub Actions](https://github.com/messense/maturin-action/actions/workflows/test.yml/badge.svg)](https://github.com/messense/maturin-action/actions?query=workflow%3ATest)
 
-GitHub Action to install and run a custom [maturin](https://github.com/PyO3/maturin) command
+GitHub Action to install and run a custom [maturin](https://github.com/PyO3/maturin) command. 
 
 ## Usage
 
@@ -20,6 +20,9 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 ```
 
 ### Examples
+
+If you want to build and publish a Python extension module for common Python versions, operating systems, and CPU architectures, 
+take a look at the following examples:
 
 * [messense/crfs-rs](https://github.com/messense/crfs-rs/blob/main/.github/workflows/Python.yml): PyO3 abi3 wheel example
 * [messense/rjmespath-rs](https://github.com/messense/rjmespath-py/blob/main/.github/workflows/CI.yml): PyO3 abi3 wheel with Rust nightly toolchain example
