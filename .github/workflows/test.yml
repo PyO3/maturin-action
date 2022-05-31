@@ -176,6 +176,11 @@ jobs:
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
           {
+            manylinux: 'manylinux_2_28',
+            target: 'aarch64-unknown-linux-gnu',
+            test-crate: 'maturin/test-crates/pyo3-mixed'
+          },
+          {
             manylinux: 'manylinux2014',
             target: 's390x',
             test-crate: 'maturin/test-crates/pyo3-mixed'
