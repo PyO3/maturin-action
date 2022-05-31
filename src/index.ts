@@ -25,7 +25,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2_12': 'quay.io/pypa/manylinux2010_x86_64:latest',
     '2014': 'quay.io/pypa/manylinux2014_x86_64:latest',
     '2_17': 'quay.io/pypa/manylinux2014_x86_64:latest',
-    '2_24': 'quay.io/pypa/manylinux_2_24_x86_64:latest'
+    '2_24': 'quay.io/pypa/manylinux_2_24_x86_64:latest',
+    '2_28': 'quay.io/pypa/manylinux_2_28_x86_64:latest'
   },
   'x86_64-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:x86_64-musl',
@@ -47,7 +48,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     auto: 'messense/manylinux2014-cross:aarch64',
     '2014': 'messense/manylinux2014-cross:aarch64',
     '2_17': 'messense/manylinux2014-cross:aarch64',
-    '2_24': 'messense/manylinux_2_24-cross:aarch64'
+    '2_24': 'messense/manylinux_2_24-cross:aarch64',
+    '2_28': 'messense/manylinux_2_28-cross:aarch64'
   },
   'aarch64-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:aarch64-musl',
@@ -57,7 +59,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     auto: 'messense/manylinux2014-cross:armv7',
     '2014': 'messense/manylinux2014-cross:armv7',
     '2_17': 'messense/manylinux2014-cross:armv7',
-    '2_24': 'messense/manylinux_2_24-cross:armv7'
+    '2_24': 'messense/manylinux_2_24-cross:armv7',
+    '2_28': 'messense/manylinux_2_24-cross:armv7'
   },
   'armv7-unknown-linux-musleabihf': {
     auto: 'messense/rust-musl-cross:armv7-musleabihf',
@@ -72,7 +75,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     auto: 'messense/manylinux2014-cross:ppc64le',
     '2014': 'messense/manylinux2014-cross:ppc64le',
     '2_17': 'messense/manylinux2014-cross:ppc64le',
-    '2_24': 'messense/manylinux_2_24-cross:ppc64le'
+    '2_24': 'messense/manylinux_2_24-cross:ppc64le',
+    '2_28': 'messense/manylinux_2_24-cross:ppc64le'
   },
   'powerpc64le-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:powerpc64le-musl',
@@ -82,7 +86,8 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     auto: 'messense/manylinux2014-cross:s390x',
     '2014': 'messense/manylinux2014-cross:s390x',
     '2_17': 'messense/manylinux2014-cross:s390x',
-    '2_24': 'messense/manylinux_2_24-cross:s390x'
+    '2_24': 'messense/manylinux_2_24-cross:s390x',
+    '2_28': 'messense/manylinux_2_24-cross:s390x'
   }
 }
 
