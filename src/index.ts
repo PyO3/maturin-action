@@ -30,6 +30,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   },
   'x86_64-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:x86_64-musl',
+    musllinux_1_1: 'messense/rust-musl-cross:x86_64-musl',
     musllinux_1_2: 'messense/rust-musl-cross:x86_64-musl'
   },
   'i686-unknown-linux-gnu': {
@@ -42,6 +43,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   },
   'i686-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:i686-musl',
+    musllinux_1_1: 'messense/rust-musl-cross:i686-musl',
     musllinux_1_2: 'messense/rust-musl-cross:i686-musl'
   },
   'aarch64-unknown-linux-gnu': {
@@ -53,6 +55,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   },
   'aarch64-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:aarch64-musl',
+    musllinux_1_1: 'messense/rust-musl-cross:aarch64-musl',
     musllinux_1_2: 'messense/rust-musl-cross:aarch64-musl'
   },
   'armv7-unknown-linux-gnueabihf': {
@@ -64,6 +67,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   },
   'armv7-unknown-linux-musleabihf': {
     auto: 'messense/rust-musl-cross:armv7-musleabihf',
+    musllinux_1_1: 'messense/rust-musl-cross:armv7-musleabihf',
     musllinux_1_2: 'messense/rust-musl-cross:armv7-musleabihf'
   },
   'powerpc64-unknown-linux-gnu': {
@@ -80,6 +84,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   },
   'powerpc64le-unknown-linux-musl': {
     auto: 'messense/rust-musl-cross:powerpc64le-musl',
+    musllinux_1_1: 'messense/rust-musl-cross:powerpc64le-musl',
     musllinux_1_2: 'messense/rust-musl-cross:powerpc64le-musl'
   },
   's390x-unknown-linux-gnu': {
@@ -102,7 +107,7 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
     x86_64: 'x86_64-apple-darwin',
     aarch64: 'aarch64-apple-darwin'
   },
-  linux: {
+  manylinux: {
     x64: 'x86_64-unknown-linux-gnu',
     x86_64: 'x86_64-unknown-linux-gnu',
     i686: 'i686-unknown-linux-gnu',
@@ -113,6 +118,16 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
     ppc64le: 'powerpc64le-unknown-linux-gnu',
     ppc64: 'powerpc64-unknown-linux-gnu',
     s390x: 's390x-unknown-linux-gnu'
+  },
+  musllinux: {
+    x64: 'x86_64-unknown-linux-musl',
+    x86_64: 'x86_64-unknown-linux-musl',
+    i686: 'i686-unknown-linux-musl',
+    x86: 'i686-unknown-linux-musl',
+    aarch64: 'aarch64-unknown-linux-musl',
+    armv7: 'armv7-unknown-linux-musleabihf',
+    armv7l: 'armv7-unknown-linux-musleabihf',
+    ppc64le: 'powerpc64le-unknown-linux-musl'
   },
   win32: {
     x64: 'x86_64-pc-windows-msvc',
@@ -132,6 +147,14 @@ function getRustTarget(args: string[]): string {
     const val = getCliValue(args, '--target')
     if (val && val.length > 0) {
       target = val
+    }
+  }
+  if (process.platform === 'linux') {
+    const manylinux = core.getInput('manylinux')
+    if (manylinux.startsWith('musllinux')) {
+      return TARGET_ALIASES['musllinux']?.[target] || target
+    } else {
+      return TARGET_ALIASES['manylinux']?.[target] || target
     }
   }
   return TARGET_ALIASES[process.platform]?.[target] || target
