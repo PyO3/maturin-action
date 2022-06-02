@@ -7991,6 +7991,7 @@ const DEFAULT_CONTAINERS = {
     },
     'x86_64-unknown-linux-musl': {
         auto: 'messense/rust-musl-cross:x86_64-musl',
+        musllinux_1_1: 'messense/rust-musl-cross:x86_64-musl',
         musllinux_1_2: 'messense/rust-musl-cross:x86_64-musl'
     },
     'i686-unknown-linux-gnu': {
@@ -8003,6 +8004,7 @@ const DEFAULT_CONTAINERS = {
     },
     'i686-unknown-linux-musl': {
         auto: 'messense/rust-musl-cross:i686-musl',
+        musllinux_1_1: 'messense/rust-musl-cross:i686-musl',
         musllinux_1_2: 'messense/rust-musl-cross:i686-musl'
     },
     'aarch64-unknown-linux-gnu': {
@@ -8014,6 +8016,7 @@ const DEFAULT_CONTAINERS = {
     },
     'aarch64-unknown-linux-musl': {
         auto: 'messense/rust-musl-cross:aarch64-musl',
+        musllinux_1_1: 'messense/rust-musl-cross:aarch64-musl',
         musllinux_1_2: 'messense/rust-musl-cross:aarch64-musl'
     },
     'armv7-unknown-linux-gnueabihf': {
@@ -8025,6 +8028,7 @@ const DEFAULT_CONTAINERS = {
     },
     'armv7-unknown-linux-musleabihf': {
         auto: 'messense/rust-musl-cross:armv7-musleabihf',
+        musllinux_1_1: 'messense/rust-musl-cross:armv7-musleabihf',
         musllinux_1_2: 'messense/rust-musl-cross:armv7-musleabihf'
     },
     'powerpc64-unknown-linux-gnu': {
@@ -8041,6 +8045,7 @@ const DEFAULT_CONTAINERS = {
     },
     'powerpc64le-unknown-linux-musl': {
         auto: 'messense/rust-musl-cross:powerpc64le-musl',
+        musllinux_1_1: 'messense/rust-musl-cross:powerpc64le-musl',
         musllinux_1_2: 'messense/rust-musl-cross:powerpc64le-musl'
     },
     's390x-unknown-linux-gnu': {
@@ -8058,7 +8063,7 @@ const TARGET_ALIASES = {
         x86_64: 'x86_64-apple-darwin',
         aarch64: 'aarch64-apple-darwin'
     },
-    linux: {
+    manylinux: {
         x64: 'x86_64-unknown-linux-gnu',
         x86_64: 'x86_64-unknown-linux-gnu',
         i686: 'i686-unknown-linux-gnu',
@@ -8070,6 +8075,16 @@ const TARGET_ALIASES = {
         ppc64: 'powerpc64-unknown-linux-gnu',
         s390x: 's390x-unknown-linux-gnu'
     },
+    musllinux: {
+        x64: 'x86_64-unknown-linux-musl',
+        x86_64: 'x86_64-unknown-linux-musl',
+        i686: 'i686-unknown-linux-musl',
+        x86: 'i686-unknown-linux-musl',
+        aarch64: 'aarch64-unknown-linux-musl',
+        armv7: 'armv7-unknown-linux-musleabihf',
+        armv7l: 'armv7-unknown-linux-musleabihf',
+        ppc64le: 'powerpc64le-unknown-linux-musl'
+    },
     win32: {
         x64: 'x86_64-pc-windows-msvc',
         x86_64: 'x86_64-pc-windows-msvc',
@@ -8079,7 +8094,7 @@ const TARGET_ALIASES = {
     }
 };
 function getRustTarget(args) {
-    var _a;
+    var _a, _b, _c;
     let target = core.getInput('target');
     if (!target && args.length > 0) {
         const val = getCliValue(args, '--target');
@@ -8087,7 +8102,16 @@ function getRustTarget(args) {
             target = val;
         }
     }
-    return ((_a = TARGET_ALIASES[process.platform]) === null || _a === void 0 ? void 0 : _a[target]) || target;
+    if (process.platform === 'linux') {
+        const manylinux = core.getInput('manylinux');
+        if (manylinux.startsWith('musllinux')) {
+            return ((_a = TARGET_ALIASES['musllinux']) === null || _a === void 0 ? void 0 : _a[target]) || target;
+        }
+        else {
+            return ((_b = TARGET_ALIASES['manylinux']) === null || _b === void 0 ? void 0 : _b[target]) || target;
+        }
+    }
+    return ((_c = TARGET_ALIASES[process.platform]) === null || _c === void 0 ? void 0 : _c[target]) || target;
 }
 function getCliValue(args, key) {
     const index = args.indexOf(key);
