@@ -378,6 +378,19 @@ async function dockerBuild(
   }
   core.endGroup()
 
+  const dockerEnvs = []
+  for (const env of Object.keys(process.env)) {
+    if (
+      env.startsWith('CARGO_') ||
+      env.startsWith('RUST') ||
+      env.startsWith('MATURIN_') ||
+      env.startsWith('PYO3_')
+    ) {
+      dockerEnvs.push('-e')
+      dockerEnvs.push(env)
+    }
+  }
+
   const exitCode = await exec.exec('docker', [
     'run',
     '--rm',
@@ -387,25 +400,10 @@ async function dockerBuild(
     '-e',
     'DEBIAN_FRONTEND=noninteractive',
     '-e',
-    'CARGO_TARGET_DIR',
-    '-e',
-    'RUSTFLAGS',
-    '-e',
-    'RUST_BACKTRACE',
-    '-e',
-    'MATURIN_PASSWORD',
-    '-e',
-    'MATURIN_PYPI_TOKEN',
-    '-e',
     'ARCHFLAGS',
     '-e',
-    'PYO3_CROSS',
-    '-e',
-    'PYO3_CROSS_LIB_DIR',
-    '-e',
-    'PYO3_CROSS_PYTHON_VERSION',
-    '-e',
     '_PYTHON_SYSCONFIGDATA_NAME',
+    ...dockerEnvs,
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
     `${workspace}:${workspace}`,
