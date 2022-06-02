@@ -7971,6 +7971,7 @@ const mexec = __importStar(__nccwpck_require__(5047));
 const path = __importStar(__nccwpck_require__(1017));
 const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __nccwpck_require__(7147);
+const os_1 = __importDefault(__nccwpck_require__(2037));
 const string_argv_1 = __importDefault(__nccwpck_require__(9453));
 const IS_MACOS = process.platform === 'darwin';
 const IS_WINDOWS = process.platform === 'win32';
@@ -8113,6 +8114,27 @@ function getRustTarget(args) {
     }
     return ((_c = TARGET_ALIASES[process.platform]) === null || _c === void 0 ? void 0 : _c[target]) || target;
 }
+function getCargoHome() {
+    const home = os_1.default.homedir();
+    return process.env.CARGO_HOME || path.join(home, '.cargo');
+}
+function getCargoCachePaths() {
+    const cargoHome = getCargoHome();
+    const paths = [];
+    if ((0, fs_1.existsSync)(path.join(cargoHome, 'registry'))) {
+        paths.push(path.join(cargoHome, 'registry'));
+    }
+    if ((0, fs_1.existsSync)(path.join(cargoHome, 'git'))) {
+        paths.push(path.join(cargoHome, 'git'));
+    }
+    if ((0, fs_1.existsSync)(path.join(cargoHome, '.crates2.json'))) {
+        paths.push(path.join(cargoHome, '.crates2.json'));
+    }
+    if ((0, fs_1.existsSync)(path.join(cargoHome, '.crates.toml'))) {
+        paths.push(path.join(cargoHome, '.crates.toml'));
+    }
+    return paths;
+}
 function getCliValue(args, key) {
     const index = args.indexOf(key);
     if (index !== -1 && args[index + 1] !== undefined) {
@@ -8232,6 +8254,29 @@ async function dockerBuild(tag, manylinux, args) {
     else {
         core.info(`Using existing ${image} Docker image`);
     }
+    const dockerEnvs = [];
+    for (const env of Object.keys(process.env)) {
+        if (env.startsWith('CARGO_') ||
+            env.startsWith('RUST') ||
+            env.startsWith('MATURIN_') ||
+            env.startsWith('PYO3_')) {
+            dockerEnvs.push('-e');
+            dockerEnvs.push(env);
+        }
+    }
+    let cargoHomeBin = '$HOME/.cargo/bin';
+    const cargoCachePaths = getCargoCachePaths();
+    if (cargoCachePaths.length > 0) {
+        const cargoHome = getCargoHome();
+        dockerEnvs.push('-e');
+        dockerEnvs.push(`CARGO_HOME=${cargoHome}`);
+        cargoHomeBin = path.join(cargoHome, 'bin');
+    }
+    const dockerVolumes = [];
+    for (const vol of cargoCachePaths) {
+        dockerVolumes.push('-v');
+        dockerVolumes.push(`${vol}:${vol}`);
+    }
     const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
     const url = tag === 'latest'
         ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
@@ -8243,7 +8288,7 @@ async function dockerBuild(tag, manylinux, args) {
         'set -e',
         'echo "::group::Install Rust"',
         `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
-        'export PATH="$HOME/.cargo/bin:$PATH"',
+        `export PATH="${cargoHomeBin}:$PATH"`,
         `rustup override set ${rustToolchain}`,
         `rustup component add llvm-tools-preview || true`,
         'echo "::endgroup::"',
@@ -8283,16 +8328,6 @@ async function dockerBuild(tag, manylinux, args) {
         });
     }
     core.endGroup();
-    const dockerEnvs = [];
-    for (const env of Object.keys(process.env)) {
-        if (env.startsWith('CARGO_') ||
-            env.startsWith('RUST') ||
-            env.startsWith('MATURIN_') ||
-            env.startsWith('PYO3_')) {
-            dockerEnvs.push('-e');
-            dockerEnvs.push(env);
-        }
-    }
     const exitCode = await exec.exec('docker', [
         'run',
         '--rm',
@@ -8307,6 +8342,7 @@ async function dockerBuild(tag, manylinux, args) {
         ...dockerEnvs,
         '-v',
         `${workspace}:${workspace}`,
+        ...dockerVolumes,
         ...dockerArgs,
         image,
         scriptPath

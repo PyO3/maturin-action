@@ -49,6 +49,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+      - uses: Swatinem/rust-cache@v1
       - name: maturin build
         uses: ./
         with:

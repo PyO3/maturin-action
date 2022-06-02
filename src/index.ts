@@ -7,6 +7,7 @@ import * as mexec from './exec'
 import * as path from 'path'
 import * as tc from '@actions/tool-cache'
 import {existsSync, promises as fs, writeFileSync} from 'fs'
+import os from 'os'
 import stringArgv from 'string-argv'
 
 const IS_MACOS = process.platform === 'darwin'
@@ -160,6 +161,29 @@ function getRustTarget(args: string[]): string {
   return TARGET_ALIASES[process.platform]?.[target] || target
 }
 
+function getCargoHome(): string {
+  const home = os.homedir()
+  return process.env.CARGO_HOME || path.join(home, '.cargo')
+}
+
+function getCargoCachePaths(): string[] {
+  const cargoHome = getCargoHome()
+  const paths = []
+  if (existsSync(path.join(cargoHome, 'registry'))) {
+    paths.push(path.join(cargoHome, 'registry'))
+  }
+  if (existsSync(path.join(cargoHome, 'git'))) {
+    paths.push(path.join(cargoHome, 'git'))
+  }
+  if (existsSync(path.join(cargoHome, '.crates2.json'))) {
+    paths.push(path.join(cargoHome, '.crates2.json'))
+  }
+  if (existsSync(path.join(cargoHome, '.crates.toml'))) {
+    paths.push(path.join(cargoHome, '.crates.toml'))
+  }
+  return paths
+}
+
 function getCliValue(args: string[], key: string): string | undefined {
   const index = args.indexOf(key)
   if (index !== -1 && args[index + 1] !== undefined) {
@@ -304,6 +328,34 @@ async function dockerBuild(
     core.info(`Using existing ${image} Docker image`)
   }
 
+  const dockerEnvs = []
+  for (const env of Object.keys(process.env)) {
+    if (
+      env.startsWith('CARGO_') ||
+      env.startsWith('RUST') ||
+      env.startsWith('MATURIN_') ||
+      env.startsWith('PYO3_')
+    ) {
+      dockerEnvs.push('-e')
+      dockerEnvs.push(env)
+    }
+  }
+
+  let cargoHomeBin = '$HOME/.cargo/bin'
+  const cargoCachePaths = getCargoCachePaths()
+  if (cargoCachePaths.length > 0) {
+    const cargoHome = getCargoHome()
+    dockerEnvs.push('-e')
+    dockerEnvs.push(`CARGO_HOME=${cargoHome}`)
+    cargoHomeBin = path.join(cargoHome, 'bin')
+  }
+
+  const dockerVolumes = []
+  for (const vol of cargoCachePaths) {
+    dockerVolumes.push('-v')
+    dockerVolumes.push(`${vol}:${vol}`)
+  }
+
   const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
   const url =
     tag === 'latest'
@@ -319,7 +371,7 @@ async function dockerBuild(
     // Install Rust
     'echo "::group::Install Rust"',
     `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
-    'export PATH="$HOME/.cargo/bin:$PATH"',
+    `export PATH="${cargoHomeBin}:$PATH"`,
     `rustup override set ${rustToolchain}`,
     `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
@@ -378,19 +430,6 @@ async function dockerBuild(
   }
   core.endGroup()
 
-  const dockerEnvs = []
-  for (const env of Object.keys(process.env)) {
-    if (
-      env.startsWith('CARGO_') ||
-      env.startsWith('RUST') ||
-      env.startsWith('MATURIN_') ||
-      env.startsWith('PYO3_')
-    ) {
-      dockerEnvs.push('-e')
-      dockerEnvs.push(env)
-    }
-  }
-
   const exitCode = await exec.exec('docker', [
     'run',
     '--rm',
@@ -407,6 +446,7 @@ async function dockerBuild(
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
     `${workspace}:${workspace}`,
+    ...dockerVolumes,
     ...dockerArgs,
     image,
     scriptPath
