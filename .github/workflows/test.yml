@@ -52,6 +52,7 @@ jobs:
       - name: maturin build
         uses: ./
         with:
+          maturin-version: v0.13.0-beta.7
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
       - name: maturin build universal2
@@ -98,10 +99,10 @@ jobs:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
           manylinux: 'off'
           container: 'off'
-      - name: maturin build --cargo-extra-args
+      - name: maturin build --features
         uses: ./
         with:
-          args: -m tests/pyo3-pure/Cargo.toml --cargo-extra-args="--features python"
+          args: -m tests/pyo3-pure/Cargo.toml --features python
           manylinux: 'auto'
       - name: docker pull
         if: matrix.os == 'ubuntu-latest'
@@ -209,7 +210,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: PyO3/maturin
-          ref: v0.12.10
           path: maturin
       - name: Set up QEMU
         uses: dbhi/qus/action@main
@@ -217,10 +217,10 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
-          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
+          maturin-version: v0.13.0-beta.7
           container: ${{ matrix.platform.container }}
           rust-toolchain: ${{ matrix.toolchain }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
