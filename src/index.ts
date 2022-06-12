@@ -412,7 +412,7 @@ async function dockerBuild(
     scriptPath
   ])
   // Fix file permissions
-  if (IS_LINUX || IS_MACOS) {
+  if (process.getuid && process.getgid) {
     core.startGroup('Fix file permissions')
     core.info(`Fixing file permissions for target directory: ${targetDir}`)
     const uid = process.getuid()
