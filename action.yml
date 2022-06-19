@@ -3,6 +3,10 @@ description: 'GitHub Action to install and run a custom maturin command'
 author: messense
 
 inputs:
+  token:
+    description: Used to pull maturin distributions using GitHub API. Since there's a default, this is typically not supplied by the user.
+    required: false
+    default: ${{ github.token }}
   command:
     description: maturin command to run. Defaults to "build".
     required: false
@@ -11,9 +15,8 @@ inputs:
     description: Arguments for the maturin command
     required: false
   maturin-version:
-    description: Version of maturin to install like "v0.10.0". Defaults to "latest".
+    description: Version of maturin to install like "v0.12.0".
     required: false
-    default: 'latest'
   manylinux:
     description: Control the manylinux platform tag on linux.
     required: false

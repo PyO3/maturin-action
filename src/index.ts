@@ -2,12 +2,15 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
-import * as io from '@actions/io'
 import * as mexec from './exec'
 import * as path from 'path'
 import * as tc from '@actions/tool-cache'
 import {existsSync, promises as fs, writeFileSync} from 'fs'
 import stringArgv from 'string-argv'
+import {JsonMap, parse as parseTOML} from '@iarna/toml'
+
+const TOKEN = core.getInput('token')
+const AUTH = !TOKEN ? undefined : `token ${TOKEN}`
 
 const IS_MACOS = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'
@@ -187,11 +190,76 @@ function getCargoTargetDir(args: string[]): string {
 }
 
 /**
+ * Python's prelease versions look like `3.7.0b2`.
+ * This is the one part of Python versioning that does not look like semantic versioning, which specifies `3.7.0-b2`.
+ * If the version spec contains prerelease versions, we need to convert them to the semantic version equivalent.
+ */
+function pythonVersionToSemantic(versionSpec: string): string {
+  const prereleaseVersion = /(\d+\.\d+\.\d+)((?:a|b|rc)\d*)/g
+  return versionSpec.replace(prereleaseVersion, '$1-$2')
+}
+
+async function findReleaseFromManifest(
+  semanticVersionSpec: string,
+  architecture: string
+): Promise<tc.IToolRelease | undefined> {
+  const manifest: tc.IToolRelease[] = await tc.getManifestFromRepo(
+    'messense',
+    'maturin-action',
+    AUTH,
+    'main'
+  )
+  return await tc.findFromManifest(
+    semanticVersionSpec,
+    false,
+    manifest,
+    architecture
+  )
+}
+
+/**
  * Find maturin version
  */
-function findVersion(): string {
-  const version = core.getInput('maturin-version').toLowerCase()
-  if (version !== 'latest') {
+async function findVersion(args: string[]): Promise<string> {
+  let version = core.getInput('maturin-version').toLowerCase()
+  if (!version) {
+    const manifestPath =
+      getCliValue(args, '--manifest-path') || getCliValue(args, '-m')
+    const manifestDir = manifestPath
+      ? path.dirname(manifestPath)
+      : process.cwd()
+    const pyprojectToml = path.join(manifestDir, 'pyproject.toml')
+    if (existsSync(pyprojectToml)) {
+      const content = await fs.readFile(pyprojectToml)
+      const toml = parseTOML(content.toString())
+      const buildSystem = (toml['build-system'] || {}) as JsonMap
+      const requires = (buildSystem['requires'] || []) as string[]
+      const maturin = requires.find(req => req.startsWith('maturin'))
+      if (maturin) {
+        core.info(
+          `Found maturin version requirement ${maturin} specified in pyproject.toml`
+        )
+        const versionSpec = pythonVersionToSemantic(
+          maturin.replace('maturin', '').replace(',', ' ')
+        )
+        core.debug(`maturin version spec: ${versionSpec}`)
+        const release = await findReleaseFromManifest(versionSpec, 'x64')
+        if (release) {
+          version = `v${release.version}`
+          core.info(`Found maturin release from manifest: ${version}`)
+        } else {
+          core.warning(
+            `No maturin release found from requirement ${maturin}, fallback to latest`
+          )
+          version = 'latest'
+        }
+      } else {
+        version = 'latest'
+      }
+    } else {
+      version = 'latest'
+    }
+  } else if (version !== 'latest') {
     if (!version.startsWith('v')) {
       return `v${version}`
     }
@@ -201,7 +269,7 @@ function findVersion(): string {
 
 /**
  * Download and return the path to an executable maturin tool
- * @param string tag The tag to download
+ * @param tag string The tag to download
  */
 async function downloadMaturin(tag: string): Promise<string> {
   let name: string
@@ -219,7 +287,7 @@ async function downloadMaturin(tag: string): Promise<string> {
     tag === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/${name}`
       : `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`
-  const tool = await tc.downloadTool(url)
+  const tool = await tc.downloadTool(url, undefined, AUTH)
   let toolPath: string
   if (zip) {
     toolPath = await tc.extractZip(tool)
@@ -238,11 +306,14 @@ async function downloadMaturin(tag: string): Promise<string> {
 }
 
 async function installMaturin(tag: string): Promise<string> {
-  try {
-    const exe = await io.which('maturin', true)
-    core.info(`Found 'maturin' at ${exe}`)
+  const versionSpec = tag.startsWith('v') ? tag.slice(1) : tag
+  const installDir = tc.find('maturin', versionSpec, 'x64')
+  if (installDir) {
+    const binaryExtension = IS_WINDOWS ? '.exe' : ''
+    const exe = path.join(installDir, `maturin${binaryExtension}`)
+    core.addPath(installDir)
     return exe
-  } catch (error) {
+  } else {
     const exe = await downloadMaturin(tag)
     core.info(`Installed 'maturin' to ${exe}`)
     core.addPath(path.dirname(exe))
@@ -530,7 +601,7 @@ async function innerMain(): Promise<void> {
     }
   }
 
-  const tag = findVersion()
+  const tag = await findVersion(args)
 
   let exitCode: number
   if (useDocker) {
