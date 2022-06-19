@@ -52,8 +52,11 @@ def fetch_releases(page=1, per_page=50):
                 }
             )
 
+        version = release["name"] or release["tag_name"]
+        if version.startswith("v"):
+            version = version[1:]
         yield {
-            "version": release["name"],
+            "version": version,
             "stable": not (release["prerelease"] or release["draft"]),
             "release_url": release["html_url"],
             "files": files,
