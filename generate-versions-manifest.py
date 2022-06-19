@@ -7,7 +7,7 @@ import requests
 
 REPO = os.getenv("REPOSITORY", "PyO3/maturin")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-OUTPUT = os.getenv("OUTPUT", "version-manifest.json")
+OUTPUT = os.getenv("OUTPUT", "versions-manifest.json")
 
 session = requests.Session()
 
@@ -60,7 +60,7 @@ def fetch_releases(page=1, per_page=50):
         }
 
 
-def generate_version_manifest():
+def generate_versions_manifest():
     all_releases = []
     page = 1
     per_page = 50
@@ -75,7 +75,7 @@ def generate_version_manifest():
 
 
 def main():
-    generate_version_manifest()
+    generate_versions_manifest()
     return 0
 
 
