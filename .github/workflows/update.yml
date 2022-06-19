@@ -1,0 +1,32 @@
+name: Update Version Manifest
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every week
+    - cron: '0 0 * * 0'
+
+jobs:
+  update:
+    name: Update Version Manifest
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    - name: Install requirements
+      run: pip install requests
+    - name: Generate Version Manifest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: python generate-version-manifest.py
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        branch: update-version-manifest
+        delete-branch: true
+        add-paths: |
+          version-manifest.json
+        title: 'Update version-manifest.json'
+        commit-message: 'Update version-manifest.json'
