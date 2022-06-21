@@ -10700,6 +10700,29 @@ function getRustTarget(args) {
     }
     return ((_c = TARGET_ALIASES[process.platform]) === null || _c === void 0 ? void 0 : _c[target]) || target;
 }
+function getManifestDir(args) {
+    const manifestPath = getCliValue(args, '--manifest-path') || getCliValue(args, '-m');
+    return manifestPath ? path.dirname(manifestPath) : process.cwd();
+}
+async function getRustToolchain(args) {
+    let rustToolchain = core.getInput('rust-toolchain');
+    const manifestDir = getManifestDir(args);
+    const rustToolchainToml = path.join(manifestDir, 'rust-toolchain.toml');
+    if ((0, fs_1.existsSync)(rustToolchainToml)) {
+        const content = await fs_1.promises.readFile(rustToolchainToml);
+        const toml = (0, toml_1.parse)(content.toString());
+        const toolchain = toml === null || toml === void 0 ? void 0 : toml.toolchain;
+        rustToolchain = toolchain === null || toolchain === void 0 ? void 0 : toolchain.channel;
+        core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain.toml `);
+    }
+    else if ((0, fs_1.existsSync)(path.join(manifestDir, 'rust-toolchain'))) {
+        rustToolchain = (await fs_1.promises.readFile(path.join(manifestDir, 'rust-toolchain')))
+            .toString()
+            .trim();
+        core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain `);
+    }
+    return rustToolchain || 'stable';
+}
 function getCliValue(args, key) {
     const index = args.indexOf(key);
     if (index !== -1 && args[index + 1] !== undefined) {
@@ -10734,10 +10757,7 @@ async function findReleaseFromManifest(semanticVersionSpec, architecture) {
 async function findVersion(args) {
     let version = core.getInput('maturin-version').toLowerCase();
     if (!version) {
-        const manifestPath = getCliValue(args, '--manifest-path') || getCliValue(args, '-m');
-        const manifestDir = manifestPath
-            ? path.dirname(manifestPath)
-            : process.cwd();
+        const manifestDir = getManifestDir(args);
         const pyprojectToml = path.join(manifestDir, 'pyproject.toml');
         if ((0, fs_1.existsSync)(pyprojectToml)) {
             const content = await fs_1.promises.readFile(pyprojectToml);
@@ -10868,7 +10888,7 @@ async function dockerBuild(tag, manylinux, args) {
     const url = tag === 'latest'
         ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
         : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`;
-    const rustToolchain = core.getInput('rust-toolchain') || 'stable';
+    const rustToolchain = await getRustToolchain(args);
     const rustupComponents = core.getInput('rustup-components');
     const commands = [
         '#!/bin/bash',
@@ -10995,8 +11015,6 @@ async function addToolCachePythonVersionsToPath() {
     }
 }
 async function innerMain() {
-    const rustToolchain = core.getInput('rust-toolchain');
-    const rustupComponents = core.getInput('rustup-components');
     const inputArgs = core.getInput('args');
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
@@ -11023,21 +11041,6 @@ async function innerMain() {
         if (target.length > 0 && !args.includes('--target')) {
             args.push('--target', target);
         }
-        if (!useDocker) {
-            core.startGroup('Install Rust target');
-            if (rustToolchain.length > 0) {
-                await exec.exec('rustup', ['override', 'set', rustToolchain]);
-                await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
-                    ignoreReturnCode: true
-                });
-            }
-            if (rustupComponents.length > 0) {
-                const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '));
-                await exec.exec('rustup', rustupArgs);
-            }
-            await installRustTarget(target, rustToolchain);
-            core.endGroup();
-        }
     }
     const tag = await findVersion(args);
     let exitCode;
@@ -11045,6 +11048,21 @@ async function innerMain() {
         exitCode = await dockerBuild(tag, manylinux, args);
     }
     else {
+        const rustToolchain = await getRustToolchain(args);
+        const rustupComponents = core.getInput('rustup-components');
+        core.startGroup('Install Rust target');
+        if (rustToolchain.length > 0) {
+            await exec.exec('rustup', ['override', 'set', rustToolchain]);
+            await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
+                ignoreReturnCode: true
+            });
+        }
+        if (rustupComponents.length > 0) {
+            const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '));
+            await exec.exec('rustup', rustupArgs);
+        }
+        await installRustTarget(target, rustToolchain);
+        core.endGroup();
         if (IS_MACOS && !process.env.pythonLocation) {
             addToolCachePythonVersionsToPath();
         }

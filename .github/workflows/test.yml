@@ -224,3 +224,30 @@ jobs:
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
+      - name: setup rust-toolchain
+        run: echo ${{ matrix.toolchain }} > ${{ matrix.platform.test-crate }}/rust-toolchain
+      - name: maturin build rust-toolchain
+        uses: ./
+        env:
+          RUST_BACKTRACE: '1'
+          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
+        with:
+          container: ${{ matrix.platform.container }}
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
+          manylinux: ${{ matrix.platform.manylinux }}
+          target: ${{ matrix.platform.target }}
+      - name: setup rust-toolchain.toml
+        run: |
+          echo "[toolchain]
+          channel = \"${{ matrix.toolchain }}\"
+          " > ${{ matrix.platform.test-crate }}/rust-toolchain.toml
+      - name: maturin build rust-toolchain.toml
+        uses: ./
+        env:
+          RUST_BACKTRACE: '1'
+          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
+        with:
+          container: ${{ matrix.platform.container }}
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
+          manylinux: ${{ matrix.platform.manylinux }}
+          target: ${{ matrix.platform.target }}
