@@ -10704,21 +10704,27 @@ function getManifestDir(args) {
     const manifestPath = getCliValue(args, '--manifest-path') || getCliValue(args, '-m');
     return manifestPath ? path.dirname(manifestPath) : process.cwd();
 }
+function parseRustToolchain(content) {
+    const toml = (0, toml_1.parse)(content.toString());
+    const toolchain = toml === null || toml === void 0 ? void 0 : toml.toolchain;
+    return toolchain === null || toolchain === void 0 ? void 0 : toolchain.channel;
+}
 async function getRustToolchain(args) {
     let rustToolchain = core.getInput('rust-toolchain');
     const manifestDir = getManifestDir(args);
     const rustToolchainToml = path.join(manifestDir, 'rust-toolchain.toml');
     if ((0, fs_1.existsSync)(rustToolchainToml)) {
         const content = await fs_1.promises.readFile(rustToolchainToml);
-        const toml = (0, toml_1.parse)(content.toString());
-        const toolchain = toml === null || toml === void 0 ? void 0 : toml.toolchain;
-        rustToolchain = toolchain === null || toolchain === void 0 ? void 0 : toolchain.channel;
+        rustToolchain = parseRustToolchain(content.toString());
         core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain.toml `);
     }
     else if ((0, fs_1.existsSync)(path.join(manifestDir, 'rust-toolchain'))) {
         rustToolchain = (await fs_1.promises.readFile(path.join(manifestDir, 'rust-toolchain')))
             .toString()
             .trim();
+        if (rustToolchain.includes('[toolchain]')) {
+            rustToolchain = parseRustToolchain(rustToolchain);
+        }
         core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain `);
     }
     return rustToolchain || 'stable';
