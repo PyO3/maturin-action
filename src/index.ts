@@ -169,15 +169,19 @@ function getManifestDir(args: string[]): string {
   return manifestPath ? path.dirname(manifestPath) : process.cwd()
 }
 
+function parseRustToolchain(content: string): string {
+  const toml = parseTOML(content.toString())
+  const toolchain = toml?.toolchain as JsonMap
+  return toolchain?.channel as string
+}
+
 async function getRustToolchain(args: string[]): Promise<string> {
   let rustToolchain = core.getInput('rust-toolchain')
   const manifestDir = getManifestDir(args)
   const rustToolchainToml = path.join(manifestDir, 'rust-toolchain.toml')
   if (existsSync(rustToolchainToml)) {
     const content = await fs.readFile(rustToolchainToml)
-    const toml = parseTOML(content.toString())
-    const toolchain = toml?.toolchain as JsonMap
-    rustToolchain = toolchain?.channel as string
+    rustToolchain = parseRustToolchain(content.toString())
     core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain.toml `)
   } else if (existsSync(path.join(manifestDir, 'rust-toolchain'))) {
     rustToolchain = (
@@ -185,6 +189,9 @@ async function getRustToolchain(args: string[]): Promise<string> {
     )
       .toString()
       .trim()
+    if (rustToolchain.includes('[toolchain]')) {
+      rustToolchain = parseRustToolchain(rustToolchain)
+    }
     core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain `)
   }
   return rustToolchain || 'stable'
