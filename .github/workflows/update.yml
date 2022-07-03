@@ -27,6 +27,6 @@ jobs:
         branch: update-versions-manifest
         delete-branch: true
         add-paths: |
-          version-manifest.json
+          versions-manifest.json
         title: 'Update versions-manifest.json'
         commit-message: 'Update versions-manifest.json'
