@@ -71,12 +71,12 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ./
         with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: 'auto'
       - name: maturin build manylinux2014
         uses: ./
         with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: '2014'
       - name: maturin build nightly powerpc64le musl
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
@@ -89,19 +89,19 @@ jobs:
       - name: maturin build manylinux off
         uses: ./
         with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: 'off'
       - name: maturin build container off
         uses: ./
         with:
           rustup-components: rustfmt
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: 'off'
           container: 'off'
       - name: maturin build --cargo-extra-args
         uses: ./
         with:
-          args: -m tests/pyo3-pure/Cargo.toml --cargo-extra-args="--features python"
+          args: -m tests/pyo3-pure/Cargo.toml --features python
           manylinux: 'auto'
       - name: docker pull
         if: matrix.os == 'ubuntu-latest'
@@ -112,7 +112,7 @@ jobs:
         with:
           rustup-components: rustfmt
           container: quay.io/pypa/manylinux_2_24_x86_64:latest
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: 'auto'
       - name: maturin build --target args
         if: matrix.os == 'ubuntu-latest'
@@ -209,7 +209,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: PyO3/maturin
-          ref: v0.12.10
           path: maturin
       - name: Set up QEMU
         uses: dbhi/qus/action@main
@@ -217,11 +216,10 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
-          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
           container: ${{ matrix.platform.container }}
           rust-toolchain: ${{ matrix.toolchain }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain
@@ -230,10 +228,9 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
-          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain.toml
@@ -248,7 +245,7 @@ jobs:
           PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain with toml content
@@ -266,6 +263,6 @@ jobs:
           PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8 --no-sdist
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
