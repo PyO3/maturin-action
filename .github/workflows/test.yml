@@ -242,7 +242,6 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
-          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
@@ -260,7 +259,6 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
-          PYO3_CROSS_LIB_DIR: '/opt/python/cp38-cp38/lib'
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
