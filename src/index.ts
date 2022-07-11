@@ -194,7 +194,7 @@ async function getRustToolchain(args: string[]): Promise<string> {
     }
     core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain `)
   }
-  return rustToolchain || 'stable'
+  return rustToolchain
 }
 
 function getCliValue(args: string[], key: string): string | undefined {
@@ -410,7 +410,7 @@ async function dockerBuild(
     tag === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
       : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
-  const rustToolchain = await getRustToolchain(args)
+  const rustToolchain = (await getRustToolchain(args)) || 'stable'
   const rustupComponents = core.getInput('rustup-components')
   const commands = [
     '#!/bin/bash',
