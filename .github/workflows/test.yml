@@ -53,7 +53,7 @@ jobs:
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -o dist
       - name: maturin build universal2
         if: matrix.os == 'macos-latest'
         uses: ./
@@ -71,12 +71,12 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ./
         with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
           manylinux: 'auto'
       - name: maturin build manylinux2014
         uses: ./
         with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
           manylinux: '2014'
       - name: maturin build nightly powerpc64le musl
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
