@@ -10977,6 +10977,13 @@ async function dockerBuild(tag, manylinux, args) {
         await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
             ignoreReturnCode: true
         });
+        const outDir = getCliValue(args, '--out') || getCliValue(args, '-o');
+        if (outDir && (0, fs_1.existsSync)(outDir)) {
+            core.info(`Fixing file permissions for output directory: ${outDir}`);
+            await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
+                ignoreReturnCode: true
+            });
+        }
         core.endGroup();
     }
     return exitCode;
