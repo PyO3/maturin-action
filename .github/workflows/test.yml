@@ -204,6 +204,19 @@ jobs:
           },
         ]
         toolchain: [stable, nightly]
+        exclude:
+          - toolchain: nightly
+            os: ubuntu-latest
+            platform:
+              manylinux: '2010'
+              target: 'x86_64'
+              test-crate: 'maturin/test-crates/pyo3-mixed'
+          - toolchain: nightly
+            os: ubuntu-latest
+            platform:
+              manylinux: '2010'
+              target: 'i686-unknown-linux-gnu'
+              test-crate: 'maturin/test-crates/pyo3-mixed'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/checkout@v3
