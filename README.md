@@ -29,6 +29,7 @@ take a look at the following examples:
 * [milesgranger/pyrus-cramjam](https://github.com/milesgranger/pyrus-cramjam/blob/master/.github/workflows/CI.yml): PyO3 non-abi3 wheel example
 * [messense/auditwheel-symbols](https://github.com/messense/auditwheel-symbols/blob/master/.github/workflows/CI.yml): `bin` binding example using MUSL libc
 * [adriangb/graphlib2](https://github.com/adriangb/graphlib2/blob/main/.github/workflows/python.yaml): PyO3 abi3 wheel
+* [pydantic/pydantic-core](https://github.com/pydantic/pydantic-core/blob/main/.github/workflows/ci.yml): PyO3 non-abi3 wheel with PyPy support example
 
 ## Inputs
 
