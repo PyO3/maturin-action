@@ -177,6 +177,9 @@ function parseRustToolchain(content: string): string {
 
 async function getRustToolchain(args: string[]): Promise<string> {
   let rustToolchain = core.getInput('rust-toolchain')
+  if (rustToolchain.length > 0) {
+    return rustToolchain
+  }
   const manifestDir = getManifestDir(args)
   const rustToolchainToml = path.join(manifestDir, 'rust-toolchain.toml')
   if (existsSync(rustToolchainToml)) {
