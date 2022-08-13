@@ -1,6 +1,6 @@
 {
   "name": "maturin-action",
-  "version": "1.28.4",
+  "version": "1.29.0",
   "description": "GitHub Action to install and run a custom maturin command",
   "main": "dist/index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "typescript": "^4.6.2"
   },
   "devDependencies": {
-    "@types/node": "^18.7.1",
+    "@types/node": "^18.7.2",
     "@typescript-eslint/parser": "^5.15.0",
     "@vercel/ncc": "^0.34.0",
     "eslint": "^8.11.0",
