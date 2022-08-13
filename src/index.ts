@@ -354,6 +354,23 @@ async function installMaturin(tag: string): Promise<string> {
   }
 }
 
+function autoManylinuxVersion(
+  manylinux: string,
+  rustToolchain: string,
+  target: string
+): string {
+  if (
+    manylinux === 'auto' &&
+    !target.includes('musl') &&
+    (rustToolchain.startsWith('beta') || rustToolchain.startsWith('nightly'))
+  ) {
+    // Rust 1.64 requires at least manylinux2014
+    return '2014'
+  } else {
+    return manylinux
+  }
+}
+
 /**
  * Build manylinux wheel using Docker
  * @param tag maturin release tag, ie. version
@@ -364,8 +381,10 @@ async function dockerBuild(
   manylinux: string,
   args: string[]
 ): Promise<number> {
-  // Strip `manylinux` and `manylinx_` prefix
   const target = getRustTarget(args)
+  const rustToolchain = (await getRustToolchain(args)) || 'stable'
+  manylinux = autoManylinuxVersion(manylinux, rustToolchain, target)
+
   let container = core.getInput('container')
   if (container.length === 0) {
     // Get default Docker container with fallback
@@ -413,7 +432,6 @@ async function dockerBuild(
     tag === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
       : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
-  const rustToolchain = (await getRustToolchain(args)) || 'stable'
   const rustupComponents = core.getInput('rustup-components')
   const commands = [
     '#!/bin/bash',
