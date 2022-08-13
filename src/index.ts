@@ -9,7 +9,7 @@ import {existsSync, promises as fs, writeFileSync} from 'fs'
 import stringArgv from 'string-argv'
 import {JsonMap, parse as parseTOML} from '@iarna/toml'
 
-const TOKEN = core.getInput('token')
+const TOKEN = core.getInput('token') || process.env.GITHUB_TOKEN
 const AUTH = !TOKEN ? undefined : `token ${TOKEN}`
 
 const IS_MACOS = process.platform === 'darwin'

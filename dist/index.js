@@ -11283,7 +11283,7 @@ const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __nccwpck_require__(7147);
 const string_argv_1 = __importDefault(__nccwpck_require__(9453));
 const toml_1 = __nccwpck_require__(2901);
-const TOKEN = core.getInput('token');
+const TOKEN = core.getInput('token') || process.env.GITHUB_TOKEN;
 const AUTH = !TOKEN ? undefined : `token ${TOKEN}`;
 const IS_MACOS = process.platform === 'darwin';
 const IS_WINDOWS = process.platform === 'win32';
