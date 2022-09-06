@@ -74,7 +74,7 @@ def generate_versions_manifest():
             break
         page += 1
     with open(OUTPUT, "w") as f:
-        f.write(json.dumps(all_releases, indent=2))
+        f.write(json.dumps(all_releases, indent=2, sort_keys=True, ensure_ascii=False))
 
 
 def main():
