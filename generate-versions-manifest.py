@@ -59,7 +59,7 @@ def fetch_releases(page=1, per_page=50):
             "version": version,
             "stable": not (release["prerelease"] or release["draft"]),
             "release_url": release["html_url"],
-            "files": files,
+            "files": sorted(files, key=lambda f: f["platform"]),
         }
 
 
