@@ -11686,7 +11686,9 @@ async function dockerBuild(tag, manylinux, args) {
         if (env.startsWith('CARGO_') ||
             env.startsWith('RUST') ||
             env.startsWith('MATURIN_') ||
-            env.startsWith('PYO3_')) {
+            env.startsWith('PYO3_') ||
+            env.startsWith('TARGET_') ||
+            env.startsWith('CMAKE_')) {
             dockerEnvs.push('-e');
             dockerEnvs.push(env);
         }
