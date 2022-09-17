@@ -11303,9 +11303,9 @@ const DEFAULT_CONTAINERS = {
         '2_28': 'quay.io/pypa/manylinux_2_28_x86_64:latest'
     },
     'x86_64-unknown-linux-musl': {
-        auto: 'messense/rust-musl-cross:x86_64-musl',
-        musllinux_1_1: 'messense/rust-musl-cross:x86_64-musl',
-        musllinux_1_2: 'messense/rust-musl-cross:x86_64-musl'
+        auto: 'ghcr.io/messense/rust-musl-cross:x86_64-musl',
+        musllinux_1_1: 'ghcr.io/messense/rust-musl-cross:x86_64-musl',
+        musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:x86_64-musl'
     },
     'i686-unknown-linux-gnu': {
         auto: 'quay.io/pypa/manylinux2010_i686:latest',
@@ -11316,9 +11316,9 @@ const DEFAULT_CONTAINERS = {
         '2_24': 'quay.io/pypa/manylinux_2_24_i686:latest'
     },
     'i686-unknown-linux-musl': {
-        auto: 'messense/rust-musl-cross:i686-musl',
-        musllinux_1_1: 'messense/rust-musl-cross:i686-musl',
-        musllinux_1_2: 'messense/rust-musl-cross:i686-musl'
+        auto: 'ghcr.io/messense/rust-musl-cross:i686-musl',
+        musllinux_1_1: 'ghcr.io/messense/rust-musl-cross:i686-musl',
+        musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:i686-musl'
     },
     'aarch64-unknown-linux-gnu': {
         auto: 'messense/manylinux2014-cross:aarch64',
@@ -11328,9 +11328,9 @@ const DEFAULT_CONTAINERS = {
         '2_28': 'messense/manylinux_2_28-cross:aarch64'
     },
     'aarch64-unknown-linux-musl': {
-        auto: 'messense/rust-musl-cross:aarch64-musl',
-        musllinux_1_1: 'messense/rust-musl-cross:aarch64-musl',
-        musllinux_1_2: 'messense/rust-musl-cross:aarch64-musl'
+        auto: 'ghcr.io/messense/rust-musl-cross:aarch64-musl',
+        musllinux_1_1: 'ghcr.io/messense/rust-musl-cross:aarch64-musl',
+        musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:aarch64-musl'
     },
     'armv7-unknown-linux-gnueabihf': {
         auto: 'messense/manylinux2014-cross:armv7',
@@ -11340,9 +11340,9 @@ const DEFAULT_CONTAINERS = {
         '2_28': 'messense/manylinux_2_24-cross:armv7'
     },
     'armv7-unknown-linux-musleabihf': {
-        auto: 'messense/rust-musl-cross:armv7-musleabihf',
-        musllinux_1_1: 'messense/rust-musl-cross:armv7-musleabihf',
-        musllinux_1_2: 'messense/rust-musl-cross:armv7-musleabihf'
+        auto: 'ghcr.io/messense/rust-musl-cross:armv7-musleabihf',
+        musllinux_1_1: 'ghcr.io/messense/rust-musl-cross:armv7-musleabihf',
+        musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:armv7-musleabihf'
     },
     'powerpc64-unknown-linux-gnu': {
         auto: 'messense/manylinux2014-cross:ppc64',
@@ -11357,9 +11357,9 @@ const DEFAULT_CONTAINERS = {
         '2_28': 'messense/manylinux_2_24-cross:ppc64le'
     },
     'powerpc64le-unknown-linux-musl': {
-        auto: 'messense/rust-musl-cross:powerpc64le-musl',
-        musllinux_1_1: 'messense/rust-musl-cross:powerpc64le-musl',
-        musllinux_1_2: 'messense/rust-musl-cross:powerpc64le-musl'
+        auto: 'ghcr.io/messense/rust-musl-cross:powerpc64le-musl',
+        musllinux_1_1: 'ghcr.io/messense/rust-musl-cross:powerpc64le-musl',
+        musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:powerpc64le-musl'
     },
     's390x-unknown-linux-gnu': {
         auto: 'messense/manylinux2014-cross:s390x',
