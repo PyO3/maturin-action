@@ -23,7 +23,7 @@ const DEFAULT_TARGET: Record<string, string> = {
 
 const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
   'x86_64-unknown-linux-gnu': {
-    auto: 'quay.io/pypa/manylinux2010_x86_64:latest',
+    auto: 'quay.io/pypa/manylinux2014_x86_64:latest',
     '2010': 'quay.io/pypa/manylinux2010_x86_64:latest',
     '2_12': 'quay.io/pypa/manylinux2010_x86_64:latest',
     '2014': 'quay.io/pypa/manylinux2014_x86_64:latest',
@@ -37,7 +37,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:x86_64-musl'
   },
   'i686-unknown-linux-gnu': {
-    auto: 'quay.io/pypa/manylinux2010_i686:latest',
+    auto: 'quay.io/pypa/manylinux2014_i686:latest',
     '2010': 'quay.io/pypa/manylinux2010_i686:latest',
     '2_12': 'quay.io/pypa/manylinux2010_i686:latest',
     '2014': 'quay.io/pypa/manylinux2014_i686:latest',
