@@ -354,23 +354,6 @@ async function installMaturin(tag: string): Promise<string> {
   }
 }
 
-function autoManylinuxVersion(
-  manylinux: string,
-  rustToolchain: string,
-  target: string
-): string {
-  if (
-    manylinux === 'auto' &&
-    !target.includes('musl') &&
-    (rustToolchain.startsWith('beta') || rustToolchain.startsWith('nightly'))
-  ) {
-    // Rust 1.64 requires at least manylinux2014
-    return '2014'
-  } else {
-    return manylinux
-  }
-}
-
 /**
  * Build manylinux wheel using Docker
  * @param tag maturin release tag, ie. version
@@ -383,7 +366,6 @@ async function dockerBuild(
 ): Promise<number> {
   const target = getRustTarget(args)
   const rustToolchain = (await getRustToolchain(args)) || 'stable'
-  manylinux = autoManylinuxVersion(manylinux, rustToolchain, target)
 
   let container = core.getInput('container')
   if (container.length === 0) {
