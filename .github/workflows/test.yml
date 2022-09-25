@@ -98,6 +98,13 @@ jobs:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: 'off'
           container: 'off'
+      - name: maturin build container manylinux version
+        uses: ./
+        with:
+          rustup-components: rustfmt
+          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
+          manylinux: 'auto'
+          container: '2_17'
       - name: maturin build --cargo-extra-args
         uses: ./
         with:

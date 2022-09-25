@@ -374,6 +374,7 @@ async function dockerBuild(
       DEFAULT_CONTAINERS[target]?.[manylinux] || DEFAULT_CONTAINER[manylinux]
   }
 
+  const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch]
   const dockerArgs = []
   let image: string
   if (
@@ -388,6 +389,12 @@ async function dockerBuild(
       // override entrypoint
       dockerArgs.push('--entrypoint', '/bin/bash')
     }
+  } else if (
+    !container.includes(':') &&
+    DEFAULT_CONTAINERS[targetOrHostTriple]?.[container]
+  ) {
+    // Use default container for example when `container: 2_27`
+    image = DEFAULT_CONTAINERS[targetOrHostTriple][container]
   } else {
     image = container
   }

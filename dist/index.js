@@ -11581,7 +11581,7 @@ async function installMaturin(tag) {
     }
 }
 async function dockerBuild(tag, manylinux, args) {
-    var _a;
+    var _a, _b;
     const target = getRustTarget(args);
     const rustToolchain = (await getRustToolchain(args)) || 'stable';
     let container = core.getInput('container');
@@ -11589,6 +11589,7 @@ async function dockerBuild(tag, manylinux, args) {
         container =
             ((_a = DEFAULT_CONTAINERS[target]) === null || _a === void 0 ? void 0 : _a[manylinux]) || DEFAULT_CONTAINER[manylinux];
     }
+    const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch];
     const dockerArgs = [];
     let image;
     if (container.startsWith('pyo3/maturin') ||
@@ -11600,6 +11601,10 @@ async function dockerBuild(tag, manylinux, args) {
             image = `${container}:${tag}`;
             dockerArgs.push('--entrypoint', '/bin/bash');
         }
+    }
+    else if (!container.includes(':') &&
+        ((_b = DEFAULT_CONTAINERS[targetOrHostTriple]) === null || _b === void 0 ? void 0 : _b[container])) {
+        image = DEFAULT_CONTAINERS[targetOrHostTriple][container];
     }
     else {
         image = container;
