@@ -11580,21 +11580,10 @@ async function installMaturin(tag) {
         return exe;
     }
 }
-function autoManylinuxVersion(manylinux, rustToolchain, target) {
-    if (manylinux === 'auto' &&
-        !target.includes('musl') &&
-        (rustToolchain.startsWith('beta') || rustToolchain.startsWith('nightly'))) {
-        return '2014';
-    }
-    else {
-        return manylinux;
-    }
-}
 async function dockerBuild(tag, manylinux, args) {
     var _a;
     const target = getRustTarget(args);
     const rustToolchain = (await getRustToolchain(args)) || 'stable';
-    manylinux = autoManylinuxVersion(manylinux, rustToolchain, target);
     let container = core.getInput('container');
     if (container.length === 0) {
         container =
