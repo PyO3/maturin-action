@@ -11321,11 +11321,11 @@ const DEFAULT_CONTAINERS = {
         musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:i686-musl'
     },
     'aarch64-unknown-linux-gnu': {
-        auto: 'messense/manylinux2014-cross:aarch64',
-        '2014': 'messense/manylinux2014-cross:aarch64',
-        '2_17': 'messense/manylinux2014-cross:aarch64',
+        auto: 'ghcr.io/messense/manylinux2014-cross:aarch64',
+        '2014': 'ghcr.io/messense/manylinux2014-cross:aarch64',
+        '2_17': 'ghcr.io/messense/manylinux2014-cross:aarch64',
         '2_24': 'messense/manylinux_2_24-cross:aarch64',
-        '2_28': 'messense/manylinux_2_28-cross:aarch64'
+        '2_28': 'ghcr.io/messense/manylinux_2_28-cross:aarch64'
     },
     'aarch64-unknown-linux-musl': {
         auto: 'ghcr.io/messense/rust-musl-cross:aarch64-musl',
@@ -11333,11 +11333,11 @@ const DEFAULT_CONTAINERS = {
         musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:aarch64-musl'
     },
     'armv7-unknown-linux-gnueabihf': {
-        auto: 'messense/manylinux2014-cross:armv7',
-        '2014': 'messense/manylinux2014-cross:armv7',
-        '2_17': 'messense/manylinux2014-cross:armv7',
+        auto: 'ghcr.io/messense/manylinux2014-cross:armv7',
+        '2014': 'ghcr.io/messense/manylinux2014-cross:armv7',
+        '2_17': 'ghcr.io/messense/manylinux2014-cross:armv7',
         '2_24': 'messense/manylinux_2_24-cross:armv7',
-        '2_28': 'messense/manylinux_2_24-cross:armv7'
+        '2_28': 'ghcr.io/messense/manylinux_2_24-cross:armv7'
     },
     'armv7-unknown-linux-musleabihf': {
         auto: 'ghcr.io/messense/rust-musl-cross:armv7-musleabihf',
@@ -11345,16 +11345,16 @@ const DEFAULT_CONTAINERS = {
         musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:armv7-musleabihf'
     },
     'powerpc64-unknown-linux-gnu': {
-        auto: 'messense/manylinux2014-cross:ppc64',
-        '2014': 'messense/manylinux2014-cross:ppc64',
-        '2_17': 'messense/manylinux2014-cross:ppc64'
+        auto: 'ghcr.io/messense/manylinux2014-cross:ppc64',
+        '2014': 'ghcr.io/messense/manylinux2014-cross:ppc64',
+        '2_17': 'ghcr.io/messense/manylinux2014-cross:ppc64'
     },
     'powerpc64le-unknown-linux-gnu': {
-        auto: 'messense/manylinux2014-cross:ppc64le',
-        '2014': 'messense/manylinux2014-cross:ppc64le',
-        '2_17': 'messense/manylinux2014-cross:ppc64le',
+        auto: 'ghcr.io/messense/manylinux2014-cross:ppc64le',
+        '2014': 'ghcr.io/messense/manylinux2014-cross:ppc64le',
+        '2_17': 'ghcr.io/messense/manylinux2014-cross:ppc64le',
         '2_24': 'messense/manylinux_2_24-cross:ppc64le',
-        '2_28': 'messense/manylinux_2_24-cross:ppc64le'
+        '2_28': 'ghcr.io/messense/manylinux_2_24-cross:ppc64le'
     },
     'powerpc64le-unknown-linux-musl': {
         auto: 'ghcr.io/messense/rust-musl-cross:powerpc64le-musl',
@@ -11362,11 +11362,11 @@ const DEFAULT_CONTAINERS = {
         musllinux_1_2: 'ghcr.io/messense/rust-musl-cross:powerpc64le-musl'
     },
     's390x-unknown-linux-gnu': {
-        auto: 'messense/manylinux2014-cross:s390x',
-        '2014': 'messense/manylinux2014-cross:s390x',
-        '2_17': 'messense/manylinux2014-cross:s390x',
+        auto: 'ghcr.io/messense/manylinux2014-cross:s390x',
+        '2014': 'ghcr.io/messense/manylinux2014-cross:s390x',
+        '2_17': 'ghcr.io/messense/manylinux2014-cross:s390x',
         '2_24': 'messense/manylinux_2_24-cross:s390x',
-        '2_28': 'messense/manylinux_2_24-cross:s390x'
+        '2_28': 'ghcr.io/messense/manylinux_2_24-cross:s390x'
     }
 };
 const DEFAULT_CONTAINER = DEFAULT_CONTAINERS[DEFAULT_TARGET[process.arch]];
