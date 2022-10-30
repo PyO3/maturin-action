@@ -11796,11 +11796,19 @@ async function innerMain() {
             !(target.includes('x86_64') || target.includes('i686'))) {
             manylinux = 'auto';
         }
-        if (manylinux.length > 0 && IS_LINUX) {
-            if (manylinux !== 'auto') {
+        if (IS_LINUX) {
+            if (manylinux.length > 0 && manylinux !== 'auto') {
                 args.push('--manylinux', manylinux);
             }
-            useDocker = manylinux !== 'off' && core.getInput('container') !== 'off';
+            const container = core.getInput('container');
+            if (container !== 'off') {
+                if (container.length > 0) {
+                    useDocker = true;
+                }
+                else {
+                    useDocker = manylinux.length > 0 && manylinux !== 'off';
+                }
+            }
         }
         if (target.length > 0 && !args.includes('--target')) {
             args.push('--target', target);
