@@ -11607,7 +11607,7 @@ async function dockerBuild(tag, manylinux, args) {
     const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch];
     const dockerArgs = [];
     let image;
-    if (container.startsWith('pyo3/maturin') ||
+    if (container.startsWith('ghcr.io/pyo3/maturin') ||
         container.startsWith('konstin2/maturin')) {
         if (container.includes(':')) {
             image = container;

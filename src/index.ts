@@ -378,7 +378,7 @@ async function dockerBuild(
   const dockerArgs = []
   let image: string
   if (
-    container.startsWith('pyo3/maturin') ||
+    container.startsWith('ghcr.io/pyo3/maturin') ||
     container.startsWith('konstin2/maturin')
   ) {
     if (container.includes(':')) {
