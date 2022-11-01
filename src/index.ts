@@ -616,13 +616,19 @@ async function innerMain(): Promise<void> {
       manylinux = 'auto'
     }
 
-    if (manylinux.length > 0 && IS_LINUX) {
-      if (manylinux !== 'auto') {
-        // Use lowest compatible manylinux version
+    if (IS_LINUX) {
+      if (manylinux.length > 0 && manylinux !== 'auto') {
         args.push('--manylinux', manylinux)
       }
       // User can disable Docker build by set manylinux/container to off
-      useDocker = manylinux !== 'off' && core.getInput('container') !== 'off'
+      const container = core.getInput('container')
+      if (container !== 'off') {
+        if (container.length > 0) {
+          useDocker = true
+        } else {
+          useDocker = manylinux.length > 0 && manylinux !== 'off'
+        }
+      }
     }
 
     if (target.length > 0 && !args.includes('--target')) {
@@ -723,6 +729,8 @@ async function main(): Promise<void> {
     await innerMain()
   } catch (err: unknown) {
     if (err instanceof Error) {
+      // eslint-disable-next-line no-console
+      console.error(err)
       core.setFailed(err.message)
     }
   }
