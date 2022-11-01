@@ -11900,6 +11900,7 @@ async function main() {
     }
     catch (err) {
         if (err instanceof Error) {
+            console.error(err);
             core.setFailed(err.message);
         }
     }

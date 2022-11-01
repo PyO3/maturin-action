@@ -729,6 +729,8 @@ async function main(): Promise<void> {
     await innerMain()
   } catch (err: unknown) {
     if (err instanceof Error) {
+      // eslint-disable-next-line no-console
+      console.error(err)
       core.setFailed(err.message)
     }
   }
