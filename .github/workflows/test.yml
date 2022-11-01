@@ -150,7 +150,7 @@ jobs:
   test-manylinux:
     name: Manylinux Test Suite
     runs-on: ${{ matrix.os }}
-    needs: [lint]
+    needs: [test]
     strategy:
       fail-fast: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-no-fail-fast') }}
       matrix:
