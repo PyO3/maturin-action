@@ -241,7 +241,7 @@ async function findReleaseFromManifest(
   architecture: string
 ): Promise<tc.IToolRelease | undefined> {
   const manifest: tc.IToolRelease[] = await tc.getManifestFromRepo(
-    'messense',
+    'PyO3',
     'maturin-action',
     AUTH,
     'main'
