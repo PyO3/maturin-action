@@ -1,6 +1,6 @@
 # maturin-action
 
-[![GitHub Actions](https://github.com/messense/maturin-action/actions/workflows/test.yml/badge.svg)](https://github.com/messense/maturin-action/actions?query=workflow%3ATest)
+[![GitHub Actions](https://github.com/PyO3/maturin-action/actions/workflows/test.yml/badge.svg)](https://github.com/PyO3/maturin-action/actions?query=workflow%3ATest)
 
 GitHub Action to install and run a custom [maturin](https://github.com/PyO3/maturin) command. 
 
@@ -12,7 +12,7 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
     profile: minimal
     toolchain: stable
     override: true
-- uses: messense/maturin-action@v1
+- uses: PyO3/maturin-action@v1
   with:
     maturin-version: latest
     command: build
@@ -83,7 +83,7 @@ you will need to setup QEMU before using this action, for example
   with:
     image: tonistiigi/binfmt:latest
     platforms: all
-- uses: messense/maturin-action@v1
+- uses: PyO3/maturin-action@v1
   with:
     maturin-version: latest
     command: build

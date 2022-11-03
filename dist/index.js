@@ -11501,7 +11501,7 @@ function pythonVersionToSemantic(versionSpec) {
     return versionSpec.replace(prereleaseVersion, '$1-$2');
 }
 async function findReleaseFromManifest(semanticVersionSpec, architecture) {
-    const manifest = await tc.getManifestFromRepo('messense', 'maturin-action', AUTH, 'main');
+    const manifest = await tc.getManifestFromRepo('PyO3', 'maturin-action', AUTH, 'main');
     return await tc.findFromManifest(semanticVersionSpec, false, manifest, architecture);
 }
 async function findVersion(args) {
