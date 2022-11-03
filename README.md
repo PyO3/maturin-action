@@ -7,11 +7,7 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 ## Usage
 
 ```yaml
-- uses: actions-rs/toolchain@v1
-  with:
-    profile: minimal
-    toolchain: stable
-    override: true
+- uses: dtolnay/rust-toolchain@stable
 - uses: PyO3/maturin-action@v1
   with:
     maturin-version: latest
