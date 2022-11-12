@@ -27,6 +27,10 @@ def fetch_releases(page=1, per_page=50):
         files = []
         for asset in release["assets"]:
             filename = asset["name"]
+            # Filter out unwanted files
+            if not filename.endswith((".tar.gz", ".zip")):
+              continue
+
             if "darwin" in filename:
                 platform = "darwin"
             elif "linux" in filename:
