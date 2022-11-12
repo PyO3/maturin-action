@@ -39,6 +39,7 @@ take a look at the following examples:
 | container         |    No    | manylinux docker container image name                                                                              | string | Default depends on `target` and `manylinux` options, Set to `off` to disable manylinux docker build and build on the host instead. |
 | rust-toolchain    |    No    | Rust toolchain name                                                                                                | string | Defaults to `stable` for Docker build                                                                                              |
 | rustup-components |    No    | Rustup components                                                                                                  | string | Defaults to empty                                                                                                                  |
+| working-directory |    No    | The working directory to run the command in                                                                        | string | Defaults to the root of the repository                                                                                             |
 
 
 ## `manylinux` Docker container

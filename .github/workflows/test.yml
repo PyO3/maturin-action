@@ -50,12 +50,14 @@ jobs:
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -o dist
+          args: -o dist
+          working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build universal2
         if: matrix.os == 'macos-latest'
         uses: ./
         with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml --universal2
+          args: --universal2
+          working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build arm64
         if: matrix.os == 'macos-latest'
         uses: ./
@@ -68,7 +70,8 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ./
         with:
-          args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
+          args: -i python3.10 --out dist
+          working-directory: maturin/test-crates/pyo3-mixed
           manylinux: 'auto'
       - name: maturin build manylinux2014
         uses: ./
@@ -226,7 +229,8 @@ jobs:
         with:
           container: ${{ matrix.platform.container }}
           rust-toolchain: ${{ matrix.toolchain }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
+          working-directory: ${{ matrix.platform.test-crate }}
+          args: -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain

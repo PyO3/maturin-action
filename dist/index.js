@@ -11702,11 +11702,18 @@ async function dockerBuild(tag, manylinux, args) {
             dockerEnvs.push(env);
         }
     }
+    let workdir = core.getInput('working-directory');
+    if (workdir.length > 0) {
+        workdir = path.join(workspace, workdir);
+    }
+    else {
+        workdir = workspace;
+    }
     const exitCode = await exec.exec('docker', [
         'run',
         '--rm',
         '--workdir',
-        workspace,
+        workdir,
         '-e',
         'DEBIAN_FRONTEND=noninteractive',
         '-e',
@@ -11822,6 +11829,7 @@ async function innerMain() {
     else {
         const rustToolchain = await getRustToolchain(args);
         const rustupComponents = core.getInput('rustup-components');
+        const workdir = core.getInput('working-directory') || process.cwd();
         core.startGroup('Install Rust target');
         if (rustToolchain.length > 0) {
             await exec.exec('rustup', ['override', 'set', rustToolchain]);
@@ -11880,15 +11888,18 @@ async function innerMain() {
                     uploadArgs.push(arg);
                 }
                 else {
+                    const cwd = process.cwd();
+                    process.chdir(workdir);
                     const globber = await glob.create(arg);
                     for await (const file of globber.globGenerator()) {
                         uploadArgs.push(file);
                     }
+                    process.chdir(cwd);
                 }
             }
             fullCommand = `${maturinPath} ${command} ${uploadArgs.join(' ')}`;
         }
-        exitCode = await exec.exec(fullCommand, undefined, { env });
+        exitCode = await exec.exec(fullCommand, undefined, { env, cwd: workdir });
     }
     if (exitCode !== 0) {
         throw new Error(`maturin: returned ${exitCode}`);
