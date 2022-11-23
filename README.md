@@ -10,7 +10,6 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 - uses: dtolnay/rust-toolchain@stable
 - uses: PyO3/maturin-action@v1
   with:
-    maturin-version: latest
     command: build
     args: --release
 ```
@@ -82,9 +81,18 @@ you will need to setup QEMU before using this action, for example
     platforms: all
 - uses: PyO3/maturin-action@v1
   with:
-    maturin-version: latest
     command: build
     args: --release
+```
+
+Note that the `actions/setup-python` action won't affect manylinux build since it's containerized,
+so if you want to build for certain Python version for Linux, use `-i pythonX.Y` in the `args` option in
+`PyO3/maturin-action` instead, for example
+
+```yaml
+- uses: PyO3/maturin-action@v1
+  with:
+    args: --release -i python3.10
 ```
 
 ## License
