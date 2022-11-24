@@ -3,6 +3,37 @@
     "files": [
       {
         "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.14.2/maturin-x86_64-apple-darwin.tar.gz",
+        "filename": "maturin-x86_64-apple-darwin.tar.gz",
+        "platform": "darwin"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.14.2/maturin-x86_64-unknown-linux-musl.tar.gz",
+        "filename": "maturin-x86_64-unknown-linux-musl.tar.gz",
+        "platform": "linux"
+      },
+      {
+        "arch": "x86",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.14.2/maturin-i686-pc-windows-msvc.zip",
+        "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.14.2/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
+        "platform": "win32"
+      }
+    ],
+    "release_url": "https://github.com/PyO3/maturin/releases/tag/v0.14.2",
+    "stable": true,
+    "version": "0.14.2"
+  },
+  {
+    "files": [
+      {
+        "arch": "x64",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.14.1/maturin-x86_64-apple-darwin.tar.gz",
         "filename": "maturin-x86_64-apple-darwin.tar.gz",
         "platform": "darwin"
@@ -1564,15 +1595,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.16-beta.4/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.16-beta.4/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.16-beta.4/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -1688,15 +1719,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.15/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.15/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.15/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -1719,15 +1750,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.15-beta.1/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.15-beta.1/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.15-beta.1/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -1781,15 +1812,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.14-beta.1/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.14-beta.1/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.14-beta.1/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -1843,15 +1874,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.13-beta.1/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.13-beta.1/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.13-beta.1/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -1874,15 +1905,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.12/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.12/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.12/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2184,15 +2215,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.10-beta.5/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.10-beta.5/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.10-beta.5/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2308,15 +2339,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.10-beta.1/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.10-beta.1/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.10-beta.1/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2339,15 +2370,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.9/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.9/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.9/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2401,15 +2432,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.7/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.7/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.7/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2649,15 +2680,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.6-beta.2/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.6-beta.2/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.6-beta.2/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2804,15 +2835,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.4/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.4/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.4/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2835,15 +2866,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.4-beta.2/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.4-beta.2/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.4-beta.2/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2897,15 +2928,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.3/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.3/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.3/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -2928,15 +2959,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.3-beta.2/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.3-beta.2/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.3-beta.2/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
@@ -3021,15 +3052,15 @@
         "platform": "linux"
       },
       {
-        "arch": "x64",
-        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.2-beta.4/maturin-x86_64-pc-windows-msvc.zip",
-        "filename": "maturin-x86_64-pc-windows-msvc.zip",
-        "platform": "win32"
-      },
-      {
         "arch": "x86",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.2-beta.4/maturin-i686-pc-windows-msvc.zip",
         "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v0.12.2-beta.4/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
         "platform": "win32"
       }
     ],
