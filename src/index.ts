@@ -702,10 +702,13 @@ async function innerMain(): Promise<void> {
         await installRustTarget('x86_64-apple-darwin', rustToolchain)
       }
       await installRustTarget('aarch64-apple-darwin', rustToolchain)
-      env.DEVELOPER_DIR = '/Applications/Xcode.app/Contents/Developer'
-      env.SDKROOT =
-        '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
-      env.MACOSX_DEPLOYMENT_TARGET = '10.9'
+      if (!env.DEVELOPER_DIR) {
+        env.DEVELOPER_DIR = '/Applications/Xcode.app/Contents/Developer'
+      }
+      if (!env.SDKROOT) {
+        env.SDKROOT =
+          '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
+      }
       core.endGroup()
     }
 
