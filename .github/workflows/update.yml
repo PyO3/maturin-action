@@ -3,8 +3,8 @@ name: Update Versions Manifest
 on:
   workflow_dispatch:
   schedule:
-    # Run every week
-    - cron: '0 0 * * 0'
+    # Run every day at 1:00
+    - cron: '0 1 * * *'
 
 jobs:
   update:
