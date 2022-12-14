@@ -354,25 +354,31 @@ async function installMaturin(tag: string): Promise<string> {
   }
 }
 
-/**
- * Build manylinux wheel using Docker
- * @param tag maturin release tag, ie. version
- * @param args Docker args
- */
-async function dockerBuild(
-  tag: string,
-  manylinux: string,
-  args: string[]
-): Promise<number> {
-  const target = getRustTarget(args)
-  const rustToolchain = (await getRustToolchain(args)) || 'stable'
-
+async function getDockerContainer(
+  target: string,
+  manylinux: string
+): Promise<string> {
   let container = core.getInput('container')
   if (container.length === 0) {
     // Get default Docker container with fallback
     container =
       DEFAULT_CONTAINERS[target]?.[manylinux] || DEFAULT_CONTAINER[manylinux]
   }
+  return container
+}
+
+/**
+ * Build manylinux wheel using Docker
+ * @param maturinRelease maturin release tag, ie. version
+ * @param args Docker args
+ */
+async function dockerBuild(
+  container: string,
+  maturinRelease: string,
+  args: string[]
+): Promise<number> {
+  const target = getRustTarget(args)
+  const rustToolchain = (await getRustToolchain(args)) || 'stable'
 
   const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch]
   const dockerArgs = []
@@ -385,7 +391,7 @@ async function dockerBuild(
       image = container
     } else {
       // pyo3/maturin support
-      image = `${container}:${tag}`
+      image = `${container}:${maturinRelease}`
       // override entrypoint
       dockerArgs.push('--entrypoint', '/bin/bash')
     }
@@ -418,9 +424,9 @@ async function dockerBuild(
 
   const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
   const url =
-    tag === 'latest'
+    maturinRelease === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
-      : `https://github.com/PyO3/maturin/releases/download/${tag}/maturin-${arch}-unknown-linux-musl.tar.gz`
+      : `https://github.com/PyO3/maturin/releases/download/${maturinRelease}/maturin-${arch}-unknown-linux-musl.tar.gz`
   const rustupComponents = core.getInput('rustup-components')
   const commands = [
     '#!/bin/bash',
@@ -597,6 +603,105 @@ async function addToolCachePythonVersionsToPath(): Promise<void> {
   }
 }
 
+/**
+ * Build on host
+ * @param maturinRelease maturin release tag, ie. version
+ * @param args Docker args
+ * @returns exit code
+ */
+async function hostBuild(
+  maturinRelease: string,
+  args: string[]
+): Promise<number> {
+  const command = core.getInput('command')
+  const target = getRustTarget(args)
+  const rustToolchain = await getRustToolchain(args)
+  const rustupComponents = core.getInput('rustup-components')
+  const workdir = core.getInput('working-directory') || process.cwd()
+
+  core.startGroup('Install Rust target')
+  if (rustToolchain.length > 0) {
+    await exec.exec('rustup', ['override', 'set', rustToolchain])
+    await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
+      ignoreReturnCode: true
+    })
+  }
+  if (rustupComponents.length > 0) {
+    const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '))
+    await exec.exec('rustup', rustupArgs)
+  }
+  await installRustTarget(target, rustToolchain)
+  core.endGroup()
+
+  if (IS_MACOS && !process.env.pythonLocation) {
+    addToolCachePythonVersionsToPath()
+  }
+
+  core.startGroup('Install maturin')
+  core.info(`Installing 'maturin' from tag '${maturinRelease}'`)
+  const maturinPath = await installMaturin(maturinRelease)
+  await exec.exec(maturinPath, ['--version'], {ignoreReturnCode: true})
+  if (IS_LINUX) {
+    await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf'])
+  }
+  core.endGroup()
+  if (args.includes('--zig')) {
+    core.startGroup('Install Zig')
+    await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang'])
+    core.endGroup()
+  }
+
+  // Setup additional env vars for macOS arm64/universal2 build
+  const isUniversal2 = args.includes('--universal2')
+  const isArm64 = IS_MACOS && target.startsWith('aarch64')
+  const env: Record<string, string> = {}
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v !== undefined) {
+      env[k] = v
+    }
+  }
+  if (isUniversal2 || isArm64) {
+    const buildEnvName = isUniversal2 ? 'universal2' : 'arm64'
+    core.startGroup(`Prepare macOS ${buildEnvName} build environment`)
+    if (isUniversal2) {
+      await installRustTarget('x86_64-apple-darwin', rustToolchain)
+    }
+    await installRustTarget('aarch64-apple-darwin', rustToolchain)
+    if (!env.DEVELOPER_DIR) {
+      env.DEVELOPER_DIR = '/Applications/Xcode.app/Contents/Developer'
+    }
+    if (!env.SDKROOT) {
+      env.SDKROOT =
+        '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
+    }
+    core.endGroup()
+  }
+
+  let fullCommand = `${maturinPath} ${args.join(' ')}`
+  if (command === 'upload') {
+    // Expand globs for upload command
+    const uploadArgs = []
+    for (const arg of args.slice(1)) {
+      if (arg.startsWith('-')) {
+        uploadArgs.push(arg)
+      } else {
+        const cwd = process.cwd()
+        process.chdir(workdir)
+
+        const globber = await glob.create(arg)
+        for await (const file of globber.globGenerator()) {
+          uploadArgs.push(file)
+        }
+
+        process.chdir(cwd)
+      }
+    }
+    fullCommand = `${maturinPath} ${command} ${uploadArgs.join(' ')}`
+  }
+  const exitCode = await exec.exec(fullCommand, undefined, {env, cwd: workdir})
+  return exitCode
+}
+
 async function innerMain(): Promise<void> {
   const inputArgs = core.getInput('args')
   const args = stringArgv(inputArgs)
@@ -642,98 +747,19 @@ async function innerMain(): Promise<void> {
     }
   }
 
-  const tag = await findVersion(args)
+  const maturinRelease = await findVersion(args)
 
   let exitCode: number
   if (useDocker) {
-    exitCode = await dockerBuild(tag, manylinux, args)
+    const container = await getDockerContainer(target, manylinux)
+    if (container) {
+      exitCode = await dockerBuild(container, maturinRelease, args)
+    } else {
+      core.info('No Docker container found, fallback to build on host')
+      exitCode = await hostBuild(maturinRelease, args)
+    }
   } else {
-    const rustToolchain = await getRustToolchain(args)
-    const rustupComponents = core.getInput('rustup-components')
-    const workdir = core.getInput('working-directory') || process.cwd()
-
-    core.startGroup('Install Rust target')
-    if (rustToolchain.length > 0) {
-      await exec.exec('rustup', ['override', 'set', rustToolchain])
-      await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
-        ignoreReturnCode: true
-      })
-    }
-    if (rustupComponents.length > 0) {
-      const rustupArgs = ['component', 'add'].concat(
-        rustupComponents.split(' ')
-      )
-      await exec.exec('rustup', rustupArgs)
-    }
-    await installRustTarget(target, rustToolchain)
-    core.endGroup()
-
-    if (IS_MACOS && !process.env.pythonLocation) {
-      addToolCachePythonVersionsToPath()
-    }
-
-    core.startGroup('Install maturin')
-    core.info(`Installing 'maturin' from tag '${tag}'`)
-    const maturinPath = await installMaturin(tag)
-    await exec.exec(maturinPath, ['--version'], {ignoreReturnCode: true})
-    if (IS_LINUX) {
-      await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf'])
-    }
-    core.endGroup()
-    if (args.includes('--zig')) {
-      core.startGroup('Install Zig')
-      await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang'])
-      core.endGroup()
-    }
-
-    // Setup additional env vars for macOS arm64/universal2 build
-    const isUniversal2 = args.includes('--universal2')
-    const isArm64 = IS_MACOS && target.startsWith('aarch64')
-    const env: Record<string, string> = {}
-    for (const [k, v] of Object.entries(process.env)) {
-      if (v !== undefined) {
-        env[k] = v
-      }
-    }
-    if (isUniversal2 || isArm64) {
-      const buildEnvName = isUniversal2 ? 'universal2' : 'arm64'
-      core.startGroup(`Prepare macOS ${buildEnvName} build environment`)
-      if (isUniversal2) {
-        await installRustTarget('x86_64-apple-darwin', rustToolchain)
-      }
-      await installRustTarget('aarch64-apple-darwin', rustToolchain)
-      if (!env.DEVELOPER_DIR) {
-        env.DEVELOPER_DIR = '/Applications/Xcode.app/Contents/Developer'
-      }
-      if (!env.SDKROOT) {
-        env.SDKROOT =
-          '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
-      }
-      core.endGroup()
-    }
-
-    let fullCommand = `${maturinPath} ${args.join(' ')}`
-    if (command === 'upload') {
-      // Expand globs for upload command
-      const uploadArgs = []
-      for (const arg of args.slice(1)) {
-        if (arg.startsWith('-')) {
-          uploadArgs.push(arg)
-        } else {
-          const cwd = process.cwd()
-          process.chdir(workdir)
-
-          const globber = await glob.create(arg)
-          for await (const file of globber.globGenerator()) {
-            uploadArgs.push(file)
-          }
-
-          process.chdir(cwd)
-        }
-      }
-      fullCommand = `${maturinPath} ${command} ${uploadArgs.join(' ')}`
-    }
-    exitCode = await exec.exec(fullCommand, undefined, {env, cwd: workdir})
+    exitCode = await hostBuild(maturinRelease, args)
   }
   if (exitCode !== 0) {
     throw new Error(`maturin: returned ${exitCode}`)
