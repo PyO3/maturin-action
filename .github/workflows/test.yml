@@ -150,7 +150,7 @@ jobs:
   test-manylinux:
     name: Manylinux Test Suite
     runs-on: ${{ matrix.os }}
-    needs: [test]
+    needs: [lint]
     strategy:
       fail-fast: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-no-fail-fast') }}
       matrix:
@@ -280,3 +280,19 @@ jobs:
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
+
+  all-green:
+    needs:
+      - lint
+      - test
+      - test-manylinux
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Result
+        run: |
+          jq -C <<< "${needs}"
+          # Check if all needs were successful or skipped.
+          "$(jq -r 'all(.result as $result | (["success", "skipped"] | contains([$result])))' <<< "${needs}")"
+        env:
+          needs: ${{ toJson(needs) }}
