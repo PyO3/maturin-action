@@ -73,12 +73,8 @@ Note that if use official manylinux docker images for platforms other than `x86_
 you will need to setup QEMU before using this action, for example
 
 ```yaml
-- name: Set up QEMU
-  id: qemu
+- name: Setup QEMU
   uses: docker/setup-qemu-action@v1
-  with:
-    image: tonistiigi/binfmt:latest
-    platforms: all
 - uses: PyO3/maturin-action@v1
   with:
     command: build
