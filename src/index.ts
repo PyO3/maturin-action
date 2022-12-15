@@ -515,6 +515,18 @@ async function dockerBuild(
   } else {
     workdir = workspace
   }
+
+  const dockerVolumes = []
+
+  // forward ssh agent
+  const ssh_auth_sock = process.env.SSH_AUTH_SOCK
+  if (ssh_auth_sock) {
+    dockerVolumes.push('-v')
+    dockerVolumes.push(`${ssh_auth_sock}:/ssh-agent`)
+    dockerEnvs.push('-e')
+    dockerEnvs.push('SSH_AUTH_SOCK=/ssh-agent')
+  }
+
   const exitCode = await exec.exec('docker', [
     'run',
     '--rm',
@@ -531,6 +543,7 @@ async function dockerBuild(
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
     `${workspace}:${workspace}`,
+    ...dockerVolumes,
     ...dockerArgs,
     image,
     scriptPath
