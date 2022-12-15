@@ -11295,6 +11295,7 @@ const glob = __importStar(__nccwpck_require__(8090));
 const mexec = __importStar(__nccwpck_require__(5047));
 const path = __importStar(__nccwpck_require__(1017));
 const tc = __importStar(__nccwpck_require__(7784));
+const os = __importStar(__nccwpck_require__(2037));
 const fs_1 = __nccwpck_require__(7147);
 const string_argv_1 = __importDefault(__nccwpck_require__(9453));
 const toml_1 = __nccwpck_require__(2901);
@@ -11604,6 +11605,12 @@ async function getDockerContainer(target, manylinux) {
     }
     return container;
 }
+function xdg_config_home() {
+    const config_home = process.env.XDG_CONFIG_HOME;
+    if (config_home)
+        return config_home;
+    return `${os.homedir()}/.config`;
+}
 async function dockerBuild(container, maturinRelease, args) {
     var _a;
     const target = getRustTarget(args);
@@ -11720,6 +11727,14 @@ async function dockerBuild(container, maturinRelease, args) {
         dockerVolumes.push(`${ssh_auth_sock}:/ssh-agent`);
         dockerEnvs.push('-e');
         dockerEnvs.push('SSH_AUTH_SOCK=/ssh-agent');
+    }
+    const git_credentials = path.join(xdg_config_home(), 'git', 'credentials');
+    const git_config = path.join(os.homedir(), '.gitconfig');
+    if ((0, fs_1.existsSync)(git_credentials) && (0, fs_1.existsSync)(git_config)) {
+        dockerVolumes.push('-v');
+        dockerVolumes.push(`${git_config}:/root/.gitconfig`);
+        dockerVolumes.push('-v');
+        dockerVolumes.push(`${git_credentials}:/root/.config/git/.git-credentials`);
     }
     const exitCode = await exec.exec('docker', [
         'run',

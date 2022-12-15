@@ -5,6 +5,7 @@ import * as glob from '@actions/glob'
 import * as mexec from './exec'
 import * as path from 'path'
 import * as tc from '@actions/tool-cache'
+import * as os from 'os'
 import {existsSync, promises as fs, writeFileSync} from 'fs'
 import stringArgv from 'string-argv'
 import {JsonMap, parse as parseTOML} from '@iarna/toml'
@@ -367,6 +368,12 @@ async function getDockerContainer(
   return container
 }
 
+function xdg_config_home(): string {
+  const config_home = process.env.XDG_CONFIG_HOME
+  if (config_home) return config_home
+  return `${os.homedir()}/.config`
+}
+
 /**
  * Build manylinux wheel using Docker
  * @param maturinRelease maturin release tag, ie. version
@@ -525,6 +532,16 @@ async function dockerBuild(
     dockerVolumes.push(`${ssh_auth_sock}:/ssh-agent`)
     dockerEnvs.push('-e')
     dockerEnvs.push('SSH_AUTH_SOCK=/ssh-agent')
+  }
+
+  // mount git credentials
+  const git_credentials = path.join(xdg_config_home(), 'git', 'credentials')
+  const git_config = path.join(os.homedir(), '.gitconfig')
+  if (existsSync(git_credentials) && existsSync(git_config)) {
+    dockerVolumes.push('-v')
+    dockerVolumes.push(`${git_config}:/root/.gitconfig`)
+    dockerVolumes.push('-v')
+    dockerVolumes.push(`${git_credentials}:/root/.config/git/.git-credentials`)
   }
 
   const exitCode = await exec.exec('docker', [
