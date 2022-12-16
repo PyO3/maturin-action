@@ -2,7 +2,7 @@
 
 [![GitHub Actions](https://github.com/PyO3/maturin-action/actions/workflows/test.yml/badge.svg)](https://github.com/PyO3/maturin-action/actions?query=workflow%3ATest)
 
-GitHub Action to install and run a custom [maturin](https://github.com/PyO3/maturin) command. 
+GitHub Action to install and run a custom [maturin](https://github.com/PyO3/maturin) command with built-in support for cross compilation.
 
 ## Usage
 
