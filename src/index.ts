@@ -386,9 +386,9 @@ async function dockerBuild(
 ): Promise<number> {
   const target = getRustTarget(args)
   const rustToolchain = (await getRustToolchain(args)) || 'stable'
+  const dockerArgs = stringArgv(core.getInput('docker-options') || '')
 
   const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch]
-  const dockerArgs = []
   let image: string
   if (
     container.startsWith('ghcr.io/pyo3/maturin') ||
