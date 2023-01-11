@@ -233,6 +233,10 @@ jobs:
           RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
+          # Test docker-options
+          docker-options: |
+            -e FOO=bar
+            -e RUNNER_OS
           rust-toolchain: ${{ matrix.toolchain }}
           working-directory: ${{ matrix.platform.test-crate }}
           args: -i python3.8

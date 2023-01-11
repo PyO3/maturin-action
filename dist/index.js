@@ -11615,8 +11615,8 @@ async function dockerBuild(container, maturinRelease, args) {
     var _a;
     const target = getRustTarget(args);
     const rustToolchain = (await getRustToolchain(args)) || 'stable';
+    const dockerArgs = (0, string_argv_1.default)(core.getInput('docker-options') || '');
     const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch];
-    const dockerArgs = [];
     let image;
     if (container.startsWith('ghcr.io/pyo3/maturin') ||
         container.startsWith('konstin2/maturin')) {

@@ -23,6 +23,9 @@ inputs:
   container:
     description: Docker container image name. Default depends on "target" and "manylinux" options.
     required: false
+  docker-options:
+    description: Additional Docker run options, for passing environment variables and etc.
+    required: false
   target:
     description: The --target option for cargo
     required: false
