@@ -67,7 +67,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2014': 'ghcr.io/rust-cross/manylinux2014-cross:armv7',
     '2_17': 'ghcr.io/rust-cross/manylinux2014-cross:armv7',
     '2_24': 'messense/manylinux_2_24-cross:armv7',
-    '2_28': 'ghcr.io/rust-cross/manylinux_2_24-cross:armv7'
+    '2_28': 'ghcr.io/rust-cross/manylinux_2_28-cross:armv7'
   },
   'armv7-unknown-linux-musleabihf': {
     auto: 'ghcr.io/rust-cross/rust-musl-cross:armv7-musleabihf',
@@ -84,7 +84,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2014': 'ghcr.io/rust-cross/manylinux2014-cross:ppc64le',
     '2_17': 'ghcr.io/rust-cross/manylinux2014-cross:ppc64le',
     '2_24': 'messense/manylinux_2_24-cross:ppc64le',
-    '2_28': 'ghcr.io/rust-cross/manylinux_2_24-cross:ppc64le'
+    '2_28': 'ghcr.io/rust-cross/manylinux_2_28-cross:ppc64le'
   },
   'powerpc64le-unknown-linux-musl': {
     auto: 'ghcr.io/rust-cross/rust-musl-cross:powerpc64le-musl',
@@ -96,7 +96,7 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     '2014': 'ghcr.io/rust-cross/manylinux2014-cross:s390x',
     '2_17': 'ghcr.io/rust-cross/manylinux2014-cross:s390x',
     '2_24': 'messense/manylinux_2_24-cross:s390x',
-    '2_28': 'ghcr.io/rust-cross/manylinux_2_24-cross:s390x'
+    '2_28': 'ghcr.io/rust-cross/manylinux_2_28-cross:s390x'
   }
 }
 
