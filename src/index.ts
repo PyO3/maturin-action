@@ -736,7 +736,6 @@ async function innerMain(): Promise<void> {
   const inputArgs = core.getInput('args')
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
-  args.unshift(command)
   const target = getRustTarget(args)
 
   let useDocker = false
@@ -759,7 +758,7 @@ async function innerMain(): Promise<void> {
 
     if (IS_LINUX) {
       if (manylinux.length > 0 && manylinux !== 'auto') {
-        args.push('--manylinux', manylinux)
+        args.unshift('--manylinux', manylinux)
       }
       // User can disable Docker build by set manylinux/container to off
       const container = core.getInput('container')
@@ -773,11 +772,12 @@ async function innerMain(): Promise<void> {
     }
 
     if (target.length > 0 && !args.includes('--target')) {
-      args.push('--target', target)
+      args.unshift('--target', target)
     }
   }
 
   const maturinRelease = await findVersion(args)
+  args.unshift(command)
 
   let exitCode: number
   if (useDocker) {

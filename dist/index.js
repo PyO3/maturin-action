@@ -11898,7 +11898,6 @@ async function innerMain() {
     const inputArgs = core.getInput('args');
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
-    args.unshift(command);
     const target = getRustTarget(args);
     let useDocker = false;
     let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
@@ -11914,7 +11913,7 @@ async function innerMain() {
         }
         if (IS_LINUX) {
             if (manylinux.length > 0 && manylinux !== 'auto') {
-                args.push('--manylinux', manylinux);
+                args.unshift('--manylinux', manylinux);
             }
             const container = core.getInput('container');
             if (container !== 'off') {
@@ -11927,10 +11926,11 @@ async function innerMain() {
             }
         }
         if (target.length > 0 && !args.includes('--target')) {
-            args.push('--target', target);
+            args.unshift('--target', target);
         }
     }
     const maturinRelease = await findVersion(args);
+    args.unshift(command);
     let exitCode;
     if (useDocker) {
         const container = await getDockerContainer(target, manylinux);
