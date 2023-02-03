@@ -11422,6 +11422,12 @@ const TARGET_ALIASES = {
         aarch64: 'aarch64-pc-windows-msvc'
     }
 };
+function hasZigSupport(target) {
+    if (target.startsWith('s390x')) {
+        return false;
+    }
+    return true;
+}
 function getRustTarget(args) {
     var _a, _b, _c;
     let target = core.getInput('target');
@@ -11899,6 +11905,11 @@ async function innerMain() {
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
     const target = getRustTarget(args);
+    const zigIndex = args.indexOf('--zig');
+    if (zigIndex > -1 && !hasZigSupport(target)) {
+        args.splice(zigIndex, 1);
+        core.info('Zig is not supported on this target, ignoring --zig.');
+    }
     let useDocker = false;
     let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
     if (['build', 'publish'].includes(command)) {

@@ -146,6 +146,14 @@ jobs:
           target: aarch64-unknown-linux-gnu
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
           manylinux: 'auto'
+      - name: maturin build --zig unsupported target
+        if: matrix.os == 'ubuntu-latest'
+        uses: ./
+        with:
+          rust-toolchain: ${{ matrix.toolchain }}
+          target: s390x-unknown-linux-gnu
+          args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
+          manylinux: 'auto'
 
   test-manylinux:
     name: Manylinux Test Suite

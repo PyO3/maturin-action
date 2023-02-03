@@ -143,6 +143,16 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
 }
 
 /**
+ * Does the target has Zig cross compilation support
+ */
+function hasZigSupport(target: string): boolean {
+  if (target.startsWith('s390x')) {
+    return false
+  }
+  return true
+}
+
+/**
  * Get Rust target full name
  */
 function getRustTarget(args: string[]): string {
@@ -737,6 +747,13 @@ async function innerMain(): Promise<void> {
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
   const target = getRustTarget(args)
+
+  // Check Zig support and remove --zig when unsupported
+  const zigIndex = args.indexOf('--zig')
+  if (zigIndex > -1 && !hasZigSupport(target)) {
+    args.splice(zigIndex, 1)
+    core.info('Zig is not supported on this target, ignoring --zig.')
+  }
 
   let useDocker = false
   // Only build and publish commands has --manylinux and --target options
