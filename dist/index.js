@@ -11390,7 +11390,8 @@ const TARGET_ALIASES = {
     darwin: {
         x64: 'x86_64-apple-darwin',
         x86_64: 'x86_64-apple-darwin',
-        aarch64: 'aarch64-apple-darwin'
+        aarch64: 'aarch64-apple-darwin',
+        universal2: 'universal2-apple-darwin'
     },
     manylinux: {
         x64: 'x86_64-unknown-linux-gnu',
@@ -11827,6 +11828,7 @@ async function hostBuild(maturinRelease, args) {
     const rustToolchain = await getRustToolchain(args);
     const rustupComponents = core.getInput('rustup-components');
     const workdir = core.getInput('working-directory') || process.cwd();
+    const isUniversal2 = args.includes('--universal2') || target === 'universal2-apple-darwin';
     core.startGroup('Install Rust target');
     if (rustToolchain.length > 0) {
         await exec.exec('rustup', ['override', 'set', rustToolchain]);
@@ -11838,7 +11840,9 @@ async function hostBuild(maturinRelease, args) {
         const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '));
         await exec.exec('rustup', rustupArgs);
     }
-    await installRustTarget(target, rustToolchain);
+    if (!isUniversal2) {
+        await installRustTarget(target, rustToolchain);
+    }
     core.endGroup();
     if (IS_MACOS && !process.env.pythonLocation) {
         addToolCachePythonVersionsToPath();
@@ -11856,7 +11860,6 @@ async function hostBuild(maturinRelease, args) {
         await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang']);
         core.endGroup();
     }
-    const isUniversal2 = args.includes('--universal2');
     const isArm64 = IS_MACOS && target.startsWith('aarch64');
     const env = {};
     for (const [k, v] of Object.entries(process.env)) {

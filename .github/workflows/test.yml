@@ -52,6 +52,12 @@ jobs:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -o dist
           working-directory: maturin/test-crates/pyo3-mixed
+      - name: maturin build universal2 target
+        if: matrix.os == 'macos-latest'
+        uses: ./
+        with:
+          target: universal2
+          working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build universal2
         if: matrix.os == 'macos-latest'
         uses: ./
