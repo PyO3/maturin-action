@@ -367,10 +367,15 @@ async function installMaturin(tag: string): Promise<string> {
 
 async function getDockerContainer(
   target: string,
-  manylinux: string
+  manylinux: string,
+  container: string
 ): Promise<string> {
-  let container = core.getInput('container')
-  if (container.length === 0) {
+  if (
+    container.length === 0 ||
+    container === 'on' ||
+    container === 'auto' ||
+    container === 'true'
+  ) {
     // Get default Docker container with fallback
     container =
       DEFAULT_CONTAINERS[target]?.[manylinux] || DEFAULT_CONTAINER[manylinux]
@@ -747,12 +752,20 @@ async function innerMain(): Promise<void> {
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
   const target = getRustTarget(args)
+  let container = core.getInput('container')
 
   // Check Zig support and remove --zig when unsupported
   const zigIndex = args.indexOf('--zig')
-  if (zigIndex > -1 && !hasZigSupport(target)) {
-    args.splice(zigIndex, 1)
-    core.info('Zig is not supported on this target, ignoring --zig.')
+  if (zigIndex > -1) {
+    if (hasZigSupport(target)) {
+      // Build on host by default when using --zig
+      if (container !== 'on' && container !== 'true') {
+        container = 'off'
+      }
+    } else {
+      args.splice(zigIndex, 1)
+      core.info('Zig is not supported on this target, ignoring --zig.')
+    }
   }
 
   let useDocker = false
@@ -778,7 +791,6 @@ async function innerMain(): Promise<void> {
         args.unshift('--manylinux', manylinux)
       }
       // User can disable Docker build by set manylinux/container to off
-      const container = core.getInput('container')
       if (container !== 'off') {
         if (container.length > 0) {
           useDocker = true
@@ -798,9 +810,13 @@ async function innerMain(): Promise<void> {
 
   let exitCode: number
   if (useDocker) {
-    const container = await getDockerContainer(target, manylinux)
-    if (container) {
-      exitCode = await dockerBuild(container, maturinRelease, args)
+    const dockerContainer = await getDockerContainer(
+      target,
+      manylinux,
+      container
+    )
+    if (dockerContainer) {
+      exitCode = await dockerBuild(dockerContainer, maturinRelease, args)
     } else {
       core.info('No Docker container found, fallback to build on host')
       exitCode = await hostBuild(maturinRelease, args)

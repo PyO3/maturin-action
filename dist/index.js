@@ -11602,10 +11602,12 @@ async function installMaturin(tag) {
         return exe;
     }
 }
-async function getDockerContainer(target, manylinux) {
+async function getDockerContainer(target, manylinux, container) {
     var _a;
-    let container = core.getInput('container');
-    if (container.length === 0) {
+    if (container.length === 0 ||
+        container === 'on' ||
+        container === 'auto' ||
+        container === 'true') {
         container =
             ((_a = DEFAULT_CONTAINERS[target]) === null || _a === void 0 ? void 0 : _a[manylinux]) || DEFAULT_CONTAINER[manylinux];
     }
@@ -11905,10 +11907,18 @@ async function innerMain() {
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
     const target = getRustTarget(args);
+    let container = core.getInput('container');
     const zigIndex = args.indexOf('--zig');
-    if (zigIndex > -1 && !hasZigSupport(target)) {
-        args.splice(zigIndex, 1);
-        core.info('Zig is not supported on this target, ignoring --zig.');
+    if (zigIndex > -1) {
+        if (hasZigSupport(target)) {
+            if (container !== 'on' && container !== 'true') {
+                container = 'off';
+            }
+        }
+        else {
+            args.splice(zigIndex, 1);
+            core.info('Zig is not supported on this target, ignoring --zig.');
+        }
     }
     let useDocker = false;
     let manylinux = core.getInput('manylinux').replace(/^manylinux_?/, '');
@@ -11926,7 +11936,6 @@ async function innerMain() {
             if (manylinux.length > 0 && manylinux !== 'auto') {
                 args.unshift('--manylinux', manylinux);
             }
-            const container = core.getInput('container');
             if (container !== 'off') {
                 if (container.length > 0) {
                     useDocker = true;
@@ -11944,9 +11953,9 @@ async function innerMain() {
     args.unshift(command);
     let exitCode;
     if (useDocker) {
-        const container = await getDockerContainer(target, manylinux);
-        if (container) {
-            exitCode = await dockerBuild(container, maturinRelease, args);
+        const dockerContainer = await getDockerContainer(target, manylinux, container);
+        if (dockerContainer) {
+            exitCode = await dockerBuild(dockerContainer, maturinRelease, args);
         }
         else {
             core.info('No Docker container found, fallback to build on host');
