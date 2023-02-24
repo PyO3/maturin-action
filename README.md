@@ -14,6 +14,8 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
     args: --release
 ```
 
+**To generate a GitHub Actions workflow for your project, try the `maturin generate-ci github` command.**
+
 ### Examples
 
 If you want to build and publish a Python extension module for common Python versions, operating systems, and CPU architectures, 
