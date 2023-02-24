@@ -7,7 +7,6 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 ## Usage
 
 ```yaml
-- uses: dtolnay/rust-toolchain@stable
 - uses: PyO3/maturin-action@v1
   with:
     command: build
@@ -15,6 +14,11 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
 ```
 
 **To generate a GitHub Actions workflow for your project, try the `maturin generate-ci github` command.**
+
+```bash
+mkdir -p .github/workflows
+maturin generate-ci github > .github/workflows/CI.yml
+```
 
 ### Examples
 
