@@ -463,12 +463,13 @@ async function dockerBuild(
     `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
     // Add all supported python versions to PATH
-    'export PATH="$PATH:/opt/python/cp36-cp36m/bin:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin"',
+    'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin"',
     // Install maturin
     'echo "::group::Install maturin"',
     `curl -L ${url} | tar -xz -C /usr/local/bin`,
     'maturin --version || true',
     'which patchelf > /dev/null || python3 -m pip install patchelf',
+    'python3 -m pip install cffi || true', // Allow failure for now
     'echo "::endgroup::"'
   ]
   if (args.includes('--zig')) {
@@ -691,6 +692,7 @@ async function hostBuild(
   core.info(`Installing 'maturin' from tag '${maturinRelease}'`)
   const maturinPath = await installMaturin(maturinRelease)
   await exec.exec(maturinPath, ['--version'], {ignoreReturnCode: true})
+  await exec.exec('python3', ['-m', 'pip', 'install', 'cffi'])
   if (IS_LINUX) {
     await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf'])
   }
