@@ -450,7 +450,7 @@ async function dockerBuild(
     maturinRelease === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
       : `https://github.com/PyO3/maturin/releases/download/${maturinRelease}/maturin-${arch}-unknown-linux-musl.tar.gz`
-  const rustupComponents = core.getInput('rustup-components')
+  const rustupComponents = core.getInput('rustup-components').replace(/\s+/g, ' ').trim();
   const commands = [
     '#!/bin/bash',
     // Stop on first error
