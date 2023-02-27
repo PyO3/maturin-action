@@ -11689,7 +11689,8 @@ async function dockerBuild(container, maturinRelease, args) {
         commands.push('echo "::group::Install Rust target"', `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`, 'echo "::endgroup::"');
     }
     if (rustupComponents.length > 0) {
-        commands.push('echo "::group::Install Extra Rust components"', `rustup component add ${rustupComponents}`, 'echo "::endgroup::"');
+        const components = rustupComponents.split(/\s+/).join(' ');
+        commands.push('echo "::group::Install Extra Rust components"', `rustup component add ${components}`, 'echo "::endgroup::"');
     }
     commands.push(`maturin ${args.join(' ')}`);
     const workspace = process.env.GITHUB_WORKSPACE;
@@ -11838,7 +11839,7 @@ async function hostBuild(maturinRelease, args) {
         });
     }
     if (rustupComponents.length > 0) {
-        const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '));
+        const rustupArgs = ['component', 'add'].concat(rustupComponents.split(/\s+/));
         await exec.exec('rustup', rustupArgs);
     }
     if (!isUniversal2) {

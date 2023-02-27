@@ -110,7 +110,9 @@ jobs:
       - name: maturin build container manylinux version
         uses: ./
         with:
-          rustup-components: rustfmt
+          rustup-components: |
+            rustfmt
+            rust-std
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
           manylinux: 'auto'
           container: '2_17'
