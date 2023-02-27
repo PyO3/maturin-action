@@ -487,9 +487,10 @@ async function dockerBuild(
     )
   }
   if (rustupComponents.length > 0) {
+    const components = rustupComponents.split(/\s+/).join(' ')
     commands.push(
       'echo "::group::Install Extra Rust components"',
-      `rustup component add ${rustupComponents}`,
+      `rustup component add ${components}`,
       'echo "::endgroup::"'
     )
   }
@@ -676,7 +677,9 @@ async function hostBuild(
     })
   }
   if (rustupComponents.length > 0) {
-    const rustupArgs = ['component', 'add'].concat(rustupComponents.split(' '))
+    const rustupArgs = ['component', 'add'].concat(
+      rustupComponents.split(/\s+/)
+    )
     await exec.exec('rustup', rustupArgs)
   }
   if (!isUniversal2) {
