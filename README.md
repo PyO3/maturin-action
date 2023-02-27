@@ -99,6 +99,14 @@ so if you want to build for certain Python version for Linux, use `-i pythonX.Y`
     args: --release -i python3.10
 ```
 
+## Contributing
+
+To build after code changes:
+
+```bash
+npm run all
+```
+
 ## License
 
 This work is released under the MIT license. A copy of the license is provided in the [LICENSE](./LICENSE) file.
