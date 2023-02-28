@@ -42,6 +42,10 @@ inputs:
   working-directory:
     description: Working directory to run maturin in.
     required: false
+  sccache:
+    description: Enable sccache for faster builds.
+    required: false
+    default: 'false'
 
 runs:
   using: 'node16'

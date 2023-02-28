@@ -403,6 +403,7 @@ async function dockerBuild(
   const target = getRustTarget(args)
   const rustToolchain = (await getRustToolchain(args)) || 'stable'
   const dockerArgs = stringArgv(core.getInput('docker-options') || '')
+  const sccache = core.getBooleanInput('sccache')
 
   const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch]
   let image: string
@@ -494,7 +495,23 @@ async function dockerBuild(
       'echo "::endgroup::"'
     )
   }
+  if (sccache) {
+    commands.push(
+      'echo "::group::Install sccache"',
+      'python3 -m pip install --pre sccache',
+      'sccache --version',
+      'echo "::endgroup::"'
+    )
+    setupSccacheEnv()
+  }
   commands.push(`maturin ${args.join(' ')}`)
+  if (sccache) {
+    commands.push(
+      'echo "::group::sccache stats"',
+      'sccache --show-stats',
+      'echo "::endgroup::"'
+    )
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const workspace = process.env.GITHUB_WORKSPACE!
@@ -527,7 +544,9 @@ async function dockerBuild(
       env.startsWith('MATURIN_') ||
       env.startsWith('PYO3_') ||
       env.startsWith('TARGET_') ||
-      env.startsWith('CMAKE_')
+      env.startsWith('CMAKE_') ||
+      env.startsWith('ACTIONS_') ||
+      env.startsWith('SCCACHE_')
     ) {
       dockerEnvs.push('-e')
       dockerEnvs.push(env)
@@ -651,6 +670,16 @@ async function addToolCachePythonVersionsToPath(): Promise<void> {
   }
 }
 
+function setupSccacheEnv(): void {
+  core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '')
+  core.exportVariable(
+    'ACTIONS_RUNTIME_TOKEN',
+    process.env.ACTIONS_RUNTIME_TOKEN || ''
+  )
+  core.exportVariable('SCCACHE_GHA_ENABLED', 'true')
+  core.exportVariable('RUSTC_WRAPPER', 'sccache')
+}
+
 /**
  * Build on host
  * @param maturinRelease maturin release tag, ie. version
@@ -666,6 +695,7 @@ async function hostBuild(
   const rustToolchain = await getRustToolchain(args)
   const rustupComponents = core.getInput('rustup-components')
   const workdir = core.getInput('working-directory') || process.cwd()
+  const sccache = core.getBooleanInput('sccache')
   const isUniversal2 =
     args.includes('--universal2') || target === 'universal2-apple-darwin'
 
@@ -703,6 +733,13 @@ async function hostBuild(
   if (args.includes('--zig')) {
     core.startGroup('Install Zig')
     await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang'])
+    core.endGroup()
+  }
+  if (sccache) {
+    core.startGroup('Install sccache')
+    await exec.exec('python3', ['-m', 'pip', 'install', '--pre', 'sccache'])
+    await exec.exec('sccache', ['--version'])
+    setupSccacheEnv()
     core.endGroup()
   }
 
@@ -753,6 +790,11 @@ async function hostBuild(
     fullCommand = `${maturinPath} ${command} ${uploadArgs.join(' ')}`
   }
   const exitCode = await exec.exec(fullCommand, undefined, {env, cwd: workdir})
+  if (sccache) {
+    core.startGroup('sccache stats')
+    await exec.exec('sccache', ['--show-stats'])
+    core.endGroup()
+  }
   return exitCode
 }
 
