@@ -167,6 +167,7 @@ jobs:
         with:
           args: -m maturin/test-crates/cffi-pure/Cargo.toml
           manylinux: 'auto'
+      - run: cargo clean --manifest-path maturin/test-crates/pyo3-pure/Cargo.toml
       - name: maturin build with sccache
         uses: ./
         with:
