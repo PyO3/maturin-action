@@ -11943,6 +11943,12 @@ async function innerMain() {
     const command = core.getInput('command');
     const target = getRustTarget(args);
     let container = core.getInput('container');
+    if (process.env.CARGO_INCREMENTAL === undefined) {
+        core.exportVariable('CARGO_INCREMENTAL', '0');
+    }
+    if (process.env.CARGO_TERM_COLOR === undefined) {
+        core.exportVariable('CARGO_TERM_COLOR', 'always');
+    }
     const zigIndex = args.indexOf('--zig');
     if (zigIndex > -1) {
         if (hasZigSupport(target)) {

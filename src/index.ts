@@ -805,6 +805,13 @@ async function innerMain(): Promise<void> {
   const target = getRustTarget(args)
   let container = core.getInput('container')
 
+  if (process.env.CARGO_INCREMENTAL === undefined) {
+    core.exportVariable('CARGO_INCREMENTAL', '0')
+  }
+  if (process.env.CARGO_TERM_COLOR === undefined) {
+    core.exportVariable('CARGO_TERM_COLOR', 'always')
+  }
+
   // Check Zig support and remove --zig when unsupported
   const zigIndex = args.indexOf('--zig')
   if (zigIndex > -1) {
