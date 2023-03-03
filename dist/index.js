@@ -11705,7 +11705,7 @@ async function dockerBuild(container, maturinRelease, args) {
     }
     const beforeScript = getBeforeScript();
     if (beforeScript.length > 0) {
-        commands.push('echo "::group::Before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
+        commands.push('echo "::group::Run before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
     }
     commands.push(`maturin ${args.join(' ')}`);
     if (sccache) {

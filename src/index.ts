@@ -516,7 +516,7 @@ async function dockerBuild(
   const beforeScript = getBeforeScript()
   if (beforeScript.length > 0) {
     commands.push(
-      'echo "::group::Before script"',
+      'echo "::group::Run before script"',
       ...beforeScript.split('\n'),
       'echo "::endgroup::"'
     )
