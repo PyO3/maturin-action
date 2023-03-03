@@ -11620,6 +11620,12 @@ function xdg_config_home() {
         return config_home;
     return `${os.homedir()}/.config`;
 }
+function getBeforeScript() {
+    if (IS_LINUX) {
+        return core.getInput('before-script-linux') || '';
+    }
+    return '';
+}
 async function dockerBuild(container, maturinRelease, args) {
     var _a;
     const target = getRustTarget(args);
@@ -11696,6 +11702,10 @@ async function dockerBuild(container, maturinRelease, args) {
     if (sccache) {
         commands.push('echo "::group::Install sccache"', 'python3 -m pip install --pre sccache', 'sccache --version', 'echo "::endgroup::"');
         setupSccacheEnv();
+    }
+    const beforeScript = getBeforeScript();
+    if (beforeScript.length > 0) {
+        commands.push('echo "::group::Before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
     }
     commands.push(`maturin ${args.join(' ')}`);
     if (sccache) {
@@ -11908,6 +11918,15 @@ async function hostBuild(maturinRelease, args) {
             env.SDKROOT =
                 '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk';
         }
+        core.endGroup();
+    }
+    const beforeScript = getBeforeScript();
+    if (beforeScript.length > 0) {
+        core.startGroup('Run before script');
+        await exec.exec('bash', ['-c', beforeScript], {
+            env,
+            cwd: workdir
+        });
         core.endGroup();
     }
     let fullCommand = `${maturinPath} ${args.join(' ')}`;
