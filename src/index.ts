@@ -390,6 +390,14 @@ function xdg_config_home(): string {
   return `${os.homedir()}/.config`
 }
 
+function getBeforeScript(): string {
+  // Only Linux is supported for now
+  if (IS_LINUX) {
+    return core.getInput('before-script-linux') || ''
+  }
+  return ''
+}
+
 /**
  * Build manylinux wheel using Docker
  * @param maturinRelease maturin release tag, ie. version
@@ -504,6 +512,16 @@ async function dockerBuild(
     )
     setupSccacheEnv()
   }
+
+  const beforeScript = getBeforeScript()
+  if (beforeScript.length > 0) {
+    commands.push(
+      'echo "::group::Before script"',
+      ...beforeScript.split('\n'),
+      'echo "::endgroup::"'
+    )
+  }
+
   commands.push(`maturin ${args.join(' ')}`)
   if (sccache) {
     commands.push(
@@ -765,6 +783,16 @@ async function hostBuild(
       env.SDKROOT =
         '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
     }
+    core.endGroup()
+  }
+
+  const beforeScript = getBeforeScript()
+  if (beforeScript.length > 0) {
+    core.startGroup('Run before script')
+    await exec.exec('bash', ['-c', beforeScript], {
+      env,
+      cwd: workdir
+    })
     core.endGroup()
   }
 
