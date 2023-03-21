@@ -11700,7 +11700,7 @@ async function dockerBuild(container, maturinRelease, args) {
         commands.push('echo "::group::Install Extra Rust components"', `rustup component add ${components}`, 'echo "::endgroup::"');
     }
     if (sccache) {
-        commands.push('echo "::group::Install sccache"', 'python3 -m pip install --pre sccache', 'sccache --version', 'echo "::endgroup::"');
+        commands.push('echo "::group::Install sccache"', 'python3 -m pip install "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
         setupSccacheEnv();
     }
     const beforeScript = getBeforeScript();
@@ -11892,7 +11892,7 @@ async function hostBuild(maturinRelease, args) {
     }
     if (sccache) {
         core.startGroup('Install sccache');
-        await exec.exec('python3', ['-m', 'pip', 'install', '--pre', 'sccache']);
+        await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.4.0']);
         await exec.exec('sccache', ['--version']);
         setupSccacheEnv();
         core.endGroup();

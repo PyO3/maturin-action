@@ -506,7 +506,7 @@ async function dockerBuild(
   if (sccache) {
     commands.push(
       'echo "::group::Install sccache"',
-      'python3 -m pip install --pre sccache',
+      'python3 -m pip install "sccache>=0.4.0"',
       'sccache --version',
       'echo "::endgroup::"'
     )
@@ -755,7 +755,7 @@ async function hostBuild(
   }
   if (sccache) {
     core.startGroup('Install sccache')
-    await exec.exec('python3', ['-m', 'pip', 'install', '--pre', 'sccache'])
+    await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.4.0'])
     await exec.exec('sccache', ['--version'])
     setupSccacheEnv()
     core.endGroup()
