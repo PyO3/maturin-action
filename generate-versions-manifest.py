@@ -29,7 +29,10 @@ def fetch_releases(page=1, per_page=50):
             filename = asset["name"]
             # Filter out unwanted files
             if not filename.endswith((".tar.gz", ".zip")):
-              continue
+                continue
+            if filename.startswith("pyo3-pack-"):
+                # Old name pyo3-pack doesn't work
+                continue
 
             if "darwin" in filename:
                 platform = "darwin"
