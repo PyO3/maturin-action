@@ -29,7 +29,10 @@ def fetch_releases(page=1, per_page=50):
             filename = asset["name"]
             # Filter out unwanted files
             if not filename.endswith((".tar.gz", ".zip")):
-              continue
+                continue
+            if filename.startswith("pyo3-pack-"):
+                # Old name pyo3-pack doesn't work
+                continue
 
             if "darwin" in filename:
                 platform = "darwin"
@@ -55,6 +58,9 @@ def fetch_releases(page=1, per_page=50):
                     "download_url": asset["browser_download_url"],
                 }
             )
+
+        if not files:
+            continue
 
         version = release["name"] or release["tag_name"]
         if version.startswith("v"):
