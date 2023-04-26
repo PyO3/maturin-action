@@ -563,6 +563,10 @@ async function dockerBuild(
       env.startsWith('PYO3_') ||
       env.startsWith('TARGET_') ||
       env.startsWith('CMAKE_') ||
+      env.startsWith('CFLAGS') ||
+      env.startsWith('CXXFLAGS') ||
+      env.startsWith('CPPFLAGS') ||
+      env.startsWith('LDFLAGS') ||
       env.startsWith('ACTIONS_') ||
       env.startsWith('SCCACHE_')
     ) {
