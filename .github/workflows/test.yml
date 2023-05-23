@@ -65,7 +65,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         uses: ./
         with:
-          args: --universal2
+          target: universal2-apple-darwin
           working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build arm64
         if: matrix.os == 'macos-latest'
