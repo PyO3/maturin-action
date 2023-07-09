@@ -11784,6 +11784,8 @@ async function dockerBuild(container, maturinRelease, args) {
         '_PYTHON_SYSCONFIGDATA_NAME',
         ...dockerEnvs,
         '-v',
+        `${scriptPath}:${scriptPath}`,
+        '-v',
         `${workspace}:${workspace}`,
         ...dockerVolumes,
         ...dockerArgs,

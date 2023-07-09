@@ -616,6 +616,8 @@ async function dockerBuild(
     '-e',
     '_PYTHON_SYSCONFIGDATA_NAME',
     ...dockerEnvs,
+    '-v',
+    `${scriptPath}:${scriptPath}`,
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
     `${workspace}:${workspace}`,
