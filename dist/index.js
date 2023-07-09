@@ -11712,7 +11712,7 @@ async function dockerBuild(container, maturinRelease, args) {
         commands.push('echo "::group::sccache stats"', 'sccache --show-stats', 'echo "::endgroup::"');
     }
     const workspace = process.env.GITHUB_WORKSPACE;
-    const scriptPath = path.join(workspace, 'run-maturin-action.sh');
+    const scriptPath = path.join(os.tmpdir(), 'run-maturin-action.sh');
     (0, fs_1.writeFileSync)(scriptPath, commands.join('\n'));
     await fs_1.promises.chmod(scriptPath, 0o755);
     const targetDir = getCargoTargetDir(args);
@@ -11783,6 +11783,8 @@ async function dockerBuild(container, maturinRelease, args) {
         '-e',
         '_PYTHON_SYSCONFIGDATA_NAME',
         ...dockerEnvs,
+        '-v',
+        `${scriptPath}:${scriptPath}`,
         '-v',
         `${workspace}:${workspace}`,
         ...dockerVolumes,

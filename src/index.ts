@@ -533,7 +533,7 @@ async function dockerBuild(
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const workspace = process.env.GITHUB_WORKSPACE!
-  const scriptPath = path.join(workspace, 'run-maturin-action.sh')
+  const scriptPath = path.join(os.tmpdir(), 'run-maturin-action.sh')
   writeFileSync(scriptPath, commands.join('\n'))
   await fs.chmod(scriptPath, 0o755)
 
@@ -616,6 +616,8 @@ async function dockerBuild(
     '-e',
     '_PYTHON_SYSCONFIGDATA_NAME',
     ...dockerEnvs,
+    '-v',
+    `${scriptPath}:${scriptPath}`,
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
     `${workspace}:${workspace}`,
