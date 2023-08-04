@@ -35,7 +35,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
+          - macos-13
           - windows-latest
         toolchain: [stable, nightly]
     steps:
@@ -56,19 +56,19 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y libclang-dev
       - name: maturin build universal2 target
-        if: matrix.os == 'macos-latest'
+        if: startsWith(matrix.os, 'macos')
         uses: ./
         with:
           target: universal2
           working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build universal2
-        if: matrix.os == 'macos-latest'
+        if: startsWith(matrix.os, 'macos')
         uses: ./
         with:
           target: universal2-apple-darwin
           working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build arm64
-        if: matrix.os == 'macos-latest'
+        if: startsWith(matrix.os, 'macos')
         uses: ./
         with:
           target: aarch64-apple-darwin
