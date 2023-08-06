@@ -220,7 +220,7 @@ function getCliValue(args: string[], key: string): string | undefined {
   return undefined
 }
 
-function getCargoTargetDir(args: string[]): string {
+async function getCargoTargetDir(args: string[]): Promise<string> {
   let targetDir = 'target'
   const val = getCliValue(args, '--target-dir')
   const manifestPath =
@@ -233,7 +233,19 @@ function getCargoTargetDir(args: string[]): string {
   ) {
     targetDir = process.env.CARGO_TARGET_DIR
   } else if (manifestPath && manifestPath.length > 0) {
-    targetDir = path.join(path.dirname(manifestPath), 'target')
+    const res = await mexec.exec(
+      'cargo',
+      ['metadata', '--format-version', '1', '--manifest-path', manifestPath],
+      true
+    )
+    if (res.success) {
+      const metadata = JSON.parse(res.stdout)
+      targetDir = metadata.target_directory
+    } else {
+      core.warning('Failed to get Cargo target directory from `cargo metadata`')
+      core.debug(res.stderr)
+      targetDir = path.join(path.dirname(manifestPath), 'target')
+    }
   }
   return targetDir
 }
@@ -537,7 +549,7 @@ async function dockerBuild(
   writeFileSync(scriptPath, commands.join('\n'))
   await fs.chmod(scriptPath, 0o755)
 
-  const targetDir = getCargoTargetDir(args)
+  const targetDir = await getCargoTargetDir(args)
 
   core.startGroup('Cleanup build scripts artifact directory')
   const debugBuildDir = path.join(targetDir, 'debug', 'build')
