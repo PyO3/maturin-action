@@ -11488,7 +11488,7 @@ function getCliValue(args, key) {
     }
     return undefined;
 }
-function getCargoTargetDir(args) {
+async function getCargoTargetDir(args) {
     let targetDir = 'target';
     const val = getCliValue(args, '--target-dir');
     const manifestPath = getCliValue(args, '--manifest-path') || getCliValue(args, '-m');
@@ -11500,7 +11500,16 @@ function getCargoTargetDir(args) {
         targetDir = process.env.CARGO_TARGET_DIR;
     }
     else if (manifestPath && manifestPath.length > 0) {
-        targetDir = path.join(path.dirname(manifestPath), 'target');
+        const res = await mexec.exec('cargo', ['metadata', '--format-version', '1', '--manifest-path', manifestPath], true);
+        if (res.success) {
+            const metadata = JSON.parse(res.stdout);
+            targetDir = metadata.target_directory;
+        }
+        else {
+            core.warning('Failed to get Cargo target directory from `cargo metadata`');
+            core.debug(res.stderr);
+            targetDir = path.join(path.dirname(manifestPath), 'target');
+        }
     }
     return targetDir;
 }
@@ -11715,7 +11724,7 @@ async function dockerBuild(container, maturinRelease, args) {
     const scriptPath = path.join(os.tmpdir(), 'run-maturin-action.sh');
     (0, fs_1.writeFileSync)(scriptPath, commands.join('\n'));
     await fs_1.promises.chmod(scriptPath, 0o755);
-    const targetDir = getCargoTargetDir(args);
+    const targetDir = await getCargoTargetDir(args);
     core.startGroup('Cleanup build scripts artifact directory');
     const debugBuildDir = path.join(targetDir, 'debug', 'build');
     if ((0, fs_1.existsSync)(debugBuildDir)) {
