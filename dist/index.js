@@ -11497,8 +11497,16 @@ function getRustTarget(args) {
     return ((_c = TARGET_ALIASES[process.platform]) === null || _c === void 0 ? void 0 : _c[target]) || target;
 }
 function getManifestDir(args) {
+    const workspace = process.env.GITHUB_WORKSPACE;
+    let workdir = core.getInput('working-directory');
+    if (workdir.length > 0) {
+        workdir = path.join(workspace, workdir);
+    }
+    else {
+        workdir = workspace;
+    }
     const manifestPath = getCliValue(args, '--manifest-path') || getCliValue(args, '-m');
-    return manifestPath ? path.dirname(manifestPath) : process.cwd();
+    return manifestPath ? path.dirname(path.join(workdir, manifestPath)) : workdir;
 }
 function parseRustToolchain(content) {
     const toml = (0, toml_1.parse)(content.toString());
@@ -11594,10 +11602,12 @@ async function findVersion(args) {
                 }
             }
             else {
+                core.info('maturin not found in [build-system.requires] section at ${pyprojectToml}, fallback to latest');
                 version = 'latest';
             }
         }
         else {
+            core.info('No pyproject.toml found at ${pyprojectToml}, fallback to latest');
             version = 'latest';
         }
     }

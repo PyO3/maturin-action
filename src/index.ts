@@ -176,9 +176,17 @@ function getRustTarget(args: string[]): string {
 }
 
 function getManifestDir(args: string[]): string {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const workspace = process.env.GITHUB_WORKSPACE!
+  let workdir = core.getInput('working-directory')
+  if (workdir.length > 0) {
+    workdir = path.join(workspace, workdir)
+  } else {
+    workdir = workspace
+  }
   const manifestPath =
     getCliValue(args, '--manifest-path') || getCliValue(args, '-m')
-  return manifestPath ? path.dirname(manifestPath) : process.cwd()
+  return manifestPath ? path.dirname(path.join(workdir, manifestPath)) : workdir
 }
 
 function parseRustToolchain(content: string): string {
@@ -311,9 +319,15 @@ async function findVersion(args: string[]): Promise<string> {
           version = 'latest'
         }
       } else {
+        core.info(
+          'maturin not found in [build-system.requires] section at ${pyprojectToml}, fallback to latest'
+        )
         version = 'latest'
       }
     } else {
+      core.info(
+        'No pyproject.toml found at ${pyprojectToml}, fallback to latest'
+      )
       version = 'latest'
     }
   } else if (version !== 'latest') {
