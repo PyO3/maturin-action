@@ -305,7 +305,7 @@ async function findVersion(args: string[]): Promise<string> {
           `Found maturin version requirement ${maturin} specified in pyproject.toml`
         )
         const versionSpec = pythonVersionToSemantic(
-          maturin.replace('maturin', '').replace(',', ' ')
+          maturin.replace('maturin', '').replace(',', ' ').replace('==', '=')
         )
         core.debug(`maturin version spec: ${versionSpec}`)
         const release = await findReleaseFromManifest(versionSpec, 'x64')

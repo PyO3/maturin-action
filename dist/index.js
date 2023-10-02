@@ -11589,7 +11589,7 @@ async function findVersion(args) {
             const maturin = requires.find(req => req.startsWith('maturin'));
             if (maturin) {
                 core.info(`Found maturin version requirement ${maturin} specified in pyproject.toml`);
-                const versionSpec = pythonVersionToSemantic(maturin.replace('maturin', '').replace(',', ' '));
+                const versionSpec = pythonVersionToSemantic(maturin.replace('maturin', '').replace(',', ' ').replace('==', '='));
                 core.debug(`maturin version spec: ${versionSpec}`);
                 const release = await findReleaseFromManifest(versionSpec, 'x64');
                 if (release) {
