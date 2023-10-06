@@ -175,7 +175,7 @@ function getRustTarget(args: string[]): string {
   return TARGET_ALIASES[process.platform]?.[target] || target
 }
 
-function getManifestDir(args: string[]): string {
+function getWorkingDirectory(): string {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const workspace = process.env.GITHUB_WORKSPACE!
   let workdir = core.getInput('working-directory')
@@ -184,6 +184,11 @@ function getManifestDir(args: string[]): string {
   } else {
     workdir = workspace
   }
+  return workdir
+}
+
+function getManifestDir(args: string[]): string {
+  const workdir = getWorkingDirectory()
   const manifestPath =
     getCliValue(args, '--manifest-path') || getCliValue(args, '-m')
   return manifestPath ? path.dirname(path.join(workdir, manifestPath)) : workdir
@@ -200,22 +205,39 @@ async function getRustToolchain(args: string[]): Promise<string> {
   if (rustToolchain.length > 0) {
     return rustToolchain
   }
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const root = process.env.GITHUB_WORKSPACE!
   const manifestDir = getManifestDir(args)
-  const rustToolchainToml = path.join(manifestDir, 'rust-toolchain.toml')
-  if (existsSync(rustToolchainToml)) {
-    const content = await fs.readFile(rustToolchainToml)
-    rustToolchain = parseRustToolchain(content.toString())
-    core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain.toml `)
-  } else if (existsSync(path.join(manifestDir, 'rust-toolchain'))) {
-    rustToolchain = (
-      await fs.readFile(path.join(manifestDir, 'rust-toolchain'))
-    )
-      .toString()
-      .trim()
-    if (rustToolchain.includes('[toolchain]')) {
-      rustToolchain = parseRustToolchain(rustToolchain)
+  let currentDir = manifestDir
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const toolchainToml = path.join(currentDir, 'rust-toolchain.toml')
+    const toolchain = path.join(currentDir, 'rust-toolchain')
+    if (existsSync(toolchainToml)) {
+      const content = await fs.readFile(toolchainToml)
+      rustToolchain = parseRustToolchain(content.toString())
+      core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain.toml `)
+      break
+    } else {
+      core.debug(`${toolchainToml} doesn't exist`)
     }
-    core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain `)
+    if (existsSync(toolchain)) {
+      rustToolchain = (await fs.readFile(toolchain)).toString().trim()
+      if (rustToolchain.includes('[toolchain]')) {
+        rustToolchain = parseRustToolchain(rustToolchain)
+      }
+      core.info(`Found Rust toolchain ${rustToolchain} in rust-toolchain `)
+      break
+    } else {
+      core.debug(`${toolchain} doesn't exist`)
+    }
+    if (currentDir === root) {
+      core.debug(
+        `No rust-toolchain.toml or rust-toolchain found inside ${root}`
+      )
+      break
+    }
+    currentDir = path.dirname(currentDir)
   }
   return rustToolchain
 }
@@ -494,11 +516,12 @@ async function dockerBuild(
     'echo "::group::Install Rust"',
     `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
     'export PATH="$HOME/.cargo/bin:$PATH"',
+    `echo "Install Rust toolchain ${rustToolchain}"`,
     `rustup override set ${rustToolchain}`,
     `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
     // Add all supported python versions to PATH
-    'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin"',
+    'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"',
     // Install maturin
     'echo "::group::Install maturin"',
     `curl -L ${url} | tar -xz -C /usr/local/bin`,
@@ -601,13 +624,7 @@ async function dockerBuild(
     }
   }
 
-  let workdir = core.getInput('working-directory')
-  if (workdir.length > 0) {
-    workdir = path.join(workspace, workdir)
-  } else {
-    workdir = workspace
-  }
-
+  const workdir = getWorkingDirectory()
   const dockerVolumes = []
 
   // forward ssh agent
@@ -744,13 +761,14 @@ async function hostBuild(
   const target = getRustTarget(args)
   const rustToolchain = await getRustToolchain(args)
   const rustupComponents = core.getInput('rustup-components')
-  const workdir = core.getInput('working-directory') || process.cwd()
+  const workdir = getWorkingDirectory()
   const sccache = core.getBooleanInput('sccache')
   const isUniversal2 =
     args.includes('--universal2') || target === 'universal2-apple-darwin'
 
   core.startGroup('Install Rust target')
   if (rustToolchain.length > 0) {
+    core.info(`Installing Rust toolchain ${rustToolchain}`)
     await exec.exec('rustup', ['override', 'set', rustToolchain])
     await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
       ignoreReturnCode: true
