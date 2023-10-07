@@ -11907,7 +11907,7 @@ async function installRustTarget(target, toolchain) {
     else if ((0, fs_1.existsSync)(res.stdout.trim())) {
         return;
     }
-    if (toolchain.length > 0) {
+    if (toolchain && toolchain.length > 0) {
         await exec.exec('rustup', [
             'target',
             'add',
@@ -11940,13 +11940,13 @@ function setupSccacheEnv() {
 async function hostBuild(maturinRelease, args) {
     const command = core.getInput('command');
     const target = getRustTarget(args);
-    const rustToolchain = (await getRustToolchain(args)) || 'stable';
+    const rustToolchain = await getRustToolchain(args);
     const rustupComponents = core.getInput('rustup-components');
     const workdir = getWorkingDirectory();
     const sccache = core.getBooleanInput('sccache');
     const isUniversal2 = args.includes('--universal2') || target === 'universal2-apple-darwin';
     core.startGroup('Install Rust target');
-    if (rustToolchain.length > 0) {
+    if (rustToolchain && rustToolchain.length > 0) {
         core.info(`Installing Rust toolchain ${rustToolchain}`);
         await exec.exec('rustup', ['override', 'set', rustToolchain]);
         await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {

@@ -712,7 +712,7 @@ async function installRustTarget(
     // Target already installed
     return
   }
-  if (toolchain.length > 0) {
+  if (toolchain && toolchain.length > 0) {
     await exec.exec('rustup', [
       'target',
       'add',
@@ -759,7 +759,9 @@ async function hostBuild(
 ): Promise<number> {
   const command = core.getInput('command')
   const target = getRustTarget(args)
-  const rustToolchain = (await getRustToolchain(args)) || 'stable'
+  // rust toolchain doesn't have a default version so we can use the one
+  // that's already installed
+  const rustToolchain = await getRustToolchain(args)
   const rustupComponents = core.getInput('rustup-components')
   const workdir = getWorkingDirectory()
   const sccache = core.getBooleanInput('sccache')
@@ -767,7 +769,7 @@ async function hostBuild(
     args.includes('--universal2') || target === 'universal2-apple-darwin'
 
   core.startGroup('Install Rust target')
-  if (rustToolchain.length > 0) {
+  if (rustToolchain && rustToolchain.length > 0) {
     core.info(`Installing Rust toolchain ${rustToolchain}`)
     await exec.exec('rustup', ['override', 'set', rustToolchain])
     await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
