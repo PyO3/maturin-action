@@ -11515,7 +11515,7 @@ function getManifestDir(args) {
 function parseRustToolchain(content) {
     const toml = (0, toml_1.parse)(content.toString());
     const toolchain = toml === null || toml === void 0 ? void 0 : toml.toolchain;
-    return toolchain === null || toolchain === void 0 ? void 0 : toolchain.channel;
+    return (toolchain === null || toolchain === void 0 ? void 0 : toolchain.channel) || '';
 }
 async function getRustToolchain(args) {
     let rustToolchain = core.getInput('rust-toolchain');
@@ -11940,7 +11940,7 @@ function setupSccacheEnv() {
 async function hostBuild(maturinRelease, args) {
     const command = core.getInput('command');
     const target = getRustTarget(args);
-    const rustToolchain = await getRustToolchain(args);
+    const rustToolchain = (await getRustToolchain(args)) || 'stable';
     const rustupComponents = core.getInput('rustup-components');
     const workdir = getWorkingDirectory();
     const sccache = core.getBooleanInput('sccache');
