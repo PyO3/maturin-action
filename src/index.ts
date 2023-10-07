@@ -197,7 +197,7 @@ function getManifestDir(args: string[]): string {
 function parseRustToolchain(content: string): string {
   const toml = parseTOML(content.toString())
   const toolchain = toml?.toolchain as JsonMap
-  return toolchain?.channel as string
+  return (toolchain?.channel as string) || ''
 }
 
 async function getRustToolchain(args: string[]): Promise<string> {
@@ -759,7 +759,7 @@ async function hostBuild(
 ): Promise<number> {
   const command = core.getInput('command')
   const target = getRustTarget(args)
-  const rustToolchain = await getRustToolchain(args)
+  const rustToolchain = (await getRustToolchain(args)) || 'stable'
   const rustupComponents = core.getInput('rustup-components')
   const workdir = getWorkingDirectory()
   const sccache = core.getBooleanInput('sccache')
