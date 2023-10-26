@@ -11500,7 +11500,9 @@ function getWorkingDirectory() {
     const workspace = process.env.GITHUB_WORKSPACE;
     let workdir = core.getInput('working-directory');
     if (workdir.length > 0) {
-        workdir = path.join(workspace, workdir);
+        if (!path.isAbsolute(workdir)) {
+            workdir = path.join(workspace, workdir);
+        }
     }
     else {
         workdir = workspace;
