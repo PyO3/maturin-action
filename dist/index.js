@@ -11827,7 +11827,9 @@ async function dockerBuild(container, maturinRelease, args) {
             env.startsWith('PYO3_') ||
             env.startsWith('TARGET_') ||
             env.startsWith('CMAKE_') ||
+            env.startsWith('CC') ||
             env.startsWith('CFLAGS') ||
+            env.startsWith('CXX') ||
             env.startsWith('CXXFLAGS') ||
             env.startsWith('CPPFLAGS') ||
             env.startsWith('LDFLAGS') ||
