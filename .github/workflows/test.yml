@@ -98,7 +98,7 @@ jobs:
           args: -m maturin/test-crates/hello-world/Cargo.toml
           manylinux: 'auto'
           target: 'powerpc64le-unknown-linux-musl'
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: maturin build manylinux off
