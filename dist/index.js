@@ -11480,7 +11480,7 @@ function getRustTarget(args) {
     var _a, _b, _c;
     let target = core.getInput('target');
     if (!target && args.length > 0) {
-        const val = getCliValue(args, '--target');
+        const val = getCliValue(args, '--target') || getCliValue(args, '--target=');
         if (val && val.length > 0) {
             target = val;
         }
@@ -11560,8 +11560,13 @@ async function getRustToolchain(args) {
 }
 function getCliValue(args, key) {
     const index = args.indexOf(key);
-    if (index !== -1 && args[index + 1] !== undefined) {
-        return args[index + 1];
+    if (index !== -1) {
+        if (key.endsWith('=')) {
+            return args[index].slice(key.length);
+        }
+        else if (args[index + 1] !== undefined) {
+            return args[index + 1];
+        }
     }
     return undefined;
 }
@@ -11629,7 +11634,7 @@ async function findVersion(args) {
             }
         }
         else {
-            core.info('No pyproject.toml found at ${pyprojectToml}, fallback to latest');
+            core.info(`No pyproject.toml found at ${pyprojectToml}, fallback to latest`);
             version = 'latest';
         }
     }
