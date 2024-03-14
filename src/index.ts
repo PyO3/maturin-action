@@ -62,6 +62,11 @@ const DEFAULT_CONTAINERS: Record<string, Record<string, string>> = {
     musllinux_1_1: 'ghcr.io/rust-cross/rust-musl-cross:aarch64-musl',
     musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:aarch64-musl'
   },
+  'arm-unknown-linux-musleabihf': {
+    auto: 'ghcr.io/rust-cross/rust-musl-cross:arm-musleabihf',
+    musllinux_1_1: 'ghcr.io/rust-cross/rust-musl-cross:arm-musleabihf',
+    musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:arm-musleabihf'
+  },
   'armv7-unknown-linux-gnueabihf': {
     auto: 'ghcr.io/rust-cross/manylinux2014-cross:armv7',
     '2014': 'ghcr.io/rust-cross/manylinux2014-cross:armv7',
@@ -130,6 +135,7 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
     i686: 'i686-unknown-linux-musl',
     x86: 'i686-unknown-linux-musl',
     aarch64: 'aarch64-unknown-linux-musl',
+    arm: 'arm-unknown-linux-musleabihf',
     armv7: 'armv7-unknown-linux-musleabihf',
     armv7l: 'armv7-unknown-linux-musleabihf',
     ppc64le: 'powerpc64le-unknown-linux-musl'
