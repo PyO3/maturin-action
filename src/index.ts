@@ -631,7 +631,9 @@ async function dockerBuild(
       env.startsWith('CPPFLAGS') ||
       env.startsWith('LDFLAGS') ||
       env.startsWith('ACTIONS_') ||
-      env.startsWith('SCCACHE_')
+      env.startsWith('SCCACHE_') ||
+      // for example JEMALLOC_SYS_WITH_LG_PAGE=16
+      env.startsWith('JEMALLOC_')
     ) {
       dockerEnvs.push('-e')
       dockerEnvs.push(env)

@@ -11845,7 +11845,8 @@ async function dockerBuild(container, maturinRelease, args) {
             env.startsWith('CPPFLAGS') ||
             env.startsWith('LDFLAGS') ||
             env.startsWith('ACTIONS_') ||
-            env.startsWith('SCCACHE_')) {
+            env.startsWith('SCCACHE_') ||
+            env.startsWith('JEMALLOC_')) {
             dockerEnvs.push('-e');
             dockerEnvs.push(env);
         }
