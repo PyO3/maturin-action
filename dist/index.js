@@ -11725,6 +11725,23 @@ function getBeforeScript() {
     }
     return '';
 }
+async function parseGitHubEnvVars() {
+    const env_file = process.env.GITHUB_ENV;
+    if (!env_file || !(0, fs_1.existsSync)(env_file)) {
+        return [];
+    }
+    const content = (await fs_1.promises.readFile(env_file)).toString().trim();
+    const env_vars = [];
+    for (const line of content.split('\n')) {
+        const parts = line.split('=');
+        if (parts.length === 2) {
+            const name = parts[0];
+            core.debug(`Found env var ${name} in ${env_file}`);
+            env_vars.push(name);
+        }
+    }
+    return env_vars;
+}
 async function dockerBuild(container, maturinRelease, args) {
     var _a;
     const target = getRustTarget(args);
@@ -11849,6 +11866,10 @@ async function dockerBuild(container, maturinRelease, args) {
             dockerEnvs.push('-e');
             dockerEnvs.push(env);
         }
+    }
+    for (const env of await parseGitHubEnvVars()) {
+        dockerEnvs.push('-e');
+        dockerEnvs.push(env);
     }
     const workdir = getWorkingDirectory();
     const dockerVolumes = [];

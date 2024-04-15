@@ -458,6 +458,25 @@ function getBeforeScript(): string {
   return ''
 }
 
+/// Parse GitHub environment variables and return a list of environment variable names
+async function parseGitHubEnvVars(): Promise<string[]> {
+  const env_file = process.env.GITHUB_ENV
+  if (!env_file || !existsSync(env_file)) {
+    return []
+  }
+  const content = (await fs.readFile(env_file)).toString().trim()
+  const env_vars = []
+  for (const line of content.split('\n')) {
+    const parts = line.split('=')
+    if (parts.length === 2) {
+      const name = parts[0]
+      core.debug(`Found env var ${name} in ${env_file}`)
+      env_vars.push(name)
+    }
+  }
+  return env_vars
+}
+
 /**
  * Build manylinux wheel using Docker
  * @param maturinRelease maturin release tag, ie. version
@@ -636,6 +655,10 @@ async function dockerBuild(
       dockerEnvs.push('-e')
       dockerEnvs.push(env)
     }
+  }
+  for (const env of await parseGitHubEnvVars()) {
+    dockerEnvs.push('-e')
+    dockerEnvs.push(env)
   }
 
   const workdir = getWorkingDirectory()

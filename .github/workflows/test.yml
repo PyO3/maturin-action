@@ -46,6 +46,9 @@ jobs:
           ref: main
           path: maturin
       - uses: dtolnay/rust-toolchain@stable
+      - name: Modify GITHUB_ENV
+        if: matrix.os == 'ubuntu-latest'
+        run: echo "JEMALLOC_SYS_WITH_LG_PAGE=16" >> $GITHUB_ENV
       - name: maturin build
         uses: ./
         with:
