@@ -11476,6 +11476,24 @@ const TARGET_ALIASES = {
         aarch64: 'aarch64-pc-windows-msvc'
     }
 };
+const ALLOWED_ENV_PREFIXES = [
+    'CARGO_',
+    'RUST',
+    'MATURIN_',
+    'PYO3_',
+    'TARGET_',
+    'CMAKE_',
+    'CC',
+    'CFLAGS',
+    'CXX',
+    'CXXFLAGS',
+    'CPPFLAGS',
+    'LDFLAGS',
+    'ACTIONS_',
+    'SCCACHE_',
+    'JEMALLOC_'
+];
+const FORBIDDEN_ENVS = ['CARGO_HOME'];
 function hasZigSupport(target) {
     if (target.startsWith('s390x')) {
         return false;
@@ -11832,21 +11850,7 @@ async function dockerBuild(container, maturinRelease, args) {
     core.endGroup();
     const dockerEnvs = [];
     for (const env of Object.keys(process.env)) {
-        if (env.startsWith('CARGO_') ||
-            env.startsWith('RUST') ||
-            env.startsWith('MATURIN_') ||
-            env.startsWith('PYO3_') ||
-            env.startsWith('TARGET_') ||
-            env.startsWith('CMAKE_') ||
-            env.startsWith('CC') ||
-            env.startsWith('CFLAGS') ||
-            env.startsWith('CXX') ||
-            env.startsWith('CXXFLAGS') ||
-            env.startsWith('CPPFLAGS') ||
-            env.startsWith('LDFLAGS') ||
-            env.startsWith('ACTIONS_') ||
-            env.startsWith('SCCACHE_') ||
-            env.startsWith('JEMALLOC_')) {
+        if (isDockerEnv(env)) {
             dockerEnvs.push('-e');
             dockerEnvs.push(env);
         }
@@ -11907,6 +11911,16 @@ async function dockerBuild(container, maturinRelease, args) {
         core.endGroup();
     }
     return exitCode;
+}
+function isDockerEnv(env) {
+    if (!FORBIDDEN_ENVS.includes(env)) {
+        for (const prefix of ALLOWED_ENV_PREFIXES) {
+            if (env.startsWith(prefix)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 async function installRustTarget(target, toolchain) {
     if (!target || target.length === 0) {
