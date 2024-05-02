@@ -150,6 +150,32 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
 }
 
 /**
+ * Allowed prefixes for env variables to pass to docker
+ */
+const ALLOWED_ENV_PREFIXES: string[] = [
+  'CARGO_',
+  'RUST',
+  'MATURIN_',
+  'PYO3_',
+  'TARGET_',
+  'CMAKE_',
+  'CC',
+  'CFLAGS',
+  'CXX',
+  'CXXFLAGS',
+  'CPPFLAGS',
+  'LDFLAGS',
+  'ACTIONS_',
+  'SCCACHE_',
+  'JEMALLOC_'
+]
+
+/**
+ * Forbidden env variables that should not be passed to docker
+ */
+const FORBIDDEN_ENVS: string[] = ['CARGO_HOME']
+
+/**
  * Does the target has Zig cross compilation support
  */
 function hasZigSupport(target: string): boolean {
@@ -617,24 +643,7 @@ async function dockerBuild(
 
   const dockerEnvs = []
   for (const env of Object.keys(process.env)) {
-    if (
-      env.startsWith('CARGO_') ||
-      env.startsWith('RUST') ||
-      env.startsWith('MATURIN_') ||
-      env.startsWith('PYO3_') ||
-      env.startsWith('TARGET_') ||
-      env.startsWith('CMAKE_') ||
-      env.startsWith('CC') ||
-      env.startsWith('CFLAGS') ||
-      env.startsWith('CXX') ||
-      env.startsWith('CXXFLAGS') ||
-      env.startsWith('CPPFLAGS') ||
-      env.startsWith('LDFLAGS') ||
-      env.startsWith('ACTIONS_') ||
-      env.startsWith('SCCACHE_') ||
-      // for example JEMALLOC_SYS_WITH_LG_PAGE=16
-      env.startsWith('JEMALLOC_')
-    ) {
+    if (isDockerEnv(env)) {
       dockerEnvs.push('-e')
       dockerEnvs.push(env)
     }
@@ -704,6 +713,21 @@ async function dockerBuild(
     core.endGroup()
   }
   return exitCode
+}
+
+/**
+ * Check if an environment variable should be passed to docker
+ * @param env The name of the environment variable
+ */
+function isDockerEnv(env: string): boolean {
+  if (!FORBIDDEN_ENVS.includes(env)) {
+    for (const prefix of ALLOWED_ENV_PREFIXES) {
+      if (env.startsWith(prefix)) {
+        return true
+      }
+    }
+  }
+  return false
 }
 
 /**
