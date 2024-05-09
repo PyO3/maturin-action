@@ -590,15 +590,6 @@ async function dockerBuild(
       'echo "::endgroup::"'
     )
   }
-  if (sccache) {
-    commands.push(
-      'echo "::group::Install sccache"',
-      'python3 -m pip install "sccache>=0.4.0"',
-      'sccache --version',
-      'echo "::endgroup::"'
-    )
-    setupSccacheEnv()
-  }
 
   const beforeScript = getBeforeScript()
   if (beforeScript.length > 0) {
@@ -607,6 +598,16 @@ async function dockerBuild(
       ...beforeScript.split('\n'),
       'echo "::endgroup::"'
     )
+  }
+
+  if (sccache) {
+    commands.push(
+      'echo "::group::Install sccache"',
+      'python3 -m pip install "sccache>=0.4.0"',
+      'sccache --version',
+      'echo "::endgroup::"'
+    )
+    setupSccacheEnv()
   }
 
   commands.push(`maturin ${args.join(' ')}`)
