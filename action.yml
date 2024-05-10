@@ -27,7 +27,7 @@ inputs:
     description: Additional Docker run options, for passing environment variables and etc.
     required: false
   host-home-mount:
-    description: Host home folder where the runner's home folder is mounted to. Used for building using Docker-in-Docker runners
+    description: Host folder where the runner's home folder is mounted to. Used for building using Docker-in-Docker runners
     required: false
   target:
     description: The --target option for cargo

@@ -621,23 +621,17 @@ async function dockerBuild(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const localWorkspace = process.env.GITHUB_WORKSPACE!
-  const hostWorkspace = path.join(
-    hostHomeMount,
-    path.relative(os.homedir(), localWorkspace)
-  )
-
-  const localScriptPath = path.join(
+  const workspace = process.env.GITHUB_WORKSPACE!
+  const scriptPath = path.join(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     process.env.RUNNER_TEMP!,
     'run-maturin-action.sh'
   )
-  const hostScriptPath = path.join(
-    hostHomeMount,
-    path.relative(os.homedir(), localScriptPath)
-  )
-  writeFileSync(localScriptPath, commands.join('\n'))
-  await fs.chmod(localScriptPath, 0o755)
+  writeFileSync(scriptPath, commands.join('\n'))
+  await fs.chmod(scriptPath, 0o755)
+
+  const hostWorkspace = path.join(hostHomeMount, workspace)
+  const hostScriptPath = path.join(hostHomeMount, scriptPath)
 
   const targetDir = await getCargoTargetDir(args)
 
@@ -700,14 +694,14 @@ async function dockerBuild(
     '_PYTHON_SYSCONFIGDATA_NAME',
     ...dockerEnvs,
     '-v',
-    `${hostScriptPath}:${localScriptPath}`,
+    `${hostScriptPath}:${scriptPath}`,
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
-    `${hostWorkspace}:${localWorkspace}`,
+    `${hostWorkspace}:${workspace}`,
     ...dockerVolumes,
     ...dockerArgs,
     image,
-    localScriptPath
+    scriptPath
   ])
   // Fix file permissions
   if (process.getuid && process.getgid) {
@@ -938,11 +932,8 @@ async function innerMain(): Promise<void> {
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
   const target = getRustTarget(args)
+  const hostHomeMount = core.getInput('host-home-mount')
   let container = core.getInput('container')
-  let hostHomeMount = core.getInput('host-home-mount')
-  if (hostHomeMount === '') {
-    hostHomeMount = os.homedir()
-  }
 
   if (process.env.CARGO_INCREMENTAL === undefined) {
     core.exportVariable('CARGO_INCREMENTAL', '0')

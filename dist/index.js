@@ -11829,12 +11829,12 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     if (sccache) {
         commands.push('echo "::group::sccache stats"', 'sccache --show-stats', 'echo "::endgroup::"');
     }
-    const localWorkspace = process.env.GITHUB_WORKSPACE;
-    const hostWorkspace = path.join(hostHomeMount, path.relative(os.homedir(), localWorkspace));
-    const localScriptPath = path.join(process.env.RUNNER_TEMP, 'run-maturin-action.sh');
-    const hostScriptPath = path.join(hostHomeMount, path.relative(os.homedir(), localScriptPath));
-    (0, fs_1.writeFileSync)(localScriptPath, commands.join('\n'));
-    await fs_1.promises.chmod(localScriptPath, 0o755);
+    const workspace = process.env.GITHUB_WORKSPACE;
+    const scriptPath = path.join(process.env.RUNNER_TEMP, 'run-maturin-action.sh');
+    (0, fs_1.writeFileSync)(scriptPath, commands.join('\n'));
+    await fs_1.promises.chmod(scriptPath, 0o755);
+    const hostWorkspace = path.join(hostHomeMount, workspace);
+    const hostScriptPath = path.join(hostHomeMount, scriptPath);
     const targetDir = await getCargoTargetDir(args);
     core.startGroup('Cleanup build scripts artifact directory');
     const debugBuildDir = path.join(targetDir, 'debug', 'build');
@@ -11887,13 +11887,13 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         '_PYTHON_SYSCONFIGDATA_NAME',
         ...dockerEnvs,
         '-v',
-        `${hostScriptPath}:${localScriptPath}`,
+        `${hostScriptPath}:${scriptPath}`,
         '-v',
-        `${hostWorkspace}:${localWorkspace}`,
+        `${hostWorkspace}:${workspace}`,
         ...dockerVolumes,
         ...dockerArgs,
         image,
-        localScriptPath
+        scriptPath
     ]);
     if (process.getuid && process.getgid) {
         core.startGroup('Fix file permissions');
@@ -12081,11 +12081,8 @@ async function innerMain() {
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
     const target = getRustTarget(args);
+    const hostHomeMount = core.getInput('host-home-mount');
     let container = core.getInput('container');
-    let hostHomeMount = core.getInput('host-home-mount');
-    if (hostHomeMount === '') {
-        hostHomeMount = os.homedir();
-    }
     if (process.env.CARGO_INCREMENTAL === undefined) {
         core.exportVariable('CARGO_INCREMENTAL', '0');
     }
