@@ -638,15 +638,27 @@ async function dockerBuild(
   core.startGroup('Cleanup build scripts artifact directory')
   const debugBuildDir = path.join(targetDir, 'debug', 'build')
   if (existsSync(debugBuildDir)) {
-    await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
-      ignoreReturnCode: true
-    })
+    if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+      await exec.exec('rm', ['-rf', debugBuildDir], {
+        ignoreReturnCode: true
+      })
+    } else {
+      await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
+        ignoreReturnCode: true
+      })
+    }
   }
   const releaseBuildDir = path.join(targetDir, 'release', 'build')
   if (existsSync(debugBuildDir)) {
-    await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
-      ignoreReturnCode: true
-    })
+    if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+      await exec.exec('rm', ['-rf', releaseBuildDir], {
+        ignoreReturnCode: true
+      })
+    } else {
+      await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
+        ignoreReturnCode: true
+      })
+    }
   }
   core.endGroup()
 
@@ -709,15 +721,28 @@ async function dockerBuild(
     core.info(`Fixing file permissions for target directory: ${targetDir}`)
     const uid = process.getuid()
     const gid = process.getgid()
-    await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
-      ignoreReturnCode: true
-    })
+    if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+      await exec.exec('chown', [`${uid}:${gid}`, '-R', targetDir], {
+        ignoreReturnCode: true
+      })
+    } else {
+      await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
+        ignoreReturnCode: true
+      })
+    }
+
     const outDir = getCliValue(args, '--out') || getCliValue(args, '-o')
     if (outDir && existsSync(outDir)) {
       core.info(`Fixing file permissions for output directory: ${outDir}`)
-      await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
-        ignoreReturnCode: true
-      })
+      if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+        await exec.exec('chown', [`${uid}:${gid}`, '-R', outDir], {
+          ignoreReturnCode: true
+        })
+      } else {
+        await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
+          ignoreReturnCode: true
+        })
+      }
     }
     core.endGroup()
   }
