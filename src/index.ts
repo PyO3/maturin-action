@@ -492,6 +492,7 @@ function getBeforeScript(): string {
 async function dockerBuild(
   container: string,
   maturinRelease: string,
+  hostHomeMount: string,
   args: string[]
 ): Promise<number> {
   const target = getRustTarget(args)
@@ -620,10 +621,23 @@ async function dockerBuild(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const workspace = process.env.GITHUB_WORKSPACE!
-  const scriptPath = path.join(os.tmpdir(), 'run-maturin-action.sh')
-  writeFileSync(scriptPath, commands.join('\n'))
-  await fs.chmod(scriptPath, 0o755)
+  const localWorkspace = process.env.GITHUB_WORKSPACE!
+  const hostWorkspace = path.join(
+    hostHomeMount,
+    path.relative(os.homedir(), localWorkspace)
+  )
+
+  const localScriptPath = path.join(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    process.env.RUNNER_TEMP!,
+    'run-maturin-action.sh'
+  )
+  const hostScriptPath = path.join(
+    hostHomeMount,
+    path.relative(os.homedir(), localScriptPath)
+  )
+  writeFileSync(localScriptPath, commands.join('\n'))
+  await fs.chmod(localScriptPath, 0o755)
 
   const targetDir = await getCargoTargetDir(args)
 
@@ -686,14 +700,14 @@ async function dockerBuild(
     '_PYTHON_SYSCONFIGDATA_NAME',
     ...dockerEnvs,
     '-v',
-    `${scriptPath}:${scriptPath}`,
+    `${hostScriptPath}:${localScriptPath}`,
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
-    `${workspace}:${workspace}`,
+    `${hostWorkspace}:${localWorkspace}`,
     ...dockerVolumes,
     ...dockerArgs,
     image,
-    scriptPath
+    localScriptPath
   ])
   // Fix file permissions
   if (process.getuid && process.getgid) {
@@ -925,6 +939,10 @@ async function innerMain(): Promise<void> {
   const command = core.getInput('command')
   const target = getRustTarget(args)
   let container = core.getInput('container')
+  let hostHomeMount = core.getInput('host-home-mount')
+  if (hostHomeMount === '') {
+    hostHomeMount = os.homedir()
+  }
 
   if (process.env.CARGO_INCREMENTAL === undefined) {
     core.exportVariable('CARGO_INCREMENTAL', '0')
@@ -995,7 +1013,12 @@ async function innerMain(): Promise<void> {
       container
     )
     if (dockerContainer) {
-      exitCode = await dockerBuild(dockerContainer, maturinRelease, args)
+      exitCode = await dockerBuild(
+        dockerContainer,
+        maturinRelease,
+        hostHomeMount,
+        args
+      )
     } else {
       core.info('No Docker container found, fallback to build on host')
       exitCode = await hostBuild(maturinRelease, args)

@@ -11743,7 +11743,7 @@ function getBeforeScript() {
     }
     return '';
 }
-async function dockerBuild(container, maturinRelease, args) {
+async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     var _a;
     const target = getRustTarget(args);
     const rustToolchain = (await getRustToolchain(args)) || 'stable';
@@ -11817,22 +11817,24 @@ async function dockerBuild(container, maturinRelease, args) {
         const components = rustupComponents.split(/\s+/).join(' ');
         commands.push('echo "::group::Install Extra Rust components"', `rustup component add ${components}`, 'echo "::endgroup::"');
     }
-    if (sccache) {
-        commands.push('echo "::group::Install sccache"', 'python3 -m pip install "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
-        setupSccacheEnv();
-    }
     const beforeScript = getBeforeScript();
     if (beforeScript.length > 0) {
         commands.push('echo "::group::Run before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
+    }
+    if (sccache) {
+        commands.push('echo "::group::Install sccache"', 'python3 -m pip install "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
+        setupSccacheEnv();
     }
     commands.push(`maturin ${args.join(' ')}`);
     if (sccache) {
         commands.push('echo "::group::sccache stats"', 'sccache --show-stats', 'echo "::endgroup::"');
     }
-    const workspace = process.env.GITHUB_WORKSPACE;
-    const scriptPath = path.join(os.tmpdir(), 'run-maturin-action.sh');
-    (0, fs_1.writeFileSync)(scriptPath, commands.join('\n'));
-    await fs_1.promises.chmod(scriptPath, 0o755);
+    const localWorkspace = process.env.GITHUB_WORKSPACE;
+    const hostWorkspace = path.join(hostHomeMount, path.relative(os.homedir(), localWorkspace));
+    const localScriptPath = path.join(process.env.RUNNER_TEMP, 'run-maturin-action.sh');
+    const hostScriptPath = path.join(hostHomeMount, path.relative(os.homedir(), localScriptPath));
+    (0, fs_1.writeFileSync)(localScriptPath, commands.join('\n'));
+    await fs_1.promises.chmod(localScriptPath, 0o755);
     const targetDir = await getCargoTargetDir(args);
     core.startGroup('Cleanup build scripts artifact directory');
     const debugBuildDir = path.join(targetDir, 'debug', 'build');
@@ -11885,13 +11887,13 @@ async function dockerBuild(container, maturinRelease, args) {
         '_PYTHON_SYSCONFIGDATA_NAME',
         ...dockerEnvs,
         '-v',
-        `${scriptPath}:${scriptPath}`,
+        `${hostScriptPath}:${localScriptPath}`,
         '-v',
-        `${workspace}:${workspace}`,
+        `${hostWorkspace}:${localWorkspace}`,
         ...dockerVolumes,
         ...dockerArgs,
         image,
-        scriptPath
+        localScriptPath
     ]);
     if (process.getuid && process.getgid) {
         core.startGroup('Fix file permissions');
@@ -12080,6 +12082,10 @@ async function innerMain() {
     const command = core.getInput('command');
     const target = getRustTarget(args);
     let container = core.getInput('container');
+    let hostHomeMount = core.getInput('host-home-mount');
+    if (hostHomeMount === '') {
+        hostHomeMount = os.homedir();
+    }
     if (process.env.CARGO_INCREMENTAL === undefined) {
         core.exportVariable('CARGO_INCREMENTAL', '0');
     }
@@ -12133,7 +12139,7 @@ async function innerMain() {
     if (useDocker) {
         const dockerContainer = await getDockerContainer(target, manylinux, container);
         if (dockerContainer) {
-            exitCode = await dockerBuild(dockerContainer, maturinRelease, args);
+            exitCode = await dockerBuild(dockerContainer, maturinRelease, hostHomeMount, args);
         }
         else {
             core.info('No Docker container found, fallback to build on host');
