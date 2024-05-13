@@ -11817,13 +11817,13 @@ async function dockerBuild(container, maturinRelease, args) {
         const components = rustupComponents.split(/\s+/).join(' ');
         commands.push('echo "::group::Install Extra Rust components"', `rustup component add ${components}`, 'echo "::endgroup::"');
     }
-    if (sccache) {
-        commands.push('echo "::group::Install sccache"', 'python3 -m pip install "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
-        setupSccacheEnv();
-    }
     const beforeScript = getBeforeScript();
     if (beforeScript.length > 0) {
         commands.push('echo "::group::Run before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
+    }
+    if (sccache) {
+        commands.push('echo "::group::Install sccache"', 'python3 -m pip install "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
+        setupSccacheEnv();
     }
     commands.push(`maturin ${args.join(' ')}`);
     if (sccache) {
