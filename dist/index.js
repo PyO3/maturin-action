@@ -11743,7 +11743,7 @@ function getBeforeScript() {
     }
     return '';
 }
-async function dockerBuild(container, maturinRelease, args) {
+async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     var _a;
     const target = getRustTarget(args);
     const rustToolchain = (await getRustToolchain(args)) || 'stable';
@@ -11830,22 +11830,38 @@ async function dockerBuild(container, maturinRelease, args) {
         commands.push('echo "::group::sccache stats"', 'sccache --show-stats', 'echo "::endgroup::"');
     }
     const workspace = process.env.GITHUB_WORKSPACE;
-    const scriptPath = path.join(os.tmpdir(), 'run-maturin-action.sh');
+    const scriptPath = path.join(process.env.RUNNER_TEMP, 'run-maturin-action.sh');
     (0, fs_1.writeFileSync)(scriptPath, commands.join('\n'));
     await fs_1.promises.chmod(scriptPath, 0o755);
+    const hostWorkspace = path.join(hostHomeMount, workspace);
+    const hostScriptPath = path.join(hostHomeMount, scriptPath);
     const targetDir = await getCargoTargetDir(args);
     core.startGroup('Cleanup build scripts artifact directory');
     const debugBuildDir = path.join(targetDir, 'debug', 'build');
     if ((0, fs_1.existsSync)(debugBuildDir)) {
-        await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
-            ignoreReturnCode: true
-        });
+        if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+            await exec.exec('rm', ['-rf', debugBuildDir], {
+                ignoreReturnCode: true
+            });
+        }
+        else {
+            await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
+                ignoreReturnCode: true
+            });
+        }
     }
     const releaseBuildDir = path.join(targetDir, 'release', 'build');
     if ((0, fs_1.existsSync)(debugBuildDir)) {
-        await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
-            ignoreReturnCode: true
-        });
+        if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+            await exec.exec('rm', ['-rf', releaseBuildDir], {
+                ignoreReturnCode: true
+            });
+        }
+        else {
+            await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
+                ignoreReturnCode: true
+            });
+        }
     }
     core.endGroup();
     const dockerEnvs = [];
@@ -11885,9 +11901,9 @@ async function dockerBuild(container, maturinRelease, args) {
         '_PYTHON_SYSCONFIGDATA_NAME',
         ...dockerEnvs,
         '-v',
-        `${scriptPath}:${scriptPath}`,
+        `${hostScriptPath}:${scriptPath}`,
         '-v',
-        `${workspace}:${workspace}`,
+        `${hostWorkspace}:${workspace}`,
         ...dockerVolumes,
         ...dockerArgs,
         image,
@@ -11898,15 +11914,29 @@ async function dockerBuild(container, maturinRelease, args) {
         core.info(`Fixing file permissions for target directory: ${targetDir}`);
         const uid = process.getuid();
         const gid = process.getgid();
-        await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
-            ignoreReturnCode: true
-        });
+        if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+            await exec.exec('chown', [`${uid}:${gid}`, '-R', targetDir], {
+                ignoreReturnCode: true
+            });
+        }
+        else {
+            await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
+                ignoreReturnCode: true
+            });
+        }
         const outDir = getCliValue(args, '--out') || getCliValue(args, '-o');
         if (outDir && (0, fs_1.existsSync)(outDir)) {
             core.info(`Fixing file permissions for output directory: ${outDir}`);
-            await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
-                ignoreReturnCode: true
-            });
+            if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+                await exec.exec('chown', [`${uid}:${gid}`, '-R', outDir], {
+                    ignoreReturnCode: true
+                });
+            }
+            else {
+                await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
+                    ignoreReturnCode: true
+                });
+            }
         }
         core.endGroup();
     }
@@ -12088,6 +12118,7 @@ async function innerMain() {
     const args = (0, string_argv_1.default)(inputArgs);
     const command = core.getInput('command');
     const target = getRustTarget(args);
+    const hostHomeMount = core.getInput('host-home-mount');
     let container = core.getInput('container');
     if (process.env.CARGO_INCREMENTAL === undefined) {
         core.exportVariable('CARGO_INCREMENTAL', '0');
@@ -12142,7 +12173,7 @@ async function innerMain() {
     if (useDocker) {
         const dockerContainer = await getDockerContainer(target, manylinux, container);
         if (dockerContainer) {
-            exitCode = await dockerBuild(dockerContainer, maturinRelease, args);
+            exitCode = await dockerBuild(dockerContainer, maturinRelease, hostHomeMount, args);
         }
         else {
             core.info('No Docker container found, fallback to build on host');

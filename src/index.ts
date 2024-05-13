@@ -492,6 +492,7 @@ function getBeforeScript(): string {
 async function dockerBuild(
   container: string,
   maturinRelease: string,
+  hostHomeMount: string,
   args: string[]
 ): Promise<number> {
   const target = getRustTarget(args)
@@ -621,24 +622,43 @@ async function dockerBuild(
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const workspace = process.env.GITHUB_WORKSPACE!
-  const scriptPath = path.join(os.tmpdir(), 'run-maturin-action.sh')
+  const scriptPath = path.join(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    process.env.RUNNER_TEMP!,
+    'run-maturin-action.sh'
+  )
   writeFileSync(scriptPath, commands.join('\n'))
   await fs.chmod(scriptPath, 0o755)
+
+  const hostWorkspace = path.join(hostHomeMount, workspace)
+  const hostScriptPath = path.join(hostHomeMount, scriptPath)
 
   const targetDir = await getCargoTargetDir(args)
 
   core.startGroup('Cleanup build scripts artifact directory')
   const debugBuildDir = path.join(targetDir, 'debug', 'build')
   if (existsSync(debugBuildDir)) {
-    await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
-      ignoreReturnCode: true
-    })
+    if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+      await exec.exec('rm', ['-rf', debugBuildDir], {
+        ignoreReturnCode: true
+      })
+    } else {
+      await exec.exec('sudo', ['rm', '-rf', debugBuildDir], {
+        ignoreReturnCode: true
+      })
+    }
   }
   const releaseBuildDir = path.join(targetDir, 'release', 'build')
   if (existsSync(debugBuildDir)) {
-    await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
-      ignoreReturnCode: true
-    })
+    if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+      await exec.exec('rm', ['-rf', releaseBuildDir], {
+        ignoreReturnCode: true
+      })
+    } else {
+      await exec.exec('sudo', ['rm', '-rf', releaseBuildDir], {
+        ignoreReturnCode: true
+      })
+    }
   }
   core.endGroup()
 
@@ -686,10 +706,10 @@ async function dockerBuild(
     '_PYTHON_SYSCONFIGDATA_NAME',
     ...dockerEnvs,
     '-v',
-    `${scriptPath}:${scriptPath}`,
+    `${hostScriptPath}:${scriptPath}`,
     // Mount $GITHUB_WORKSPACE at the same path
     '-v',
-    `${workspace}:${workspace}`,
+    `${hostWorkspace}:${workspace}`,
     ...dockerVolumes,
     ...dockerArgs,
     image,
@@ -701,15 +721,28 @@ async function dockerBuild(
     core.info(`Fixing file permissions for target directory: ${targetDir}`)
     const uid = process.getuid()
     const gid = process.getgid()
-    await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
-      ignoreReturnCode: true
-    })
+    if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+      await exec.exec('chown', [`${uid}:${gid}`, '-R', targetDir], {
+        ignoreReturnCode: true
+      })
+    } else {
+      await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', targetDir], {
+        ignoreReturnCode: true
+      })
+    }
+
     const outDir = getCliValue(args, '--out') || getCliValue(args, '-o')
     if (outDir && existsSync(outDir)) {
       core.info(`Fixing file permissions for output directory: ${outDir}`)
-      await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
-        ignoreReturnCode: true
-      })
+      if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+        await exec.exec('chown', [`${uid}:${gid}`, '-R', outDir], {
+          ignoreReturnCode: true
+        })
+      } else {
+        await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
+          ignoreReturnCode: true
+        })
+      }
     }
     core.endGroup()
   }
@@ -933,6 +966,7 @@ async function innerMain(): Promise<void> {
   const args = stringArgv(inputArgs)
   const command = core.getInput('command')
   const target = getRustTarget(args)
+  const hostHomeMount = core.getInput('host-home-mount')
   let container = core.getInput('container')
 
   if (process.env.CARGO_INCREMENTAL === undefined) {
@@ -1004,7 +1038,12 @@ async function innerMain(): Promise<void> {
       container
     )
     if (dockerContainer) {
-      exitCode = await dockerBuild(dockerContainer, maturinRelease, args)
+      exitCode = await dockerBuild(
+        dockerContainer,
+        maturinRelease,
+        hostHomeMount,
+        args
+      )
     } else {
       core.info('No Docker container found, fallback to build on host')
       exitCode = await hostBuild(maturinRelease, args)
