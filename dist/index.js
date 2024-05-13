@@ -11951,9 +11951,18 @@ async function installRustTarget(target, toolchain) {
     }
 }
 async function addToolCachePythonVersionsToPath() {
-    const allPythonVersions = tc.findAllVersions('python');
+    const allPythonVersions = tc.findAllVersions('Python');
     for (const ver of allPythonVersions) {
         const installDir = tc.find('Python', ver);
+        if (installDir) {
+            core.info(`Python version ${ver} was found in the local cache`);
+            core.addPath(installDir);
+            core.addPath(path.join(installDir, 'bin'));
+        }
+    }
+    const allPyPyVersions = tc.findAllVersions('PyPy');
+    for (const ver of allPyPyVersions) {
+        const installDir = tc.find('PyPy', ver);
         if (installDir) {
             core.info(`Python version ${ver} was found in the local cache`);
             core.addPath(installDir);
