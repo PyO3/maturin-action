@@ -12037,7 +12037,9 @@ async function hostBuild(maturinRelease, args) {
     core.info(`Installing 'maturin' from tag '${maturinRelease}'`);
     const maturinPath = await installMaturin(maturinRelease);
     await exec.exec(maturinPath, ['--version'], { ignoreReturnCode: true });
-    await exec.exec('python3', ['-m', 'pip', 'install', 'cffi']);
+    await exec.exec('python3', ['-m', 'pip', 'install', 'cffi'], {
+        ignoreReturnCode: true
+    });
     if (IS_LINUX) {
         await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf']);
     }
