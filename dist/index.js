@@ -11803,12 +11803,12 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         'echo "::group::Install maturin"',
         `curl -L ${url} | tar -xz -C /usr/local/bin`,
         'maturin --version || true',
-        'which patchelf > /dev/null || python3 -m pip install patchelf',
-        'python3 -m pip install cffi || true',
+        'which patchelf > /dev/null || python3 -m pip install --break-system-packages patchelf',
+        'python3 -m pip install --break-system-packages cffi || true',
         'echo "::endgroup::"'
     ];
     if (args.includes('--zig')) {
-        commands.push('echo "::group::Install Zig"', 'python3 -m pip install ziglang', 'echo "::endgroup::"');
+        commands.push('echo "::group::Install Zig"', 'python3 -m pip install --break-system-packages ziglang', 'echo "::endgroup::"');
     }
     if (target.length > 0) {
         commands.push('echo "::group::Install Rust target"', `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`, 'echo "::endgroup::"');
@@ -11822,7 +11822,7 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         commands.push('echo "::group::Run before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
     }
     if (sccache) {
-        commands.push('echo "::group::Install sccache"', 'python3 -m pip install "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
+        commands.push('echo "::group::Install sccache"', 'python3 -m pip install --break-system-packages "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
         setupSccacheEnv();
     }
     commands.push(`maturin ${args.join(' ')}`);
