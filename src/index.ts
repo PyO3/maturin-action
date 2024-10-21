@@ -554,7 +554,7 @@ async function dockerBuild(
     // Install Rust
     'echo "::group::Install Rust"',
     `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
-    'export PATH="$HOME/.cargo/bin:$PATH"',
+    'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
     `echo "Install Rust toolchain ${rustToolchain}"`,
     `rustup override set ${rustToolchain}`,
     `rustup component add llvm-tools-preview || true`,
@@ -565,14 +565,14 @@ async function dockerBuild(
     'echo "::group::Install maturin"',
     `curl -L ${url} | tar -xz -C /usr/local/bin`,
     'maturin --version || true',
-    'which patchelf > /dev/null || python3 -m pip install patchelf',
-    'python3 -m pip install cffi || true', // Allow failure for now
+    'which patchelf > /dev/null || python3 -m pip install --user patchelf',
+    'python3 -m pip install --user cffi || true', // Allow failure for now
     'echo "::endgroup::"'
   ]
   if (args.includes('--zig')) {
     commands.push(
       'echo "::group::Install Zig"',
-      'python3 -m pip install ziglang',
+      'python3 -m pip install --user ziglang',
       'echo "::endgroup::"'
     )
   }
@@ -604,7 +604,7 @@ async function dockerBuild(
   if (sccache) {
     commands.push(
       'echo "::group::Install sccache"',
-      'python3 -m pip install "sccache>=0.4.0"',
+      'python3 -m pip install --user "sccache>=0.4.0"',
       'sccache --version',
       'echo "::endgroup::"'
     )
