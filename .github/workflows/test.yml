@@ -34,7 +34,7 @@ jobs:
       fail-fast: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-no-fail-fast') }}
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-24.04
           - macos-13
           - windows-latest
         toolchain: [stable, nightly]
