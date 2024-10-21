@@ -221,6 +221,12 @@ function getWorkingDirectory(): string {
   return workdir
 }
 
+function parseTOMLNormalized(input: string): JsonMap {
+  // Normalize CRLF to LF to avoid hitting https://github.com/iarna/iarna-toml/issues/33
+  const normalized = input.replace(/\r\n$/g, '\n')
+  return parseTOML(normalized)
+}
+
 function getManifestDir(args: string[]): string {
   const workdir = getWorkingDirectory()
   const manifestPath =
@@ -229,7 +235,7 @@ function getManifestDir(args: string[]): string {
 }
 
 function parseRustToolchain(content: string): string {
-  const toml = parseTOML(content.toString())
+  const toml = parseTOMLNormalized(content.toString())
   const toolchain = toml?.toolchain as JsonMap
   return (toolchain?.channel as string) || ''
 }
@@ -356,7 +362,7 @@ async function findVersion(args: string[]): Promise<string> {
     const pyprojectToml = path.join(manifestDir, 'pyproject.toml')
     if (existsSync(pyprojectToml)) {
       const content = await fs.readFile(pyprojectToml)
-      const toml = parseTOML(content.toString())
+      const toml = parseTOMLNormalized(content.toString())
       const buildSystem = (toml['build-system'] || {}) as JsonMap
       const requires = (buildSystem['requires'] || []) as string[]
       const maturin = requires.find(req => req.startsWith('maturin'))

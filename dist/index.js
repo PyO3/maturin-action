@@ -11549,13 +11549,17 @@ function getWorkingDirectory() {
     }
     return workdir;
 }
+function parseTOMLNormalized(input) {
+    const normalized = input.replace(/\r\n$/g, '\n');
+    return (0, toml_1.parse)(normalized);
+}
 function getManifestDir(args) {
     const workdir = getWorkingDirectory();
     const manifestPath = getCliValue(args, '--manifest-path') || getCliValue(args, '-m');
     return manifestPath ? path.dirname(path.join(workdir, manifestPath)) : workdir;
 }
 function parseRustToolchain(content) {
-    const toml = (0, toml_1.parse)(content.toString());
+    const toml = parseTOMLNormalized(content.toString());
     const toolchain = toml === null || toml === void 0 ? void 0 : toml.toolchain;
     return (toolchain === null || toolchain === void 0 ? void 0 : toolchain.channel) || '';
 }
@@ -11650,7 +11654,7 @@ async function findVersion(args) {
         const pyprojectToml = path.join(manifestDir, 'pyproject.toml');
         if ((0, fs_1.existsSync)(pyprojectToml)) {
             const content = await fs_1.promises.readFile(pyprojectToml);
-            const toml = (0, toml_1.parse)(content.toString());
+            const toml = parseTOMLNormalized(content.toString());
             const buildSystem = (toml['build-system'] || {});
             const requires = (buildSystem['requires'] || []);
             const maturin = requires.find(req => req.startsWith('maturin'));
