@@ -5386,6 +5386,9 @@ class Parser {
     ++this.col
     return this.haveBuffer()
   }
+  peekChar () {
+    return this._buf.codePointAt(this.ii + 1)
+  }
   haveBuffer () {
     return this.ii < this._buf.length
   }
@@ -5850,6 +5853,8 @@ function makeParserClass (Parser) {
       do {
         if (this.char === Parser.END || this.char === CTRL_J) {
           return this.return()
+        } else if (this.char === CTRL_M && this.peekChar() === CTRL_J) {
+          // CRLF line ending, LF is consumed on next iter
         } else if (this.char === CHAR_DEL || (this.char <= CTRL_CHAR_BOUNDARY && this.char !== CTRL_I)) {
           throw this.errorControlCharIn('comments')
         }
