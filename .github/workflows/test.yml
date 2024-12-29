@@ -24,7 +24,8 @@ jobs:
       - name: lint JavaScript
         run: npm run lint
       - name: lint Python
-        run: pipx ruff check
+        run: pipx run ruff check
+
   test:
     name: Test Suite
     runs-on: ${{ matrix.os }}
