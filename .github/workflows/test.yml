@@ -21,8 +21,10 @@ jobs:
           node-version: '16'
       - name: npm install
         run: npm install
-      - name: lint
+      - name: lint JavaScript
         run: npm run lint
+      - name: lint Python
+        run: pipx run ruff check
 
   test:
     name: Test Suite
