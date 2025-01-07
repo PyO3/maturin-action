@@ -65,10 +65,10 @@ By default, this action uses the following containers for supported architecture
 | i686         | 2014/2_17         | quay.io/pypa/manylinux2014_i686:latest          |            |
 | i686         | 2_24              | quay.io/pypa/manylinux_2_24_i686:latest         | Deprecated |
 | aarch64      | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:aarch64  |            |
-| aarch64      | 2_24              | messense/manylinux_2_24-cross:aarch64           |            |
+| aarch64      | 2_24              | messense/manylinux_2_24-cross:aarch64           | Deprecated |
 | aarch64      | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:aarch64 |            |
 | armv7l       | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:armv7    |            |
-| armv7l       | 2_24              | messense/manylinux_2_24-cross:armv7             |            |
+| armv7l       | 2_24              | messense/manylinux_2_24-cross:armv7             | Deprecated |
 | armv7l       | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:armv7   |            |
 | ppc64le      | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:ppc64le  |            |
 | ppc64le      | 2_24              | messense/manylinux_2_24-cross:ppc64le           | Deprecated |
