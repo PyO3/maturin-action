@@ -37,6 +37,7 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
+          - ubuntu-24.04-arm
           - macos-13
           - windows-latest
         toolchain: [stable, nightly]
@@ -85,6 +86,8 @@ jobs:
           working-directory: maturin/test-crates/pyo3-mixed
           manylinux: 'auto'
       - name: maturin build manylinux2014
+        # No llvm-toolset-7 in arm64 manylinux image
+        if: matrix.os != 'ubuntu-24.04-arm'
         uses: ./
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
@@ -192,6 +195,8 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          # TOFIX: dbhi/qus/action does not support arm64
+          # - ubuntu-24.04-arm
         platform: [
           {
             manylinux: '2014',
@@ -220,11 +225,6 @@ jobs:
           },
           {
             manylinux: '2014',
-            target: 'powerpc64le-unknown-linux-gnu',
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
-          {
-            manylinux: 'manylinux_2_24',
             target: 'powerpc64le-unknown-linux-gnu',
             test-crate: 'maturin/test-crates/pyo3-mixed'
           },
