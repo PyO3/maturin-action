@@ -37,7 +37,7 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
-          - ubuntu-24.04-arm
+          - ubuntu-22.04-arm
           - macos-13
           - windows-latest
         toolchain: [stable, nightly]
