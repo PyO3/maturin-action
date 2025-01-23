@@ -87,7 +87,7 @@ jobs:
           manylinux: 'auto'
       - name: maturin build manylinux2014
         # No llvm-toolset-7 in arm64 manylinux image
-        if: matrix.os != 'ubuntu-24.04-arm'
+        if: matrix.os != 'ubuntu-22.04-arm'
         uses: ./
         with:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
