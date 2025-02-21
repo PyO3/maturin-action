@@ -248,7 +248,7 @@ const ALLOWED_ENV_PREFIXES: string[] = [
   'PYO3_',
   'RUST',
   'SCCACHE_',
-  'TARGET_',
+  'TARGET_'
 ]
 
 /**
