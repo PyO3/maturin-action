@@ -11574,21 +11574,22 @@ const TARGET_ALIASES = {
     }
 };
 const ALLOWED_ENV_PREFIXES = [
+    'ACTIONS_',
     'CARGO_',
-    'RUST',
-    'MATURIN_',
-    'PYO3_',
-    'TARGET_',
-    'CMAKE_',
     'CC',
     'CFLAGS',
+    'CMAKE_',
+    'CPPFLAGS',
     'CXX',
     'CXXFLAGS',
-    'CPPFLAGS',
+    'GITHUB_',
+    'JEMALLOC_',
     'LDFLAGS',
-    'ACTIONS_',
+    'MATURIN_',
+    'PYO3_',
+    'RUST',
     'SCCACHE_',
-    'JEMALLOC_'
+    'TARGET_'
 ];
 const FORBIDDEN_ENVS = ['CARGO_HOME'];
 function hasZigSupport(target) {
