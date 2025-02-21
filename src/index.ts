@@ -233,6 +233,7 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
  * Allowed prefixes for env variables to pass to docker
  */
 const ALLOWED_ENV_PREFIXES: string[] = [
+  'ACTIONS_',
   'CARGO_',
   'RUST',
   'MATURIN_',
