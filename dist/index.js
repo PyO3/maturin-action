@@ -11890,12 +11890,15 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     const rustupComponents = core.getInput('rustup-components');
     const commands = [
         '#!/bin/bash',
-        'set -e',
+        'set -euo pipefail',
         'echo "::group::Install Rust"',
         `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
+        `rustup override set ${rustToolchain}`,
+        'echo "Update rust version"',
+        'rm -frv ~/.rustup/toolchains/',
+        'rustup show',
         'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
         `echo "Install Rust toolchain ${rustToolchain}"`,
-        `rustup override set ${rustToolchain}`,
         `rustup component add llvm-tools-preview || true`,
         'echo "::endgroup::"',
         'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"',
@@ -12114,6 +12117,7 @@ async function hostBuild(maturinRelease, args) {
     const sccache = core.getBooleanInput('sccache');
     const isUniversal2 = args.includes('--universal2') || target === 'universal2-apple-darwin';
     core.startGroup('Install Rust target');
+    await exec.exec('rustup', ['update']);
     if (rustToolchain && rustToolchain.length > 0) {
         core.info(`Installing Rust toolchain ${rustToolchain}`);
         await exec.exec('rustup', ['override', 'set', rustToolchain]);
