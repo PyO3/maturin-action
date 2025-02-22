@@ -635,12 +635,10 @@ async function dockerBuild(
     'set -euo pipefail',
     // Install Rust
     'echo "::group::Install Rust"',
-    `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
-    `rustup override set ${rustToolchain}`,
-    'echo "Update rust version"',
-    'rm -frv ~/.rustup/toolchains/', // refer to https://github.com/rust-lang/rustup/issues/1167#issuecomment-367061388
-    'rustup show', // download the latest toolchain
+    // refer to https://github.com/rust-lang/rustup/issues/1167#issuecomment-367061388
+    `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
     'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
+    `rustup override set ${rustToolchain}`,
     `echo "Install Rust toolchain ${rustToolchain}"`,
     `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
