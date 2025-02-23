@@ -935,13 +935,13 @@ async function hostBuild(
     args.includes('--universal2') || target === 'universal2-apple-darwin'
 
   core.startGroup('Install Rust target')
-  await exec.exec('rustup', ['update'])
   if (rustToolchain && rustToolchain.length > 0) {
     core.info(`Installing Rust toolchain ${rustToolchain}`)
     await exec.exec('rustup', ['override', 'set', rustToolchain])
     await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
       ignoreReturnCode: true
     })
+    await exec.exec('rustup', ['update'])
   }
   if (rustupComponents.length > 0) {
     const rustupArgs = ['component', 'add'].concat(
