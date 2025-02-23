@@ -638,8 +638,8 @@ async function dockerBuild(
     // refer to https://github.com/rust-lang/rustup/issues/1167#issuecomment-367061388
     `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
     'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
-    `rustup override set ${rustToolchain}`,
     `echo "Install Rust toolchain ${rustToolchain}"`,
+    `rustup override set ${rustToolchain}`,
     `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
     // Add all supported python versions to PATH
