@@ -11890,9 +11890,9 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     const rustupComponents = core.getInput('rustup-components');
     const commands = [
         '#!/bin/bash',
-        'set -e',
+        'set -euo pipefail',
         'echo "::group::Install Rust"',
-        `which rustup > /dev/null || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
+        `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
         'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
         `echo "Install Rust toolchain ${rustToolchain}"`,
         `rustup override set ${rustToolchain}`,
@@ -12116,6 +12116,7 @@ async function hostBuild(maturinRelease, args) {
     core.startGroup('Install Rust target');
     if (rustToolchain && rustToolchain.length > 0) {
         core.info(`Installing Rust toolchain ${rustToolchain}`);
+        await exec.exec('rustup', ['update', '--no-self-update', rustToolchain]);
         await exec.exec('rustup', ['override', 'set', rustToolchain]);
         await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
             ignoreReturnCode: true
