@@ -12116,11 +12116,11 @@ async function hostBuild(maturinRelease, args) {
     core.startGroup('Install Rust target');
     if (rustToolchain && rustToolchain.length > 0) {
         core.info(`Installing Rust toolchain ${rustToolchain}`);
+        await exec.exec('rustup', ['update', '--no-self-update', rustToolchain]);
         await exec.exec('rustup', ['override', 'set', rustToolchain]);
         await exec.exec('rustup', ['component', 'add', 'llvm-tools-preview'], {
             ignoreReturnCode: true
         });
-        await exec.exec('rustup', ['update']);
     }
     if (rustupComponents.length > 0) {
         const rustupArgs = ['component', 'add'].concat(rustupComponents.split(/\s+/));
