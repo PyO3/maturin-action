@@ -94,7 +94,7 @@ jobs:
           manylinux: '2014'
           before-script-linux: |
             yum install -y llvm-toolset-7-clang
-            source /opt/rh/llvm-toolset-7/enable 
+            source /opt/rh/llvm-toolset-7/enable
       - name: maturin build nightly powerpc64le musl
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
         uses: ./
@@ -198,62 +198,63 @@ jobs:
           # TOFIX: dbhi/qus/action does not support arm64
           # - ubuntu-24.04-arm
         platform: [
-          {
-            manylinux: '2014',
-            target: 'x86_64',  # Test target alias
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
-          {
-            manylinux: '2_35', # no docker images
-            target: 'x86_64',
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
-          {
-            manylinux: '2014',
-            target: 'i686-unknown-linux-gnu',
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
-          {
-            manylinux: '2014',
-            target: 'aarch64-unknown-linux-gnu',
-            test-crate: 'maturin/test-crates/pyo3-pure'  # abi3
-          },
-          {
-            manylinux: '2014',
-            target: 'armv7-unknown-linux-gnueabihf',
-            test-crate: 'maturin/test-crates/pyo3-pure'  # abi3
-          },
-          {
-            manylinux: '2014',
-            target: 'powerpc64le-unknown-linux-gnu',
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
-          {
-            manylinux: 'manylinux_2_28',
-            target: 'aarch64-unknown-linux-gnu',
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
-          {
-            manylinux: 'manylinux2014',
-            target: 's390x',
-            test-crate: 'maturin/test-crates/pyo3-mixed'
-          },
-          {
-            manylinux: 'auto',
-            target: 'x86_64-unknown-linux-musl',  # MUSL
-            test-crate: 'maturin/test-crates/hello-world'  # binary
-          },
-          {
-            manylinux: 'musllinux_1_1',
-            target: 'x86_64',
-            test-crate: 'maturin/test-crates/pyo3-pure'
-          },
-          {
-            manylinux: 'musllinux_1_2',
-            target: 'x86_64-unknown-linux-musl',  # MUSL
-            test-crate: 'maturin/test-crates/hello-world'  # binary
-          },
-        ]
+            {
+              manylinux: '2014',
+              target: 'x86_64', # Test target alias
+              test-crate: 'maturin/test-crates/pyo3-mixed'
+            },
+            {
+              manylinux: '2_35', # no docker images
+              target: 'x86_64',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
+            },
+            # https://github.com/rust-lang/cargo/issues/13546
+            # {
+            #   manylinux: '2014',
+            #   target: 'i686-unknown-linux-gnu',
+            #   test-crate: 'maturin/test-crates/pyo3-mixed'
+            # },
+            {
+              manylinux: '2014',
+              target: 'aarch64-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-pure' # abi3
+            },
+            {
+              manylinux: '2014',
+              target: 'armv7-unknown-linux-gnueabihf',
+              test-crate: 'maturin/test-crates/pyo3-pure' # abi3
+            },
+            {
+              manylinux: '2014',
+              target: 'powerpc64le-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
+            },
+            {
+              manylinux: 'manylinux_2_28',
+              target: 'aarch64-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
+            },
+            {
+              manylinux: 'manylinux2014',
+              target: 's390x',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
+            },
+            {
+              manylinux: 'auto',
+              target: 'x86_64-unknown-linux-musl', # MUSL
+              test-crate: 'maturin/test-crates/hello-world' # binary
+            },
+            {
+              manylinux: 'musllinux_1_1',
+              target: 'x86_64',
+              test-crate: 'maturin/test-crates/pyo3-pure'
+            },
+            {
+              manylinux: 'musllinux_1_2',
+              target: 'x86_64-unknown-linux-musl', # MUSL
+              test-crate: 'maturin/test-crates/hello-world' # binary
+            }
+          ]
         toolchain: [stable, nightly]
     steps:
       - uses: actions/checkout@v4
