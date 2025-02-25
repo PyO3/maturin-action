@@ -665,6 +665,13 @@ async function dockerBuild(
       `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`,
       'echo "::endgroup::"'
     )
+    if (target.includes('linux') && target.includes('i686')) {
+      commands.push(
+        'echo "::group::Install libatomic"',
+        'if command -v yum &> /dev/null; then yum install -y libatomic; else apt-get update && apt-get install -y libatomic1; fi',
+        'echo "::endgroup::"'
+      )
+    }
   }
   if (rustupComponents.length > 0) {
     const components = rustupComponents.split(/\s+/).join(' ')
