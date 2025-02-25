@@ -208,12 +208,11 @@ jobs:
               target: 'x86_64',
               test-crate: 'maturin/test-crates/pyo3-mixed'
             },
-            # https://github.com/rust-lang/cargo/issues/13546
-            # {
-            #   manylinux: '2014',
-            #   target: 'i686-unknown-linux-gnu',
-            #   test-crate: 'maturin/test-crates/pyo3-mixed'
-            # },
+            {
+              manylinux: '2014',
+              target: 'i686-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
+            },
             {
               manylinux: '2014',
               target: 'aarch64-unknown-linux-gnu',
