@@ -668,7 +668,7 @@ async function dockerBuild(
   if (args.includes('--zig')) {
     commands.push(
       'echo "::group::Install Zig"',
-      'python3 -m pip install --user ziglang',
+      'python3 -m pip install --user "ziglang<0.14.0"',
       'echo "::endgroup::"'
     )
   }
@@ -982,7 +982,7 @@ async function hostBuild(
   core.endGroup()
   if (args.includes('--zig')) {
     core.startGroup('Install Zig')
-    await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang'])
+    await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang<0.14.0'])
     core.endGroup()
   }
   if (sccache) {
