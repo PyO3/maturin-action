@@ -11913,7 +11913,7 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         commands.push('echo "::group::Run before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
     }
     if (sccache) {
-        commands.push('echo "::group::Install sccache"', 'python3 -m pip install --user "sccache>=0.4.0"', 'sccache --version', 'echo "::endgroup::"');
+        commands.push('echo "::group::Install sccache"', 'python3 -m pip install --user "sccache>=0.10.0"', 'sccache --version', 'echo "::endgroup::"');
         setupSccacheEnv();
     }
     commands.push(`maturin ${args.join(' ')}`);
@@ -12141,7 +12141,7 @@ async function hostBuild(maturinRelease, args) {
     }
     if (sccache) {
         core.startGroup('Install sccache');
-        await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.4.0']);
+        await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.10.0']);
         await exec.exec('sccache', ['--version']);
         setupSccacheEnv();
         core.endGroup();
