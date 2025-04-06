@@ -669,7 +669,9 @@ async function dockerBuild(
     'echo "::group::Install maturin"',
     `curl -L ${url} | tar -xz -C /usr/local/bin`,
     'maturin --version || true',
-    'which patchelf > /dev/null || python3 -m pip install --user patchelf',
+    // Install uv
+    'which uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh',
+    'which patchelf > /dev/null || uv tool install patchelf',
     'python3 -m pip install --user cffi || true', // Allow failure for now
     'echo "::endgroup::"'
   )
@@ -708,7 +710,7 @@ async function dockerBuild(
   if (sccache) {
     commands.push(
       'echo "::group::Install sccache"',
-      'python3 -m pip install --user "sccache>=0.10.0"',
+      'uv tool install "sccache>=0.10.0"',
       'sccache --version',
       'echo "::endgroup::"'
     )
@@ -984,6 +986,7 @@ async function hostBuild(
   const maturinPath = await installMaturin(maturinRelease)
   await exec.exec(maturinPath, ['--version'], {ignoreReturnCode: true})
   await exec.exec('python3', ['-m', 'pip', 'install', 'cffi'])
+  // TODO: switch to uv tool install
   if (IS_LINUX) {
     await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf'])
   }

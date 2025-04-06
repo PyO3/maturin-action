@@ -11905,7 +11905,7 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         target.includes('i686')) {
         commands.push('echo "::group::Install libatomic"', 'if command -v yum &> /dev/null; then yum install -y libatomic; else apt-get update && apt-get install -y libatomic1; fi', 'echo "::endgroup::"');
     }
-    commands.push('echo "::group::Install Rust"', `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`, 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"', `echo "Install Rust toolchain ${rustToolchain}"`, `rustup override set ${rustToolchain}`, `rustup component add llvm-tools-preview || true`, 'echo "::endgroup::"', 'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"', 'echo "::group::Install maturin"', `curl -L ${url} | tar -xz -C /usr/local/bin`, 'maturin --version || true', 'which patchelf > /dev/null || python3 -m pip install --user patchelf', 'python3 -m pip install --user cffi || true', 'echo "::endgroup::"');
+    commands.push('echo "::group::Install Rust"', `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`, 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"', `echo "Install Rust toolchain ${rustToolchain}"`, `rustup override set ${rustToolchain}`, `rustup component add llvm-tools-preview || true`, 'echo "::endgroup::"', 'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"', 'echo "::group::Install maturin"', `curl -L ${url} | tar -xz -C /usr/local/bin`, 'maturin --version || true', 'which uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh', 'which patchelf > /dev/null || uv tool install patchelf', 'python3 -m pip install --user cffi || true', 'echo "::endgroup::"');
     if (args.includes('--zig')) {
         commands.push('echo "::group::Install Zig"', 'python3 -m pip install --user "ziglang<0.14.0"', 'echo "::endgroup::"');
     }
@@ -11921,7 +11921,7 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         commands.push('echo "::group::Run before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
     }
     if (sccache) {
-        commands.push('echo "::group::Install sccache"', 'python3 -m pip install --user "sccache>=0.10.0"', 'sccache --version', 'echo "::endgroup::"');
+        commands.push('echo "::group::Install sccache"', 'uv tool install "sccache>=0.10.0"', 'sccache --version', 'echo "::endgroup::"');
         setupSccacheEnv();
     }
     commands.push(`maturin ${args.join(' ')}`);
