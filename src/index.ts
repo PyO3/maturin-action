@@ -1,4 +1,3 @@
-/* eslint-disable i18n-text/no-en */
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
@@ -297,7 +296,6 @@ function getRustTarget(args: string[]): string {
 }
 
 function getWorkingDirectory(): string {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const workspace = process.env.GITHUB_WORKSPACE!
   let workdir = core.getInput('working-directory')
   if (workdir.length > 0) {
@@ -328,11 +326,11 @@ async function getRustToolchain(args: string[]): Promise<string> {
   if (rustToolchain.length > 0) {
     return rustToolchain
   }
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   const root = process.env.GITHUB_WORKSPACE!
   const manifestDir = getManifestDir(args)
   let currentDir = manifestDir
-  // eslint-disable-next-line no-constant-condition
+
   while (true) {
     const toolchainToml = path.join(currentDir, 'rust-toolchain.toml')
     const toolchain = path.join(currentDir, 'rust-toolchain')
@@ -726,10 +724,8 @@ async function dockerBuild(
     )
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const workspace = process.env.GITHUB_WORKSPACE!
   const scriptPath = path.join(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     process.env.RUNNER_TEMP!,
     'run-maturin-action.sh'
   )
@@ -1169,7 +1165,6 @@ async function main(): Promise<void> {
     await innerMain()
   } catch (err: unknown) {
     if (err instanceof Error) {
-      // eslint-disable-next-line no-console
       console.error(err)
       core.setFailed(err.message)
     }
