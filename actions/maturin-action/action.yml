@@ -54,25 +54,5 @@ inputs:
     required: false
 
 runs:
-  using: composite
-  steps:
-    - name: Install uv
-      uses: astral-sh/setup-uv@v5
-    - name: Run maturin-action
-      uses: ./actions/maturin-action
-      with:
-        # N.B. Keep this in sync with the action.yml files.
-        token: ${{ inputs.token }}
-        command: ${{ inputs.command }}
-        args: ${{ inputs.args }}
-        maturin-version: ${{ inputs.maturin-version }}
-        manylinux: ${{ inputs.manylinux }}
-        container: ${{ inputs.container }}
-        docker-options: ${{ inputs.docker-options }}
-        host-home-mount: ${{ inputs.host-home-mount }}
-        target: ${{ inputs.target }}
-        rust-toolchain: ${{ inputs.rust-toolchain }}
-        rustup-components: ${{ inputs.rustup-components }}
-        working-directory: ${{ inputs.working-directory }}
-        sccache: ${{ inputs.sccache }}
-        before-script-linux: ${{ inputs.before-script-linux }}
+  using: 'node20'
+  main: '../../dist/index.js'

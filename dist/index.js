@@ -33530,7 +33530,7 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     }
     commands.push('echo "::group::Install Rust"', `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`, 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"', `echo "Install Rust toolchain ${rustToolchain}"`, `rustup override set ${rustToolchain}`, `rustup component add llvm-tools-preview || true`, 'echo "::endgroup::"', 'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"', 'echo "::group::Install maturin"', `curl -L ${url} | tar -xz -C /usr/local/bin`, 'maturin --version || true', 'which uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh', 'which patchelf > /dev/null || uv tool install patchelf', 'python3 -m pip install --user cffi || true', 'echo "::endgroup::"');
     if (args.includes('--zig')) {
-        commands.push('echo "::group::Install Zig"', 'python3 -m pip install --user "ziglang<0.14.0"', 'echo "::endgroup::"');
+        commands.push('echo "::group::Install Zig"', 'uv pip install --system --break-system-packages "ziglang<0.14.0"', 'echo "::endgroup::"');
     }
     if (target.length > 0) {
         commands.push('echo "::group::Install Rust target"', `if [[ ! -d $(rustc --print target-libdir --target ${target}) ]]; then rustup target add ${target}; fi`, 'echo "::endgroup::"');
@@ -33762,17 +33762,23 @@ async function hostBuild(maturinRelease, args) {
     await exec.exec(maturinPath, ['--version'], { ignoreReturnCode: true });
     await exec.exec('python3', ['-m', 'pip', 'install', 'cffi']);
     if (IS_LINUX) {
-        await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf']);
+        await exec.exec('uv', ['tool', 'install', 'patchelf']);
     }
     core.endGroup();
     if (args.includes('--zig')) {
         core.startGroup('Install Zig');
-        await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang<0.14.0']);
+        await exec.exec('uv', [
+            'pip',
+            'install',
+            '--system',
+            '--break-system-packages',
+            'ziglang<0.14.0'
+        ]);
         core.endGroup();
     }
     if (sccache) {
         core.startGroup('Install sccache');
-        await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.10.0']);
+        await exec.exec('uv', ['tool', 'install', 'sccache>=0.10.0']);
         await exec.exec('sccache', ['--version']);
         setupSccacheEnv();
         core.endGroup();
