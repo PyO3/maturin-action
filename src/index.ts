@@ -676,7 +676,7 @@ async function dockerBuild(
   if (args.includes('--zig')) {
     commands.push(
       'echo "::group::Install Zig"',
-      'python3 -m pip install --user "ziglang<0.14.0"',
+      'uv pip install --system --break-system-packages "ziglang<0.14.0"',
       'echo "::endgroup::"'
     )
   }
@@ -982,19 +982,24 @@ async function hostBuild(
   const maturinPath = await installMaturin(maturinRelease)
   await exec.exec(maturinPath, ['--version'], {ignoreReturnCode: true})
   await exec.exec('python3', ['-m', 'pip', 'install', 'cffi'])
-  // TODO: switch to uv tool install
   if (IS_LINUX) {
-    await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf'])
+    await exec.exec('uv', ['tool', 'install', 'patchelf'])
   }
   core.endGroup()
   if (args.includes('--zig')) {
     core.startGroup('Install Zig')
-    await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang<0.14.0'])
+    await exec.exec('uv', [
+      'pip',
+      'install',
+      '--system',
+      '--break-system-packages',
+      'ziglang<0.14.0'
+    ])
     core.endGroup()
   }
   if (sccache) {
     core.startGroup('Install sccache')
-    await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.10.0'])
+    await exec.exec('uv', ['tool', 'install', 'sccache>=0.10.0'])
     await exec.exec('sccache', ['--version'])
     setupSccacheEnv()
     core.endGroup()

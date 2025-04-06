@@ -54,10 +54,5 @@ inputs:
     required: false
 
 runs:
-  using: composite
-  steps:
-    - name: Install uv
-      uses: astral-sh/setup-uv@v5
-    - name: Run maturin-action
-      uses: ./actions/maturin-action
-      with: ${{ inputs }}
+  using: 'node20'
+  main: '../../dist/index.js'
