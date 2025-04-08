@@ -33770,23 +33770,17 @@ async function hostBuild(maturinRelease, args) {
     await exec.exec(maturinPath, ['--version'], { ignoreReturnCode: true });
     await exec.exec('python3', ['-m', 'pip', 'install', 'cffi']);
     if (IS_LINUX) {
-        await exec.exec('uv', ['tool', 'install', 'patchelf']);
+        await exec.exec('python3', ['-m', 'pip', 'install', 'patchelf']);
     }
     core.endGroup();
     if (args.includes('--zig')) {
         core.startGroup('Install Zig');
-        await exec.exec('uv', [
-            'pip',
-            'install',
-            '--system',
-            '--break-system-packages',
-            'ziglang<0.14.0'
-        ]);
+        await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang<0.14.0']);
         core.endGroup();
     }
     if (sccache) {
         core.startGroup('Install sccache');
-        await exec.exec('uv', ['tool', 'install', 'sccache>=0.10.0']);
+        await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.10.0']);
         await exec.exec('sccache', ['--version']);
         setupSccacheEnv();
         core.endGroup();
