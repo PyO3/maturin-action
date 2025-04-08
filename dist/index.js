@@ -33085,6 +33085,10 @@ const DEFAULT_CONTAINERS = {
         'riscv64gc-unknown-linux-gnu': {
             auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
             '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+        },
+        'loongarch64-unknown-linux-gnu': {
+            auto: 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64',
+            '2_36': 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64'
         }
     },
     arm64: {
@@ -33162,6 +33166,10 @@ const DEFAULT_CONTAINERS = {
         'riscv64gc-unknown-linux-gnu': {
             auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
             '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+        },
+        'loongarch64-unknown-linux-gnu': {
+            auto: 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64',
+            '2_36': 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64'
         }
     }
 };
