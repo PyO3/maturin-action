@@ -585,13 +585,13 @@ function getBeforeScript(): string {
  * @param maturinRelease maturin release tag, ie. version
  * @param args Docker args
  */
-async function dockerPull(image: string, maxRetries = 5, retryDelay = 10000): Promise<void> {
+async function dockerPull(image: string, maxAttempts = 5, baseRetryIntervalMilliseconds = 3000, retryMultiplier = 1.5): Promise<void> {
   let attempts = 0
 
-  while (attempts < maxRetries) {
+  while (attempts < maxAttempts) {
     attempts++
     try {
-      core.info(`Attempt ${attempts}/${maxRetries} to pull image...`)
+      core.info(`Attempt ${attempts}/${maxAttempts} to pull image...`)
       const exitCode = await exec.exec('docker', ['pull', image])
       if (exitCode === 0) {
         core.info(`Successfully pulled image on attempt ${attempts}`)
@@ -608,14 +608,18 @@ async function dockerPull(image: string, maxRetries = 5, retryDelay = 10000): Pr
         errorMsg.includes('tls handshake timeout') ||
         errorMsg.includes('i/o timeout');
 
-      if (isNetworkError && attempts < maxRetries) {
-        core.warning(`Network error detected: ${errorMsg}. Retrying in ${retryDelay/1000}s...`)
-        await new Promise(resolve => setTimeout(resolve, retryDelay))
+      if (isNetworkError && attempts < maxAttempts) {
+        // Calculate delay with exponential backoff
+        const delayMs = baseRetryIntervalMilliseconds * Math.pow(retryMultiplier, attempts - 1);
+        const delaySeconds = delayMs / 1000;
+
+        core.warning(`Network error detected: ${errorMsg}. Retrying in ${delaySeconds.toFixed(1)}s (attempt ${attempts}/${maxAttempts})...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       } else {
         if (!isNetworkError) {
           core.error(`Non-network error detected: ${errorMsg}`)
         } else {
-          core.error(`All ${maxRetries} attempts failed due to network errors`)
+          core.error(`All ${maxAttempts} attempts failed due to network errors`)
         }
         throw error
       }
