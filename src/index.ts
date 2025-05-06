@@ -581,6 +581,49 @@ function getBeforeScript(): string {
 }
 
 /**
+ * Pull the Docker image
+ * @param maturinRelease maturin release tag, ie. version
+ * @param args Docker args
+ */
+async function dockerPull(image: string, maxRetries = 5, retryDelay = 10000): Promise<void> {
+  let attempts = 0
+
+  while (attempts < maxRetries) {
+    attempts++
+    try {
+      core.info(`Attempt ${attempts}/${maxRetries} to pull image...`)
+      const exitCode = await exec.exec('docker', ['pull', image])
+      if (exitCode === 0) {
+        core.info(`Successfully pulled image on attempt ${attempts}`)
+        return
+      }
+      throw new Error(`Docker pull returned exit code ${exitCode}`)
+    } catch (error) {
+      const errorMsg = error.message || '';
+      const isNetworkError =
+        errorMsg.includes('context deadline exceeded') ||
+        errorMsg.includes('Client.Timeout exceeded') ||
+        errorMsg.includes('connection refused') ||
+        errorMsg.includes('network timeout') ||
+        errorMsg.includes('tls handshake timeout') ||
+        errorMsg.includes('i/o timeout');
+
+      if (isNetworkError && attempts < maxRetries) {
+        core.warning(`Network error detected: ${errorMsg}. Retrying in ${retryDelay/1000}s...`)
+        await new Promise(resolve => setTimeout(resolve, retryDelay))
+      } else {
+        if (!isNetworkError) {
+          core.error(`Non-network error detected: ${errorMsg}`)
+        } else {
+          core.error(`All ${maxRetries} attempts failed due to network errors`)
+        }
+        throw error
+      }
+    }
+  }
+}
+
+/**
  * Build manylinux wheel using Docker
  * @param maturinRelease maturin release tag, ie. version
  * @param args Docker args
@@ -628,10 +671,7 @@ async function dockerBuild(
   if (!imageExists) {
     core.startGroup('Pull Docker image')
     core.info(`Using ${image} Docker image`)
-    const exitCode = await exec.exec('docker', ['pull', image])
-    if (exitCode !== 0) {
-      throw new Error(`maturin: 'docker pull' returned ${exitCode}`)
-    }
+    await dockerPull(image)
     core.endGroup()
   } else {
     core.info(`Using existing ${image} Docker image`)
