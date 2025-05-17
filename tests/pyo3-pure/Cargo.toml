@@ -2,11 +2,11 @@
 authors = ["konstin <konstin@mailbox.org>"]
 name = "pyo3-pure"
 version = "2.1.2"
-edition = "2018"
+edition = "2021"
 description = "Implements a dummy function (get_fortytwo.DummyClass.get_42()) in rust"
 
 [dependencies]
-pyo3 = { version = "0.24.1", features = ["abi3-py37", "extension-module"], optional = true }
+pyo3 = { version = "0.25.0", features = ["abi3-py39", "extension-module"], optional = true }
 
 [lib]
 name = "pyo3_pure"
