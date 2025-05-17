@@ -1,20 +1,19 @@
-use pyo3::prelude::*;
+#[pyo3::pymodule]
+mod pyo3_pure {
+    use pyo3::prelude::*;
 
-#[pyclass]
-struct DummyClass {}
+    #[pyclass]
+    struct DummyClass {}
 
-#[pymethods]
-impl DummyClass {
-    #[staticmethod]
-    fn get_42() -> PyResult<usize> {
-        Ok(42)
+    #[pymethods]
+    impl DummyClass {
+        #[staticmethod]
+        fn get_42() -> PyResult<usize> {
+            Ok(42)
+        }
     }
-}
 
-#[pymodule]
-fn pyo3_pure(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<DummyClass>()?;
-    m.add("fourtytwo", 42)?;
-
-    Ok(())
+    #[pymodule_export]
+    #[allow(non_upper_case_globals)]
+    const fourtytwo: u8 = 42;
 }
