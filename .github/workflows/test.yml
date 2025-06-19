@@ -62,18 +62,21 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           target: universal2
           working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build universal2
         if: startsWith(matrix.os, 'macos')
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           target: universal2-apple-darwin
           working-directory: maturin/test-crates/pyo3-mixed
       - name: maturin build arm64
         if: startsWith(matrix.os, 'macos')
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           target: aarch64-apple-darwin
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml
       - name: check maturin in PATH
@@ -82,6 +85,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           args: -i python3.10 --out dist
           working-directory: maturin/test-crates/pyo3-mixed
           manylinux: 'auto'
@@ -90,6 +94,7 @@ jobs:
         if: matrix.os != 'ubuntu-22.04-arm'
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
           manylinux: '2014'
           before-script-linux: |
@@ -109,11 +114,13 @@ jobs:
       - name: maturin build manylinux off
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.11
           manylinux: 'off'
       - name: maturin build container off
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           rustup-components: rustfmt
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.11
           manylinux: 'off'
@@ -121,6 +128,7 @@ jobs:
       - name: maturin build container manylinux version
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           rustup-components: |
             rustfmt
             rust-std
@@ -130,6 +138,7 @@ jobs:
       - name: maturin build --cargo-extra-args
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           args: -m tests/pyo3-pure/Cargo.toml --features python
           manylinux: 'auto'
       - name: docker pull
@@ -139,6 +148,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           rustup-components: rustfmt
           container: quay.io/pypa/manylinux_2_28_x86_64:latest
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
@@ -176,12 +186,14 @@ jobs:
       - name: maturin build cffi project
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/cffi-pure/Cargo.toml
           manylinux: 'auto'
       - run: cargo clean --manifest-path maturin/test-crates/pyo3-pure/Cargo.toml
       - name: maturin build with sccache
         uses: ./
         with:
+          rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml
           manylinux: 'auto'
           sccache: 'true'
