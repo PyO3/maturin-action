@@ -663,9 +663,10 @@ async function dockerBuild(
     // Install Rust
     'echo "::group::Install Rust"',
     // refer to https://github.com/rust-lang/rustup/issues/1167#issuecomment-367061388
-    `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${rustToolchain}`,
+    `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup show; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal`,
     'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"',
     `echo "Install Rust toolchain ${rustToolchain}"`,
+    `rustup update --no-self-update ${rustToolchain}`,
     `rustup override set ${rustToolchain}`,
     `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
