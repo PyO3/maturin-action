@@ -259,6 +259,7 @@ const ALLOWED_ENV_PREFIXES: string[] = [
   'GITHUB_',
   'JEMALLOC_',
   'LDFLAGS',
+  'LD_',
   'MATURIN_',
   'PYO3_',
   'RUST',
