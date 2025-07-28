@@ -108,8 +108,9 @@ const DEFAULT_CONTAINERS: Record<
       '2_28': 'ghcr.io/rust-cross/manylinux_2_28-cross:s390x'
     },
     'riscv64gc-unknown-linux-gnu': {
-      auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+      auto: 'ghcr.io/rust-cross/manylinux_2_39-cross:riscv64',
+      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
+      '2_39': 'ghcr.io/rust-cross/manylinux_2_39-cross:riscv64'
     },
     'loongarch64-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64',
@@ -189,8 +190,9 @@ const DEFAULT_CONTAINERS: Record<
       '2_28': 'ghcr.io/rust-cross/manylinux_2_28-cross:s390x'
     },
     'riscv64gc-unknown-linux-gnu': {
-      auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+      auto: 'ghcr.io/rust-cross/manylinux_2_39-cross:riscv64',
+      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
+      '2_39': 'ghcr.io/rust-cross/manylinux_2_39-cross:riscv64'
     },
     'loongarch64-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64',
@@ -222,7 +224,8 @@ const TARGET_ALIASES: Record<string, Record<string, string>> = {
     armv7l: 'armv7-unknown-linux-gnueabihf',
     ppc64le: 'powerpc64le-unknown-linux-gnu',
     ppc64: 'powerpc64-unknown-linux-gnu',
-    s390x: 's390x-unknown-linux-gnu'
+    s390x: 's390x-unknown-linux-gnu',
+    riscv64: 'riscv64gc-unknown-linux-gnu'
   },
   musllinux: {
     x64: 'x86_64-unknown-linux-musl',
