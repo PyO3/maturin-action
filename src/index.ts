@@ -47,7 +47,9 @@ const DEFAULT_CONTAINERS: Record<
       '2_12': 'quay.io/pypa/manylinux2010_i686:latest',
       '2014': 'quay.io/pypa/manylinux2014_i686:latest',
       '2_17': 'quay.io/pypa/manylinux2014_i686:latest',
-      '2_24': 'quay.io/pypa/manylinux_2_24_i686:latest'
+      '2_24': 'quay.io/pypa/manylinux_2_24_i686:latest',
+      '2_28': 'quay.io/pypa/manylinux_2_28_i686:latest',
+      '2_34': 'quay.io/pypa/manylinux_2_34_i686:latest'
     },
     'i686-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:i686-musl',
