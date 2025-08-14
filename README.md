@@ -22,7 +22,7 @@ maturin generate-ci github > .github/workflows/CI.yml
 
 ### Examples
 
-If you want to build and publish a Python extension module for common Python versions, operating systems, and CPU architectures, 
+If you want to build and publish a Python extension module for common Python versions, operating systems, and CPU architectures,
 take a look at the following examples:
 
 * [messense/crfs-rs](https://github.com/messense/crfs-rs/blob/main/.github/workflows/Python.yml): PyO3 abi3 wheel example
@@ -64,6 +64,7 @@ By default, this action uses the following containers for supported architecture
 | i686         | 2010/2_12         | quay.io/pypa/manylinux2010_i686:latest              |            |
 | i686         | 2014/2_17         | quay.io/pypa/manylinux2014_i686:latest              |            |
 | i686         | 2_24              | quay.io/pypa/manylinux_2_24_i686:latest             | Deprecated |
+| i686         | 2_28              | quay.io/pypa/manylinux_2_28_i686:latest             |            |
 | aarch64      | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:aarch64      |            |
 | aarch64      | 2_24              | messense/manylinux_2_24-cross:aarch64               | Deprecated |
 | aarch64      | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:aarch64     |            |
