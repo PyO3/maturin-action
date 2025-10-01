@@ -296,7 +296,7 @@ jobs:
           path: maturin
           persist-credentials: false
       - name: Set up QEMU
-        uses: dbhi/qus/action@main
+        uses: dbhi/qus/action@f79aa71b04f5b1bfc98769edbf9a7a10659708fe # main
       - name: maturin build
         uses: ./
         env:
