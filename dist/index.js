@@ -33713,24 +33713,48 @@ async function installRustTarget(target, toolchain) {
         await exec.exec('rustup', ['target', 'add', target]);
     }
 }
+function compareStringVersions(a, b) {
+    const aParts = a.split('.').map(part => parseInt(part, 10));
+    const bParts = b.split('.').map(part => parseInt(part, 10));
+    const len = Math.max(aParts.length, bParts.length);
+    for (let i = 0; i < len; i++) {
+        const aPart = aParts[i] || 0;
+        const bPart = bParts[i] || 0;
+        if (aPart < bPart)
+            return -1;
+        if (aPart > bPart)
+            return 1;
+    }
+    return 0;
+}
 async function addToolCachePythonVersionsToPath() {
+    const cpythonPathsToAdd = [];
+    const pypyPathsToAdd = [];
     const allPythonVersions = tc.findAllVersions('Python');
+    allPythonVersions.sort(compareStringVersions);
     for (const ver of allPythonVersions) {
         const installDir = tc.find('Python', ver);
         if (installDir) {
             core.info(`Python version ${ver} was found in the local cache`);
-            core.addPath(installDir);
-            core.addPath(path.join(installDir, 'bin'));
+            cpythonPathsToAdd.push(installDir);
+            cpythonPathsToAdd.push(path.join(installDir, 'bin'));
         }
     }
     const allPyPyVersions = tc.findAllVersions('PyPy');
+    allPyPyVersions.sort(compareStringVersions);
     for (const ver of allPyPyVersions) {
         const installDir = tc.find('PyPy', ver);
         if (installDir) {
-            core.info(`Python version ${ver} was found in the local cache`);
-            core.addPath(installDir);
-            core.addPath(path.join(installDir, 'bin'));
+            core.info(`PyPy version ${ver} was found in the local cache`);
+            pypyPathsToAdd.push(installDir);
+            pypyPathsToAdd.push(path.join(installDir, 'bin'));
         }
+    }
+    for (const pypyPath of pypyPathsToAdd) {
+        core.addPath(pypyPath);
+    }
+    for (const cpythonPath of cpythonPathsToAdd) {
+        core.addPath(cpythonPath);
     }
 }
 function setupSccacheEnv() {
