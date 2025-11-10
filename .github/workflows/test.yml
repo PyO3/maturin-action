@@ -45,7 +45,10 @@ jobs:
           - macos-15-intel
           - macos-latest
           - windows-latest
-          - windows-11-arm
+          # FIXME: zig on Windows ARM only exists for 0.15 and up, need to update zig
+          # pin to <0.14 came in https://github.com/PyO3/maturin-action/issues/335, maybe `maturin` needs
+          # a patch to set `-fno-ubsan-rt` for zig?
+          # - windows-11-arm
         toolchain: [stable, nightly]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
