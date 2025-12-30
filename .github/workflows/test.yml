@@ -112,8 +112,7 @@ jobs:
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
           manylinux: 'manylinux_2_28'
           before-script-linux: |
-            yum install -y llvm-toolset-7-clang
-            source /opt/rh/llvm-toolset-7/enable
+            yum install -y clang
       - name: maturin build nightly powerpc64le musl
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
         uses: ./
