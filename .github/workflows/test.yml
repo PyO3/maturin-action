@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: "20"
+          node-version: '20'
       - name: npm install
         run: npm install
       - name: lint JavaScript
@@ -35,7 +35,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [lint]
     env:
-      RUST_BACKTRACE: "1"
+      RUST_BACKTRACE: '1'
     strategy:
       fail-fast: ${{ !contains(github.event.pull_request.labels.*.name, 'CI-no-fail-fast') }}
       matrix:
@@ -102,43 +102,42 @@ jobs:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -i python3.10 --out dist
           working-directory: maturin/test-crates/pyo3-mixed
-          manylinux: "auto"
-      - name: maturin build manylinux2014
+          manylinux: 'auto'
+      - name: maturin build manylinux_2_28
         # No llvm-toolset-7 in arm64 manylinux image
         if: matrix.os != 'ubuntu-24.04-arm'
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10 --out dist
-          manylinux: "2014"
+          manylinux: 'manylinux_2_28'
           before-script-linux: |
-            yum install -y llvm-toolset-7-clang
-            source /opt/rh/llvm-toolset-7/enable
+            yum install -y clang
       - name: maturin build nightly powerpc64le musl
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'nightly' }}
         uses: ./
         with:
           rust-toolchain: nightly
           args: -m maturin/test-crates/hello-world/Cargo.toml
-          manylinux: "auto"
-          target: "powerpc64le-unknown-linux-musl"
+          manylinux: 'auto'
+          target: 'powerpc64le-unknown-linux-musl'
       - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - name: maturin build manylinux off
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.11
-          manylinux: "off"
+          manylinux: 'off'
       - name: maturin build container off
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           rustup-components: rustfmt
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.11
-          manylinux: "off"
-          container: "off"
+          manylinux: 'off'
+          container: 'off'
       - name: maturin build container manylinux version
         uses: ./
         with:
@@ -147,14 +146,14 @@ jobs:
             rustfmt
             rust-std
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
-          manylinux: "auto"
-          container: "2_17"
+          manylinux: 'auto'
+          container: '2_17'
       - name: maturin build --cargo-extra-args
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m tests/pyo3-pure/Cargo.toml --features python
-          manylinux: "auto"
+          manylinux: 'auto'
       - name: docker pull
         if: matrix.os == 'ubuntu-latest'
         run: docker pull quay.io/pypa/manylinux_2_28_x86_64:latest
@@ -166,7 +165,7 @@ jobs:
           rustup-components: rustfmt
           container: quay.io/pypa/manylinux_2_28_x86_64:latest
           args: -m maturin/test-crates/pyo3-mixed/Cargo.toml -i python3.10
-          manylinux: "auto"
+          manylinux: 'auto'
       - name: maturin build --target args
         if: matrix.os == 'ubuntu-latest'
         uses: ./
@@ -179,7 +178,7 @@ jobs:
           rust-toolchain: ${{ matrix.toolchain }}
           target: aarch64-unknown-linux-gnu
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
-          manylinux: "auto"
+          manylinux: 'auto'
       - name: maturin build --zig container on
         if: matrix.os == 'ubuntu-latest'
         uses: ./
@@ -187,8 +186,8 @@ jobs:
           rust-toolchain: ${{ matrix.toolchain }}
           target: aarch64-unknown-linux-gnu
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
-          manylinux: "auto"
-          container: "on"
+          manylinux: 'auto'
+          container: 'on'
       - name: maturin build --zig unsupported target
         if: matrix.os == 'ubuntu-latest'
         uses: ./
@@ -196,21 +195,21 @@ jobs:
           rust-toolchain: ${{ matrix.toolchain }}
           target: s390x-unknown-linux-gnu
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
-          manylinux: "auto"
+          manylinux: 'auto'
       - name: maturin build cffi project
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/cffi-pure/Cargo.toml
-          manylinux: "auto"
+          manylinux: 'auto'
       - run: cargo clean --manifest-path maturin/test-crates/pyo3-pure/Cargo.toml
       - name: maturin build with sccache
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml
-          manylinux: "auto"
-          sccache: "true"
+          manylinux: 'auto'
+          sccache: 'true'
 
   test-manylinux:
     name: Manylinux Test Suite
@@ -225,70 +224,65 @@ jobs:
           # - ubuntu-24.04-arm
         platform: [
             {
-              manylinux: "2014",
-              target: "x86_64", # Test target alias
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: '2_28',
+              target: 'x86_64', # Test target alias
+              test-crate: 'maturin/test-crates/pyo3-mixed'
             },
             {
-              manylinux: "2_35", # no docker images
-              target: "x86_64",
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: '2_35', # no docker images
+              target: 'x86_64',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
             },
             {
-              manylinux: "2014",
-              target: "i686-unknown-linux-gnu",
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: '2_28',
+              target: 'aarch64-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-pure' # abi3
             },
             {
-              manylinux: "2014",
-              target: "aarch64-unknown-linux-gnu",
-              test-crate: "maturin/test-crates/pyo3-pure", # abi3
+              manylinux: '2_28',
+              target: 'armv7-unknown-linux-gnueabihf',
+              test-crate: 'maturin/test-crates/pyo3-pure' # abi3
             },
             {
-              manylinux: "2014",
-              target: "armv7-unknown-linux-gnueabihf",
-              test-crate: "maturin/test-crates/pyo3-pure", # abi3
+              manylinux: '2_28',
+              target: 'powerpc64le-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
             },
             {
-              manylinux: "2014",
-              target: "powerpc64le-unknown-linux-gnu",
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: 'manylinux_2_28',
+              target: 'aarch64-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
             },
             {
-              manylinux: "manylinux_2_28",
-              target: "aarch64-unknown-linux-gnu",
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: 'manylinux_2_28',
+              target: 's390x',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
             },
             {
-              manylinux: "manylinux2014",
-              target: "s390x",
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: 'manylinux_2_31',
+              target: 'riscv64gc-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
             },
             {
-              manylinux: "manylinux_2_31",
-              target: "riscv64gc-unknown-linux-gnu",
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: 'manylinux_2_36',
+              target: 'loongarch64-unknown-linux-gnu',
+              test-crate: 'maturin/test-crates/pyo3-mixed'
             },
             {
-              manylinux: "manylinux_2_36",
-              target: "loongarch64-unknown-linux-gnu",
-              test-crate: "maturin/test-crates/pyo3-mixed",
+              manylinux: 'auto',
+              target: 'x86_64-unknown-linux-musl', # MUSL
+              test-crate: 'maturin/test-crates/hello-world' # binary
             },
             {
-              manylinux: "auto",
-              target: "x86_64-unknown-linux-musl", # MUSL
-              test-crate: "maturin/test-crates/hello-world", # binary
+              manylinux: 'musllinux_1_1',
+              target: 'x86_64',
+              test-crate: 'maturin/test-crates/pyo3-pure'
             },
             {
-              manylinux: "musllinux_1_1",
-              target: "x86_64",
-              test-crate: "maturin/test-crates/pyo3-pure",
-            },
-            {
-              manylinux: "musllinux_1_2",
-              target: "x86_64-unknown-linux-musl", # MUSL
-              test-crate: "maturin/test-crates/hello-world", # binary
-            },
+              manylinux: 'musllinux_1_2',
+              target: 'x86_64-unknown-linux-musl', # MUSL
+              test-crate: 'maturin/test-crates/hello-world' # binary
+            }
           ]
         toolchain: [stable, nightly]
     steps:
@@ -305,7 +299,7 @@ jobs:
       - name: maturin build
         uses: ./
         env:
-          RUST_BACKTRACE: "1"
+          RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
           # Test docker-options
@@ -322,7 +316,7 @@ jobs:
       - name: maturin build rust-toolchain
         uses: ./
         env:
-          RUST_BACKTRACE: "1"
+          RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
@@ -336,7 +330,7 @@ jobs:
       - name: maturin build rust-toolchain.toml
         uses: ./
         env:
-          RUST_BACKTRACE: "1"
+          RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
@@ -353,7 +347,7 @@ jobs:
       - name: maturin build rust-toolchain with toml content
         uses: ./
         env:
-          RUST_BACKTRACE: "1"
+          RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.8
