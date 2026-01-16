@@ -33193,6 +33193,7 @@ const TARGET_ALIASES = {
         armv7l: 'armv7-unknown-linux-gnueabihf',
         ppc64le: 'powerpc64le-unknown-linux-gnu',
         ppc64: 'powerpc64-unknown-linux-gnu',
+        riscv64: 'riscv64gc-unknown-linux-gnu',
         s390x: 's390x-unknown-linux-gnu'
     },
     musllinux: {
