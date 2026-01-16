@@ -107,7 +107,7 @@ so if you want to build for certain Python version for Linux, use `-i pythonX.Y`
 
 ## Hardening Release pipelines
 
-When recommend the following steps for hardening release pipelines:
+We recommend the following steps for hardening release pipelines:
 * When targeting PyPI, set `--compatibility pypi` to activate its pre-upload check
 * Set an explicit `manylinux:` version for each target to prevent silent regressions
 * Pin both maturin-action and maturin version, and use a service such as renovate to update them
