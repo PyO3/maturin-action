@@ -27,6 +27,7 @@ take a look at the following examples:
 
 * [messense/crfs-rs](https://github.com/messense/crfs-rs/blob/main/.github/workflows/Python.yml): PyO3 abi3 wheel example
 * [messense/rjmespath-rs](https://github.com/messense/rjmespath-py/blob/main/.github/workflows/CI.yml): PyO3 abi3 wheel with Rust nightly toolchain example
+* [astral-sh/uv](https://github.com/astral-sh/uv/blob/main/.github/workflows/build-release-binaries.yml): Hardened binary publishing example
 * [milesgranger/pyrus-cramjam](https://github.com/milesgranger/pyrus-cramjam/blob/master/.github/workflows/CI.yml): PyO3 non-abi3 wheel example
 * [messense/auditwheel-symbols](https://github.com/messense/auditwheel-symbols/blob/master/.github/workflows/CI.yml): `bin` binding example using MUSL libc
 * [adriangb/graphlib2](https://github.com/adriangb/graphlib2/blob/main/.github/workflows/python.yaml): PyO3 abi3 wheel
@@ -102,6 +103,49 @@ so if you want to build for certain Python version for Linux, use `-i pythonX.Y`
 - uses: PyO3/maturin-action@v1
   with:
     args: --release -i python3.10
+```
+
+## Hardening Release pipelines
+
+When recommend the following steps for hardening release pipelines:
+* When targeting PyPI, set `--compatibility pypi` to activate its pre-upload check
+* Set an explicit `manylinux:` version for each target to prevent silent regressions
+* Pin both maturin-action and maturin version, and use a service such as renovate to update them
+
+```yaml
+strategy:
+  matrix:
+    platform:
+      - target: aarch64-unknown-linux-gnu
+        arch: aarch64
+        manylinux: 2_28
+      - target: armv7-unknown-linux-gnueabihf
+        arch: armv7
+        manylinux: 2_17
+
+steps:
+  # [...]
+  - name: "Build wheels"
+    uses: PyO3/maturin-action@86b9d133d34bc1b40018696f782949dac11bd380 # v1.49.4
+    with:
+      maturin-version: v1.11.5
+      target: ${{ matrix.platform.target }}
+      manylinux: ${{ matrix.platform.manylinux }}
+      args: --release --locked --compatibility pypi
+```
+
+An example renovate configuration
+
+```json5
+// Maturin version used in maturin-action
+{
+  customType: "regex",
+  managerFilePatterns: ["/.github/workflows/.*\\.yml$/"],
+  matchStrings: ["maturin-version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+  depNameTemplate: "maturin",
+  packageNameTemplate: "PyO3/maturin",
+  datasourceTemplate: "github-releases",
+},
 ```
 
 ## Contributing
