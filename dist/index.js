@@ -33088,9 +33088,18 @@ const DEFAULT_CONTAINERS = {
             auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
             '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
         },
+        'riscv64gc-unknown-linux-musl': {
+            auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
+            musllinux_1_1: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
+            musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl'
+        },
         'loongarch64-unknown-linux-gnu': {
             auto: 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64',
             '2_36': 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64'
+        },
+        'loongarch64-unknown-linux-musl': {
+            auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
+            musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
         }
     },
     arm64: {
@@ -33169,9 +33178,18 @@ const DEFAULT_CONTAINERS = {
             auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
             '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
         },
+        'riscv64gc-unknown-linux-musl': {
+            auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
+            musllinux_1_1: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
+            musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl'
+        },
         'loongarch64-unknown-linux-gnu': {
             auto: 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64',
             '2_36': 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64'
+        },
+        'loongarch64-unknown-linux-musl': {
+            auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
+            musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
         }
     }
 };
@@ -33191,6 +33209,7 @@ const TARGET_ALIASES = {
         aarch64: 'aarch64-unknown-linux-gnu',
         armv7: 'armv7-unknown-linux-gnueabihf',
         armv7l: 'armv7-unknown-linux-gnueabihf',
+        loongarch64: 'loongarch64-unknown-linux-gnu',
         ppc64le: 'powerpc64le-unknown-linux-gnu',
         ppc64: 'powerpc64-unknown-linux-gnu',
         riscv64: 'riscv64gc-unknown-linux-gnu',
@@ -33205,7 +33224,9 @@ const TARGET_ALIASES = {
         arm: 'arm-unknown-linux-musleabihf',
         armv7: 'armv7-unknown-linux-musleabihf',
         armv7l: 'armv7-unknown-linux-musleabihf',
-        ppc64le: 'powerpc64le-unknown-linux-musl'
+        loongarch64: 'loongarch64-unknown-linux-musl',
+        ppc64le: 'powerpc64le-unknown-linux-musl',
+        riscv64: 'riscv64gc-unknown-linux-musl',
     },
     win32: {
         x64: 'x86_64-pc-windows-msvc',
