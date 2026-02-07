@@ -123,8 +123,8 @@ const DEFAULT_CONTAINERS: Record<
       '2_36': 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64'
     },
     'loongarch64-unknown-linux-musl': {
-        auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
-        musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
+      auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
+      musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl'
     }
   },
   arm64: {
@@ -213,8 +213,8 @@ const DEFAULT_CONTAINERS: Record<
       '2_36': 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64'
     },
     'loongarch64-unknown-linux-musl': {
-        auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
-        musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
+      auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
+      musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl'
     }
   }
 }

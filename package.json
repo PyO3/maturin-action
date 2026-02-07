@@ -1,6 +1,7 @@
 {
   "name": "maturin-action",
-  "version": "1.49.4",
+  "version": "1.50.0",
+  "type": "module",
   "description": "GitHub Action to install and run a custom maturin command",
   "main": "dist/index.js",
   "scripts": {
@@ -21,23 +22,27 @@
   },
   "homepage": "https://github.com/PyO3/maturin-action#readme",
   "dependencies": {
-    "@actions/core": "^1.10.0",
-    "@actions/exec": "^1.1.1",
-    "@actions/glob": "^0.5.0",
-    "@actions/tool-cache": "^2.0.1",
+    "@actions/core": "^3.0.0",
+    "@actions/exec": "^3.0.0",
+    "@actions/glob": "^0.6.1",
+    "@actions/tool-cache": "^4.0.0",
     "@iarna/toml": "github:AlexTMjugador/iarna-toml#fix/comment-crlf",
     "string-argv": "^0.3.1",
-    "typescript": "^5.8.3"
+    "undici": "^7.21.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.24.0",
-    "@types/node": "^20",
+    "@types/node": "^25.2.1",
     "@typescript-eslint/parser": "^8.29.0",
     "@vercel/ncc": "^0.38.3",
     "eslint": "^9.24.0",
     "eslint-plugin-github": "^6.0.0",
-    "globals": "^16.0.0",
-    "prettier": "^3.5.2"
+    "globals": "^17.3.0",
+    "prettier": "^3.5.2",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "undici": "^7.21.0"
   }
 }
