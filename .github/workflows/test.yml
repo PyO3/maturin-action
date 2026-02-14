@@ -220,7 +220,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # TOFIX: dbhi/qus/action does not support arm64
           # - ubuntu-24.04-arm
         platform: [
             {
@@ -295,7 +294,7 @@ jobs:
           path: maturin
           persist-credentials: false
       - name: Set up QEMU
-        uses: dbhi/qus/action@f79aa71b04f5b1bfc98769edbf9a7a10659708fe # main
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       - name: maturin build
         uses: ./
         env:
