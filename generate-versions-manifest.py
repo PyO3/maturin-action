@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.14"
+# dependencies = [
+#     "requests>=2.32.5,<3.0.0",
+# ]
+# ///
 import os
 import json
 import sys
