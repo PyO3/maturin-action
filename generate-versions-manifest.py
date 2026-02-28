@@ -45,6 +45,8 @@ def fetch_releases(page=1, per_page=50):
 
             if "x86_64" in filename:
                 arch = "x64"
+            elif "aarch64" in filename:
+                arch = "arm64"
             elif "i686" in filename and platform == "win32":
                 arch = "x86"
             else:
