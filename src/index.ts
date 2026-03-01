@@ -114,9 +114,9 @@ const DEFAULT_CONTAINERS: Record<
       '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
     },
     'riscv64gc-unknown-linux-musl': {
-      auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64-musl',
-      musllinux_1_1: 'ghcr.io/rust-cross/rust-musl-cross:riscv64-musl',
-      musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:riscv64-musl'
+      auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
+      musllinux_1_1: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
+      musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl'
     },
     'loongarch64-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64',
