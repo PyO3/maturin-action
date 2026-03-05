@@ -193,6 +193,14 @@ jobs:
           target: s390x-unknown-linux-gnu
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --zig
           manylinux: 'auto'
+      - name: maturin build aarch64-linux-android
+        if: matrix.os == 'ubuntu-24.04'
+        uses: ./
+        with:
+          rust-toolchain: ${{ matrix.toolchain }}
+          target: aarch64-linux-android
+          args: -m maturin/test-crates/pyo3-pure/Cargo.toml
+          manylinux: 'off'
       - name: maturin build cffi project
         uses: ./
         with:
