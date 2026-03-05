@@ -47322,10 +47322,74 @@ async function hostBuild(maturinRelease, args) {
         endGroup();
     }
     const isArm64 = IS_MACOS && target.startsWith('aarch64');
+    const isAndroid = target.includes('android');
     const env = {};
     for (const [k, v] of Object.entries(process.env)) {
         if (v !== undefined) {
             env[k] = v;
+        }
+    }
+    if (isAndroid) {
+        startGroup('Prepare Android build environment');
+        const ndkRoot = process.env.ANDROID_NDK_ROOT || process.env.ANDROID_NDK;
+        if (!ndkRoot) {
+            throw new Error('ANDROID_NDK_ROOT is not set. Install the Android NDK or use a runner with it pre-installed.');
+        }
+        const ndkHostTag = IS_MACOS
+            ? process.arch === 'arm64'
+                ? 'darwin-x86_64'
+                : 'darwin-x86_64'
+            : 'linux-x86_64';
+        const toolchainBin = `${ndkRoot}/toolchains/llvm/prebuilt/${ndkHostTag}/bin`;
+        const androidClangTarget = {
+            'aarch64-linux-android': 'aarch64-linux-android',
+            'armv7-linux-androideabi': 'armv7a-linux-androideabi',
+            'x86_64-linux-android': 'x86_64-linux-android',
+            'i686-linux-android': 'i686-linux-android'
+        };
+        const clangPrefix = androidClangTarget[target] || target;
+        const apiLevel = process.env.ANDROID_API_LEVEL || '24';
+        const cc = `${toolchainBin}/${clangPrefix}${apiLevel}-clang`;
+        const cxx = `${toolchainBin}/${clangPrefix}${apiLevel}-clang++`;
+        const ar = `${toolchainBin}/llvm-ar`;
+        env.CC = cc;
+        env.CXX = cxx;
+        env.AR = ar;
+        const cargoLinkerEnv = `CARGO_TARGET_${target.toUpperCase().replace(/-/g, '_')}_LINKER`;
+        env[cargoLinkerEnv] = cc;
+        info(`Android NDK root: ${ndkRoot}`);
+        info(`CC: ${cc}`);
+        info(`Cargo linker env: ${cargoLinkerEnv}=${cc}`);
+        endGroup();
+        if (!env.PYO3_CROSS_LIB_DIR) {
+            const androidPythonTriplet = {
+                'aarch64-linux-android': 'aarch64-linux-android',
+                'x86_64-linux-android': 'x86_64-linux-android'
+            };
+            const pythonTriplet = androidPythonTriplet[target];
+            if (pythonTriplet) {
+                startGroup('Download Android Python');
+                const pythonVersion = process.env.ANDROID_PYTHON_VERSION || '3.14.3';
+                const majorMinor = pythonVersion
+                    .split('.')
+                    .slice(0, 2)
+                    .join('.');
+                let url;
+                if (compareStringVersions(majorMinor, '3.14') >= 0) {
+                    url = `https://www.python.org/ftp/python/${pythonVersion}/python-${pythonVersion}-${pythonTriplet}.tar.gz`;
+                }
+                else {
+                    url = `https://repo.maven.apache.org/maven2/com/chaquo/python/python/${pythonVersion}/python-${pythonVersion}-${pythonTriplet}.tar.gz`;
+                }
+                info(`Downloading Android Python ${pythonVersion} for ${pythonTriplet}`);
+                info(`URL: ${url}`);
+                const tarball = await downloadTool(url);
+                const extractDir = await extractTar(tarball);
+                const pythonLibDir = external_path_.join(extractDir, 'prefix', 'lib');
+                env.PYO3_CROSS_LIB_DIR = pythonLibDir;
+                info(`PYO3_CROSS_LIB_DIR: ${pythonLibDir}`);
+                endGroup();
+            }
         }
     }
     if (isUniversal2 || isArm64) {
@@ -47414,6 +47478,7 @@ async function innerMain() {
         if (process.arch === 'x64' &&
             !manylinux &&
             target.includes('linux') &&
+            !target.includes('android') &&
             !(target.includes('x86_64') || target.includes('i686'))) {
             manylinux = 'auto';
         }

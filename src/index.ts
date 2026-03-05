@@ -1071,10 +1071,92 @@ async function hostBuild(
 
   // Setup additional env vars for macOS arm64/universal2 build
   const isArm64 = IS_MACOS && target.startsWith('aarch64')
+  const isAndroid = target.includes('android')
   const env: Record<string, string> = {}
   for (const [k, v] of Object.entries(process.env)) {
     if (v !== undefined) {
       env[k] = v
+    }
+  }
+  if (isAndroid) {
+    core.startGroup('Prepare Android build environment')
+    const ndkRoot = process.env.ANDROID_NDK_ROOT || process.env.ANDROID_NDK
+    if (!ndkRoot) {
+      throw new Error(
+        'ANDROID_NDK_ROOT is not set. Install the Android NDK or use a runner with it pre-installed.'
+      )
+    }
+    // Determine NDK host tag
+    const ndkHostTag = IS_MACOS
+      ? process.arch === 'arm64'
+        ? 'darwin-x86_64'
+        : 'darwin-x86_64'
+      : 'linux-x86_64'
+    const toolchainBin = `${ndkRoot}/toolchains/llvm/prebuilt/${ndkHostTag}/bin`
+    // Map Rust target triple to NDK clang prefix
+    const androidClangTarget: Record<string, string> = {
+      'aarch64-linux-android': 'aarch64-linux-android',
+      'armv7-linux-androideabi': 'armv7a-linux-androideabi',
+      'x86_64-linux-android': 'x86_64-linux-android',
+      'i686-linux-android': 'i686-linux-android'
+    }
+    const clangPrefix = androidClangTarget[target] || target
+    const apiLevel = process.env.ANDROID_API_LEVEL || '24'
+    const cc = `${toolchainBin}/${clangPrefix}${apiLevel}-clang`
+    const cxx = `${toolchainBin}/${clangPrefix}${apiLevel}-clang++`
+    const ar = `${toolchainBin}/llvm-ar`
+    // Set CC/CXX/AR for the C toolchain
+    env.CC = cc
+    env.CXX = cxx
+    env.AR = ar
+    // Set Cargo linker for the target
+    const cargoLinkerEnv = `CARGO_TARGET_${target.toUpperCase().replace(/-/g, '_')}_LINKER`
+    env[cargoLinkerEnv] = cc
+    core.info(`Android NDK root: ${ndkRoot}`)
+    core.info(`CC: ${cc}`)
+    core.info(`Cargo linker env: ${cargoLinkerEnv}=${cc}`)
+    core.endGroup()
+
+    // Download pre-built Android Python for cross-compilation (PEP 738).
+    // All Python extension modules must be explicitly linked against
+    // libpython on Android, even when using the stable/limited ABI (abi3).
+    // See: https://peps.python.org/pep-0738/#linkage
+    if (!env.PYO3_CROSS_LIB_DIR) {
+      // Map Rust Android target to Python tarball triplet
+      const androidPythonTriplet: Record<string, string> = {
+        'aarch64-linux-android': 'aarch64-linux-android',
+        'x86_64-linux-android': 'x86_64-linux-android'
+      }
+      const pythonTriplet = androidPythonTriplet[target]
+      if (pythonTriplet) {
+        core.startGroup('Download Android Python')
+        const pythonVersion =
+          process.env.ANDROID_PYTHON_VERSION || '3.14.3'
+        const majorMinor = pythonVersion
+          .split('.')
+          .slice(0, 2)
+          .join('.')
+
+        let url: string
+        if (compareStringVersions(majorMinor, '3.14') >= 0) {
+          // Python 3.14+ has official Android builds on python.org
+          url = `https://www.python.org/ftp/python/${pythonVersion}/python-${pythonVersion}-${pythonTriplet}.tar.gz`
+        } else {
+          // Python 3.13 Android builds are provided by Chaquopy
+          url = `https://repo.maven.apache.org/maven2/com/chaquo/python/python/${pythonVersion}/python-${pythonVersion}-${pythonTriplet}.tar.gz`
+        }
+
+        core.info(
+          `Downloading Android Python ${pythonVersion} for ${pythonTriplet}`
+        )
+        core.info(`URL: ${url}`)
+        const tarball = await tc.downloadTool(url)
+        const extractDir = await tc.extractTar(tarball)
+        const pythonLibDir = path.join(extractDir, 'prefix', 'lib')
+        env.PYO3_CROSS_LIB_DIR = pythonLibDir
+        core.info(`PYO3_CROSS_LIB_DIR: ${pythonLibDir}`)
+        core.endGroup()
+      }
     }
   }
   if (isUniversal2 || isArm64) {
@@ -1171,11 +1253,13 @@ async function innerMain(): Promise<void> {
     if (command === 'publish' && !manylinux) {
       manylinux = 'auto'
     }
-    // manylinux defaults to auto if cross compiling
+    // manylinux defaults to auto if cross compiling for linux-gnu/linux-musl
+    // but not for android targets (linux-android)
     if (
       process.arch === 'x64' &&
       !manylinux &&
       target.includes('linux') &&
+      !target.includes('android') &&
       !(target.includes('x86_64') || target.includes('i686'))
     ) {
       manylinux = 'auto'
