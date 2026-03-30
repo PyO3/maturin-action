@@ -46482,7 +46482,8 @@ const src_IS_WINDOWS = process.platform === 'win32';
 const IS_LINUX = process.platform === 'linux';
 const DEFAULT_TARGET = {
     x64: 'x86_64-unknown-linux-gnu',
-    arm64: 'aarch64-unknown-linux-gnu'
+    arm64: 'aarch64-unknown-linux-gnu',
+    riscv64: 'riscv64gc-unknown-linux-gnu'
 };
 const DEFAULT_CONTAINERS = {
     x64: {
@@ -46676,8 +46677,15 @@ const DEFAULT_CONTAINERS = {
             auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
             musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl'
         }
+    },
+    riscv64: {
+        'riscv64gc-unknown-linux-gnu': {
+            auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
+            '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+        }
     }
 };
+warning(`Detected process architecture: '${process.arch}`);
 const DEFAULT_CONTAINER = DEFAULT_CONTAINERS[process.arch][DEFAULT_TARGET[process.arch]];
 const TARGET_ALIASES = {
     darwin: {
