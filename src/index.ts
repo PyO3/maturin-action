@@ -671,7 +671,18 @@ async function dockerBuild(
     core.info(`Using existing ${image} Docker image`)
   }
 
-  const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
+  const arch = (() => {
+    switch (process.arch) {
+      case 'x64':
+        return 'x86_64'
+      case 'arm64':
+        return 'aarch64'
+      case 'riscv64':
+        return 'riscv64gc'
+      default:
+        return process.arch // TODO handle more arches
+    }
+  })()
   const url =
     maturinRelease === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
