@@ -18,7 +18,8 @@ const IS_LINUX = process.platform === 'linux'
 
 const DEFAULT_TARGET: Record<string, string> = {
   x64: 'x86_64-unknown-linux-gnu',
-  arm64: 'aarch64-unknown-linux-gnu'
+  arm64: 'aarch64-unknown-linux-gnu',
+  riscv64: 'riscv64gc-unknown-linux-gnu'
 }
 
 const DEFAULT_CONTAINERS: Record<
@@ -111,7 +112,8 @@ const DEFAULT_CONTAINERS: Record<
     },
     'riscv64gc-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
+      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
     },
     'riscv64gc-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
@@ -201,7 +203,8 @@ const DEFAULT_CONTAINERS: Record<
     },
     'riscv64gc-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
+      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
     },
     'riscv64gc-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
@@ -215,6 +218,12 @@ const DEFAULT_CONTAINERS: Record<
     'loongarch64-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl',
       musllinux_1_2: 'ghcr.io/rust-cross/rust-musl-cross:loongarch64-musl'
+    }
+  },
+  riscv64: {
+    'riscv64gc-unknown-linux-gnu': {
+      auto: 'quay.io/pypa/manylinux_2_39_riscv64:latest',
+      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
     }
   }
 }
@@ -662,7 +671,18 @@ async function dockerBuild(
     core.info(`Using existing ${image} Docker image`)
   }
 
-  const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
+  const arch = (() => {
+    switch (process.arch) {
+      case 'x64':
+        return 'x86_64'
+      case 'arm64':
+        return 'aarch64'
+      case 'riscv64':
+        return 'riscv64gc'
+      default:
+        return process.arch // TODO handle more arches
+    }
+  })()
   const url =
     maturinRelease === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
