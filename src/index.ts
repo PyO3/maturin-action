@@ -112,7 +112,8 @@ const DEFAULT_CONTAINERS: Record<
     },
     'riscv64gc-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
+      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
     },
     'riscv64gc-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
@@ -202,7 +203,8 @@ const DEFAULT_CONTAINERS: Record<
     },
     'riscv64gc-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
+      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
     },
     'riscv64gc-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
@@ -220,13 +222,12 @@ const DEFAULT_CONTAINERS: Record<
   },
   riscv64: {
     'riscv64gc-unknown-linux-gnu': {
-      auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64'
+      auto: 'quay.io/pypa/manylinux_2_39_riscv64:latest',
+      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
     }
   }
 }
 
-core.warning(`Detected process architecture: '${process.arch}`)
 const DEFAULT_CONTAINER =
   DEFAULT_CONTAINERS[process.arch][DEFAULT_TARGET[process.arch]]
 
