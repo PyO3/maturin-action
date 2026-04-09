@@ -1150,12 +1150,8 @@ async function hostBuild(
       const pythonTriplet = androidPythonTriplet[target]
       if (pythonTriplet) {
         core.startGroup('Download Android Python')
-        const pythonVersion =
-          process.env.ANDROID_PYTHON_VERSION || '3.14.3'
-        const majorMinor = pythonVersion
-          .split('.')
-          .slice(0, 2)
-          .join('.')
+        const pythonVersion = process.env.ANDROID_PYTHON_VERSION || '3.14.3'
+        const majorMinor = pythonVersion.split('.').slice(0, 2).join('.')
 
         let url: string
         if (compareStringVersions(majorMinor, '3.14') >= 0) {
