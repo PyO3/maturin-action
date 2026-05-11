@@ -3,6 +3,61 @@
     "files": [
       {
         "arch": "arm64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-aarch64-apple-darwin.tar.gz",
+        "filename": "maturin-aarch64-apple-darwin.tar.gz",
+        "platform": "darwin"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-x86_64-apple-darwin.tar.gz",
+        "filename": "maturin-x86_64-apple-darwin.tar.gz",
+        "platform": "darwin"
+      },
+      {
+        "arch": "arm64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-aarch64-unknown-linux-musl.tar.gz",
+        "filename": "maturin-aarch64-unknown-linux-musl.tar.gz",
+        "platform": "linux"
+      },
+      {
+        "arch": "riscv64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-riscv64gc-unknown-linux-musl.tar.gz",
+        "filename": "maturin-riscv64gc-unknown-linux-musl.tar.gz",
+        "platform": "linux"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-x86_64-unknown-linux-musl.tar.gz",
+        "filename": "maturin-x86_64-unknown-linux-musl.tar.gz",
+        "platform": "linux"
+      },
+      {
+        "arch": "arm64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-aarch64-pc-windows-msvc.zip",
+        "filename": "maturin-aarch64-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
+        "platform": "win32"
+      },
+      {
+        "arch": "x86",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.3/maturin-i686-pc-windows-msvc.zip",
+        "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32"
+      }
+    ],
+    "release_url": "https://github.com/PyO3/maturin/releases/tag/v1.13.3",
+    "stable": true,
+    "version": "1.13.3"
+  },
+  {
+    "files": [
+      {
+        "arch": "arm64",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v1.13.2/maturin-aarch64-apple-darwin.tar.gz",
         "filename": "maturin-aarch64-apple-darwin.tar.gz",
         "platform": "darwin"
