@@ -577,6 +577,9 @@ async function downloadMaturin(tag: string): Promise<string> {
     tag === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/${name}`
       : `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`
+  if (url.includes('"') || url.includes("'")) {
+    throw new Error(`Maturin download URL contains a quote character: ${url}`)
+  }
   const tool = await tc.downloadTool(url, undefined, AUTH)
   if (tag !== 'latest') {
     const expectedHash = await findDownloadHash(url)
@@ -730,6 +733,20 @@ async function dockerBuild(
     maturinRelease === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
       : `https://github.com/PyO3/maturin/releases/download/${maturinRelease}/maturin-${arch}-unknown-linux-musl.tar.gz`
+  if (url.includes('"') || url.includes("'")) {
+    throw new Error(`Maturin download URL contains a quote character: ${url}`)
+  }
+  let expectedHash: string | undefined
+  let checksumCommand: string
+  if (maturinRelease !== 'latest') {
+    expectedHash = await findDownloadHash(url)
+    if (!expectedHash) {
+      throw new Error(`No sha256 hash found for ${url}`)
+    }
+    checksumCommand = `echo "${expectedHash}  $maturin_archive" | sha256sum --check -`
+  } else {
+    checksumCommand = 'echo "Skipping maturin archive hash check for latest"'
+  }
   const rustupComponents = core.getInput('rustup-components')
   const commands = [
     '#!/bin/bash',
@@ -762,7 +779,11 @@ async function dockerBuild(
     'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"',
     // Install maturin
     'echo "::group::Install maturin"',
-    `curl -L ${url} | tar -xz -C /usr/local/bin`,
+    'maturin_archive="$(mktemp)"',
+    `curl --fail --location --show-error --silent ${url} --output "$maturin_archive"`,
+    checksumCommand,
+    'tar -xzf "$maturin_archive" -C /usr/local/bin',
+    'rm -f "$maturin_archive"',
     'maturin --version || true',
     // Install uv
     'which uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh',

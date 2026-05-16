@@ -48565,6 +48565,9 @@ async function downloadMaturin(tag) {
     const url = tag === 'latest'
         ? `https://github.com/PyO3/maturin/releases/latest/download/${name}`
         : `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`;
+    if (url.includes('"') || url.includes("'")) {
+        throw new Error(`Maturin download URL contains a quote character: ${url}`);
+    }
     const tool = await downloadTool(url, undefined, AUTH);
     if (tag !== 'latest') {
         const expectedHash = await findDownloadHash(url);
@@ -48689,6 +48692,21 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     const url = maturinRelease === 'latest'
         ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
         : `https://github.com/PyO3/maturin/releases/download/${maturinRelease}/maturin-${arch}-unknown-linux-musl.tar.gz`;
+    if (url.includes('"') || url.includes("'")) {
+        throw new Error(`Maturin download URL contains a quote character: ${url}`);
+    }
+    let expectedHash;
+    let checksumCommand;
+    if (maturinRelease !== 'latest') {
+        expectedHash = await findDownloadHash(url);
+        if (!expectedHash) {
+            throw new Error(`No sha256 hash found for ${url}`);
+        }
+        checksumCommand = `echo "${expectedHash}  $maturin_archive" | sha256sum --check -`;
+    }
+    else {
+        checksumCommand = 'echo "Skipping maturin archive hash check for latest"';
+    }
     const rustupComponents = getInput('rustup-components');
     const commands = [
         '#!/bin/bash',
@@ -48699,7 +48717,7 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
         target.includes('i686')) {
         commands.push('echo "::group::Install libatomic"', 'if command -v yum &> /dev/null; then yum install -y libatomic; else apt-get update && apt-get install -y libatomic1; fi', 'echo "::endgroup::"');
     }
-    commands.push('echo "::group::Install Rust"', `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup toolchain install stable; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal`, 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"', `echo "Install Rust toolchain ${rustToolchain}"`, `rustup update --no-self-update ${rustToolchain}`, `rustup override set ${rustToolchain}`, `rustup component add llvm-tools-preview || true`, 'echo "::endgroup::"', 'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"', 'echo "::group::Install maturin"', `curl -L ${url} | tar -xz -C /usr/local/bin`, 'maturin --version || true', 'which uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh', 'which patchelf > /dev/null || uv tool install patchelf', 'python3 -m pip install --user cffi || true', 'echo "::endgroup::"');
+    commands.push('echo "::group::Install Rust"', `command -v rustup &> /dev/null && { rm -frv ~/.rustup/toolchains/; rustup toolchain install stable; } || curl --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal`, 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"', `echo "Install Rust toolchain ${rustToolchain}"`, `rustup update --no-self-update ${rustToolchain}`, `rustup override set ${rustToolchain}`, `rustup component add llvm-tools-preview || true`, 'echo "::endgroup::"', 'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"', 'echo "::group::Install maturin"', 'maturin_archive="$(mktemp)"', `curl --fail --location --show-error --silent ${url} --output "$maturin_archive"`, checksumCommand, 'tar -xzf "$maturin_archive" -C /usr/local/bin', 'rm -f "$maturin_archive"', 'maturin --version || true', 'which uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh', 'which patchelf > /dev/null || uv tool install patchelf', 'python3 -m pip install --user cffi || true', 'echo "::endgroup::"');
     if (args.includes('--zig')) {
         commands.push('echo "::group::Install Zig"', 'uv pip install --system --break-system-packages ziglang', 'echo "::endgroup::"');
     }
@@ -49181,4 +49199,3 @@ async function main() {
     }
 }
 main();
-
