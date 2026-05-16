@@ -96,7 +96,6 @@ def fetch_releases(page=1, per_page=50):
                 pass
             else:
                 digest = sha256_url(asset["browser_download_url"])
-                print(asset["browser_download_url"], digest)
 
             files.append(
                 {
