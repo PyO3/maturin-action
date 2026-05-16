@@ -48063,7 +48063,11 @@ function firstString() {
 
 // EXTERNAL MODULE: ./node_modules/@iarna/toml/toml.js
 var toml_toml = __nccwpck_require__(4572);
+;// CONCATENATED MODULE: external "stream/promises"
+const promises_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("stream/promises");
 ;// CONCATENATED MODULE: ./src/index.ts
+
+
 
 
 
@@ -48474,12 +48478,32 @@ async function getCargoTargetDir(args) {
     }
     return targetDir;
 }
+async function sha256(filePath) {
+    const hash = (0,external_crypto_namespaceObject.createHash)('sha256');
+    await (0,promises_namespaceObject.pipeline)((0,external_fs_namespaceObject.createReadStream)(filePath), hash);
+    return hash.digest('hex');
+}
+async function readVersionsManifest() {
+    const actionPath = process.env.GITHUB_ACTION_PATH || process.cwd();
+    const manifestPath = external_path_.join(actionPath, 'versions-manifest.json');
+    if ((0,external_fs_namespaceObject.existsSync)(manifestPath)) {
+        return JSON.parse(await external_fs_namespaceObject.promises.readFile(manifestPath, 'utf8'));
+    }
+    return (await getManifestFromRepo('PyO3', 'maturin-action', AUTH, 'main'));
+}
+async function findDownloadHash(url) {
+    var _a;
+    const manifest = await readVersionsManifest();
+    return (_a = manifest
+        .flatMap(release => release.files)
+        .find(file => file.download_url === url)) === null || _a === void 0 ? void 0 : _a.sha256;
+}
 function pythonVersionToSemantic(versionSpec) {
     const prereleaseVersion = /(\d+\.\d+\.\d+)((?:a|b|rc)\d*)/g;
     return versionSpec.replace(prereleaseVersion, '$1-$2');
 }
 async function findReleaseFromManifest(semanticVersionSpec, architecture) {
-    const manifest = await getManifestFromRepo('PyO3', 'maturin-action', AUTH, 'main');
+    const manifest = await readVersionsManifest();
     return await findFromManifest(semanticVersionSpec, false, manifest, architecture);
 }
 async function findVersion(args) {
@@ -48542,6 +48566,16 @@ async function downloadMaturin(tag) {
         ? `https://github.com/PyO3/maturin/releases/latest/download/${name}`
         : `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`;
     const tool = await downloadTool(url, undefined, AUTH);
+    if (tag !== 'latest') {
+        const expectedHash = await findDownloadHash(url);
+        if (!expectedHash) {
+            throw new Error(`No sha256 hash found for ${url}`);
+        }
+        const actualHash = await sha256(tool);
+        if (actualHash !== expectedHash) {
+            throw new Error(`Downloaded maturin artifact hash mismatch for ${url}: expected ${expectedHash}, got ${actualHash}`);
+        }
+    }
     let toolPath;
     if (zip) {
         toolPath = await extractZip(tool);
