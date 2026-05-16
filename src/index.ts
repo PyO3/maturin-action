@@ -780,7 +780,7 @@ async function dockerBuild(
     // Install maturin
     'echo "::group::Install maturin"',
     'maturin_archive="$(mktemp)"',
-    `curl --fail --location --show-error --silent ${url} --output "$maturin_archive"`,
+    `curl --proto '=https' --tlsv1.2 -LsSf ${url} -o "$maturin_archive"`,
     checksumCommand,
     'tar -xzf "$maturin_archive" -C /usr/local/bin',
     'rm -f "$maturin_archive"',
