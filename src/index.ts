@@ -5,9 +5,16 @@ import * as mexec from './exec'
 import * as path from 'path'
 import * as tc from '@actions/tool-cache'
 import * as os from 'os'
-import {existsSync, promises as fs, writeFileSync} from 'fs'
+import {existsSync, promises as fs, writeFileSync, createReadStream} from 'fs'
 import stringArgv from 'string-argv'
 import {JsonMap, parse as parseTOML} from '@iarna/toml'
+import {createHash} from 'crypto'
+import {pipeline} from 'stream/promises'
+
+type MaturinToolReleaseFile = tc.IToolReleaseFile & {sha256?: string}
+type MaturinToolRelease = Omit<tc.IToolRelease, 'files'> & {
+  files: MaturinToolReleaseFile[]
+}
 
 const TOKEN = core.getInput('token') || process.env.GITHUB_TOKEN
 const AUTH = !TOKEN ? undefined : `token ${TOKEN}`
@@ -447,6 +454,34 @@ async function getCargoTargetDir(args: string[]): Promise<string> {
   return targetDir
 }
 
+async function sha256(filePath: string): Promise<string> {
+  const hash = createHash('sha256')
+  await pipeline(createReadStream(filePath), hash)
+  return hash.digest('hex')
+}
+
+async function readVersionsManifest(): Promise<MaturinToolRelease[]> {
+  const actionPath = process.env.GITHUB_ACTION_PATH || process.cwd()
+  const manifestPath = path.join(actionPath, 'versions-manifest.json')
+  if (existsSync(manifestPath)) {
+    return JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+  }
+
+  return (await tc.getManifestFromRepo(
+    'PyO3',
+    'maturin-action',
+    AUTH,
+    'main'
+  )) as MaturinToolRelease[]
+}
+
+async function findDownloadHash(url: string): Promise<string | undefined> {
+  const manifest = await readVersionsManifest()
+  return manifest
+    .flatMap(release => release.files)
+    .find(file => file.download_url === url)?.sha256
+}
+
 /**
  * Python's prelease versions look like `3.7.0b2`.
  * This is the one part of Python versioning that does not look like semantic versioning, which specifies `3.7.0-b2`.
@@ -461,12 +496,7 @@ async function findReleaseFromManifest(
   semanticVersionSpec: string,
   architecture: string
 ): Promise<tc.IToolRelease | undefined> {
-  const manifest: tc.IToolRelease[] = await tc.getManifestFromRepo(
-    'PyO3',
-    'maturin-action',
-    AUTH,
-    'main'
-  )
+  const manifest = await readVersionsManifest()
   return await tc.findFromManifest(
     semanticVersionSpec,
     false,
@@ -547,7 +577,23 @@ async function downloadMaturin(tag: string): Promise<string> {
     tag === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/${name}`
       : `https://github.com/PyO3/maturin/releases/download/${tag}/${name}`
+  if (url.includes('"') || url.includes("'")) {
+    throw new Error(`Maturin download URL contains a quote character: ${url}`)
+  }
   const tool = await tc.downloadTool(url, undefined, AUTH)
+  if (tag !== 'latest') {
+    const expectedHash = await findDownloadHash(url)
+    if (!expectedHash) {
+      throw new Error(`No sha256 hash found for ${url}`)
+    }
+    const actualHash = await sha256(tool)
+    if (actualHash !== expectedHash) {
+      throw new Error(
+        `Downloaded maturin artifact hash mismatch for ${url}: expected ${expectedHash}, got ${actualHash}`
+      )
+    }
+  }
+
   let toolPath: string
   if (zip) {
     toolPath = await tc.extractZip(tool)
@@ -687,6 +733,20 @@ async function dockerBuild(
     maturinRelease === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
       : `https://github.com/PyO3/maturin/releases/download/${maturinRelease}/maturin-${arch}-unknown-linux-musl.tar.gz`
+  if (url.includes('"') || url.includes("'")) {
+    throw new Error(`Maturin download URL contains a quote character: ${url}`)
+  }
+  let expectedHash: string | undefined
+  let checksumCommand: string
+  if (maturinRelease !== 'latest') {
+    expectedHash = await findDownloadHash(url)
+    if (!expectedHash) {
+      throw new Error(`No sha256 hash found for ${url}`)
+    }
+    checksumCommand = `echo "${expectedHash}  $maturin_archive" | sha256sum --check -`
+  } else {
+    checksumCommand = 'echo "Skipping maturin archive hash check for latest"'
+  }
   const rustupComponents = core.getInput('rustup-components')
   const commands = [
     '#!/bin/bash',
@@ -719,7 +779,11 @@ async function dockerBuild(
     'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"',
     // Install maturin
     'echo "::group::Install maturin"',
-    `curl -L ${url} | tar -xz -C /usr/local/bin`,
+    'maturin_archive="$(mktemp)"',
+    `curl --proto '=https' --tlsv1.2 -LsSf ${url} -o "$maturin_archive"`,
+    checksumCommand,
+    'tar -xzf "$maturin_archive" -C /usr/local/bin',
+    'rm -f "$maturin_archive"',
     'maturin --version || true',
     // Install uv
     'which uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh',

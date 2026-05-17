@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.14"
+# dependencies = [
+#     "requests>=2.32.5,<3.0.0",
+# ]
+# ///
+import hashlib
 import os
 import json
 import sys
@@ -12,7 +19,34 @@ OUTPUT = os.getenv("OUTPUT", "versions-manifest.json")
 session = requests.Session()
 
 
+def sha256_url(url: str) -> str:
+    hasher = hashlib.sha256()
+    with session.get(url, stream=True) as r:
+        r.raise_for_status()
+        for chunk in r.iter_content(chunk_size=8192):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def read_existing_hashes() -> dict[str, str]:
+    """Read previously computed hashes to avoid downloading all old releases again."""
+    if not os.path.exists(OUTPUT):
+        return {}
+
+    with open(OUTPUT, "r") as f:
+        previous = json.load(f)
+
+    hashes = {}
+    for releases in previous:
+        for file in releases["files"]:
+            hashes[file["download_url"]] = file["sha256"]
+
+    return hashes
+
+
 def fetch_releases(page=1, per_page=50):
+    existing_hashes = read_existing_hashes()
+
     headers = {"Accept": "application/vnd.github.v3+json"}
     if GITHUB_TOKEN:
         headers["Authorization"] = f"token {GITHUB_TOKEN}"
@@ -54,12 +88,22 @@ def fetch_releases(page=1, per_page=50):
             else:
                 continue
 
+            if digest := asset.get("digest"):
+                [algorithm, digest] = digest.split(":")
+                if algorithm != "sha256":
+                    raise ValueError(f"Unsupported algorithm: {algorithm}")
+            elif digest := existing_hashes.get(asset["browser_download_url"]):
+                pass
+            else:
+                digest = sha256_url(asset["browser_download_url"])
+
             files.append(
                 {
                     "filename": filename,
                     "arch": arch,
                     "platform": platform,
                     "download_url": asset["browser_download_url"],
+                    "sha256": digest,
                 }
             )
 
