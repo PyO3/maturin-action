@@ -106,6 +106,80 @@ so if you want to build for certain Python version for Linux, use `-i pythonX.Y`
     args: --release -i python3.10
 ```
 
+To build for every available interpreter at once — including the free-threaded builds — use
+`--find-interpreter`; see [Free-threaded CPython](#free-threaded-cpython) below.
+
+## Free-threaded CPython
+
+[maturin](https://github.com/PyO3/maturin) builds wheels for the free-threaded ("no-GIL") CPython
+builds automatically when you pass `--find-interpreter` and a free-threaded interpreter is
+available. Free-threaded interpreters carry a `t` suffix (`python3.14t`, `python3.15t`, …); maturin
+discovers the officially supported ones (CPython 3.14 and newer) the same way it discovers the
+regular builds — the experimental 3.13t is not discovered automatically. Discovery needs a
+reasonably recent maturin, which the action installs by default.
+
+### Linux (manylinux)
+
+No configuration needed — the default manylinux containers ship the free-threaded interpreters, and
+the action puts every interpreter under `/opt/python` on `PATH`, so `--find-interpreter` finds them:
+
+```yaml
+- uses: PyO3/maturin-action@v1
+  with:
+    command: build
+    args: --release --find-interpreter
+```
+
+### macOS, Windows, and non-manylinux Linux (`manylinux: off`)
+
+These run on the host, so the interpreters come from your own `actions/setup-python` step. Install
+the free-threaded build alongside the regular one:
+
+```yaml
+- uses: actions/setup-python@v6
+  with:
+    python-version: |
+      3.14
+      3.14t
+- uses: PyO3/maturin-action@v1
+  with:
+    command: build
+    args: --release --find-interpreter
+```
+
+`setup-python` exposes the free-threaded build under its `t`-suffixed name (`python3.14t`, or
+`python3.14t.exe` on Windows), which is what `--find-interpreter` looks for.
+
+### Windows: build the regular and free-threaded interpreters in separate jobs
+
+On Windows, co-installing the regular and free-threaded interpreters of the same minor version in
+one `setup-python` step can fail
+([python/cpython#127294](https://github.com/python/cpython/issues/127294),
+[#313](https://github.com/PyO3/maturin-action/issues/313)). Use a matrix with one interpreter per
+job instead.
+
+### Stable ABI (abi3 / abi3t)
+
+The free-threaded build has its own stable ABI, **abi3t**
+([PEP 803](https://peps.python.org/pep-0803/), added in CPython 3.15), distinct from the
+GIL-enabled **abi3**. PyO3 exposes both as Cargo features, and projects are encouraged to enable
+both with a minimum version for each:
+
+```toml
+pyo3 = { version = "0.29", features = ["abi3-py310", "abi3t-py315"] }
+```
+
+With `--find-interpreter`, maturin then emits one forward-compatible wheel per ABI, plus a
+version-specific wheel for any free-threaded build that predates abi3t:
+
+- `abi3-py310` — every GIL-enabled CPython from 3.10 up;
+- `abi3.abi3t-py315` — CPython 3.15 and newer, both GIL-enabled and free-threaded;
+- a version-specific free-threaded 3.14 wheel — 3.14t predates abi3t, so it can't share the
+  stable-ABI wheel.
+
+If a project enables only `abi3` (no `abi3t`), `--find-interpreter` builds no free-threaded wheel;
+request one explicitly with, e.g., `-i python3.14t`.
+
 ## Hardening Release pipelines
 
 We recommend the following steps for hardening release pipelines:
