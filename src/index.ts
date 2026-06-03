@@ -775,8 +775,8 @@ async function dockerBuild(
     `rustup override set ${rustToolchain}`,
     `rustup component add llvm-tools-preview || true`,
     'echo "::endgroup::"',
-    // Add all supported python versions to PATH
-    'export PATH="$PATH:/opt/python/cp37-cp37m/bin:/opt/python/cp38-cp38/bin:/opt/python/cp39-cp39/bin:/opt/python/cp310-cp310/bin:/opt/python/cp311-cp311/bin:/opt/python/cp312-cp312/bin"',
+    // Glob so new interpreters are added without maintaining a list
+    'for py_bin in /opt/python/*/bin; do if [ -d "$py_bin" ]; then PATH="$PATH:$py_bin"; fi; done',
     // Install maturin
     'echo "::group::Install maturin"',
     'maturin_archive="$(mktemp)"',
