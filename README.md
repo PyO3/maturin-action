@@ -162,23 +162,42 @@ job instead.
 
 The free-threaded build has its own stable ABI, **abi3t**
 ([PEP 803](https://peps.python.org/pep-0803/), added in CPython 3.15), distinct from the
-GIL-enabled **abi3**. PyO3 exposes both as Cargo features, and projects are encouraged to enable
-both with a minimum version for each:
+GIL-enabled **abi3**. PyO3 exposes both as Cargo features, and projects can enable both when they
+want stable ABI wheels by default:
 
 ```toml
 pyo3 = { version = "0.29", features = ["abi3-py310", "abi3t-py315"] }
 ```
 
-With `--find-interpreter`, maturin then emits one forward-compatible wheel per ABI, plus a
-version-specific wheel for any free-threaded build that predates abi3t:
+One maturin invocation selects at most one stable ABI family, so do not expect one
+`--find-interpreter` build to emit both forward-compatible wheels. To publish a complete wheel set
+for current non-EOL CPython releases, run separate maturin builds with different interpreters. The
+same default Cargo features can be used for each build:
 
-- `abi3-py310` — every GIL-enabled CPython from 3.10 up;
-- `abi3.abi3t-py315` — CPython 3.15 and newer, both GIL-enabled and free-threaded;
-- a version-specific free-threaded 3.14 wheel — 3.14t predates abi3t, so it can't share the
-  stable-ABI wheel.
+```yaml
+- name: Build abi3 wheel
+  uses: PyO3/maturin-action@v1
+  with:
+    args: --release -i python3.10
 
-If a project enables only `abi3` (no `abi3t`), `--find-interpreter` builds no free-threaded wheel;
-request one explicitly with, e.g., `-i python3.14t`.
+- name: Build CPython 3.14t wheel
+  uses: PyO3/maturin-action@v1
+  with:
+    args: --release -i python3.14t
+
+- name: Build abi3t wheel
+  uses: PyO3/maturin-action@v1
+  with:
+    args: --release -i python3.15t
+```
+
+The `abi3-py310` wheel supports GIL-enabled CPython 3.10 and newer. The `abi3t-py315` wheel
+supports CPython 3.15 and newer, both GIL-enabled and free-threaded. Free-threaded CPython 3.14
+predates `abi3t`, so the `python3.14t` build produces the version-specific `cp314-cp314t` wheel.
+
+If stable ABI support is behind a project feature, pass that feature to both builds.
+If a project enables only `abi3` (no `abi3t`), `--find-interpreter` builds no free-threaded stable
+ABI wheel; request a version-specific free-threaded wheel explicitly with, e.g., `-i python3.14t`.
 
 ## Hardening Release pipelines
 
