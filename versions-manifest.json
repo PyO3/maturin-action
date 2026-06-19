@@ -3,6 +3,69 @@
     "files": [
       {
         "arch": "arm64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-aarch64-apple-darwin.tar.gz",
+        "filename": "maturin-aarch64-apple-darwin.tar.gz",
+        "platform": "darwin",
+        "sha256": "4b619dec2d5b40d589d050f44b494e8dc3e0291a417de8e2f81b99dc8870d599"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-x86_64-apple-darwin.tar.gz",
+        "filename": "maturin-x86_64-apple-darwin.tar.gz",
+        "platform": "darwin",
+        "sha256": "c7ced606524a7aaa1c9b38483d9941d76e838aba28cec70d8fcb47e44ee11d63"
+      },
+      {
+        "arch": "arm64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-aarch64-unknown-linux-musl.tar.gz",
+        "filename": "maturin-aarch64-unknown-linux-musl.tar.gz",
+        "platform": "linux",
+        "sha256": "e91ef193e0f76beff9650f9079a026fe51ba8438a97747c196611098054f9387"
+      },
+      {
+        "arch": "riscv64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-riscv64gc-unknown-linux-musl.tar.gz",
+        "filename": "maturin-riscv64gc-unknown-linux-musl.tar.gz",
+        "platform": "linux",
+        "sha256": "728376bceb0cee9154c8aad147039d0689de8a4077aa7e09df84022651e335a0"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-x86_64-unknown-linux-musl.tar.gz",
+        "filename": "maturin-x86_64-unknown-linux-musl.tar.gz",
+        "platform": "linux",
+        "sha256": "9bdca7903c857e82453dec36adaf58405412129920f9e420e7185995dbeff179"
+      },
+      {
+        "arch": "arm64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-aarch64-pc-windows-msvc.zip",
+        "filename": "maturin-aarch64-pc-windows-msvc.zip",
+        "platform": "win32",
+        "sha256": "7bf2c303a9a4ecfac1395d4abe208665e4516c89b6df92e711ce9704613904cc"
+      },
+      {
+        "arch": "x64",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-x86_64-pc-windows-msvc.zip",
+        "filename": "maturin-x86_64-pc-windows-msvc.zip",
+        "platform": "win32",
+        "sha256": "b560e7a2ac78fbd4486bb4ee4e16814265c7d77f3d2e75a244abdf43c1c0133a"
+      },
+      {
+        "arch": "x86",
+        "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.1/maturin-i686-pc-windows-msvc.zip",
+        "filename": "maturin-i686-pc-windows-msvc.zip",
+        "platform": "win32",
+        "sha256": "b1bcb1f15fba0aeba7728fa136b3bc0d1aa2c48aad1f20eb50b78b9769436d9b"
+      }
+    ],
+    "release_url": "https://github.com/PyO3/maturin/releases/tag/v1.14.1",
+    "stable": true,
+    "version": "1.14.1"
+  },
+  {
+    "files": [
+      {
+        "arch": "arm64",
         "download_url": "https://github.com/PyO3/maturin/releases/download/v1.14.0/maturin-aarch64-apple-darwin.tar.gz",
         "filename": "maturin-aarch64-apple-darwin.tar.gz",
         "platform": "darwin",
