@@ -231,6 +231,10 @@ const DEFAULT_CONTAINERS: Record<
     'riscv64gc-unknown-linux-gnu': {
       auto: 'quay.io/pypa/manylinux_2_39_riscv64:latest',
       '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
+    },
+    'riscv64gc-unknown-linux-musl': {
+      auto: 'quay.io/pypa/musllinux_1_2_riscv64:latest',
+      '1_2': 'quay.io/pypa/manylinux_1_2_riscv64:latest',
     }
   }
 }
