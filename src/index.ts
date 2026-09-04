@@ -558,13 +558,29 @@ async function findVersion(args: string[]): Promise<string> {
 }
 
 /**
+ * Map Node's process.arch to the arch component of a maturin release asset name
+ */
+function maturinArch(): string {
+  switch (process.arch) {
+    case 'x64':
+      return 'x86_64'
+    case 'arm64':
+      return 'aarch64'
+    case 'riscv64':
+      return 'riscv64gc'
+    default:
+      return process.arch // TODO handle more arches
+  }
+}
+
+/**
  * Download and return the path to an executable maturin tool
  * @param tag string The tag to download
  */
 async function downloadMaturin(tag: string): Promise<string> {
   let name: string
   let zip = false
-  const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64'
+  const arch = maturinArch()
   if (IS_WINDOWS) {
     name = `maturin-${arch}-pc-windows-msvc.zip`
     zip = true
@@ -717,18 +733,7 @@ async function dockerBuild(
     core.info(`Using existing ${image} Docker image`)
   }
 
-  const arch = (() => {
-    switch (process.arch) {
-      case 'x64':
-        return 'x86_64'
-      case 'arm64':
-        return 'aarch64'
-      case 'riscv64':
-        return 'riscv64gc'
-      default:
-        return process.arch // TODO handle more arches
-    }
-  })()
+  const arch = maturinArch()
   const url =
     maturinRelease === 'latest'
       ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
