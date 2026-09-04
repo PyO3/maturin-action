@@ -309,6 +309,7 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
           # Test docker-options
@@ -326,6 +327,7 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
@@ -340,6 +342,7 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
@@ -357,6 +360,7 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
           args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
