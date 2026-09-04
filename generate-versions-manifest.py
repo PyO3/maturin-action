@@ -6,8 +6,8 @@
 # ]
 # ///
 import hashlib
-import os
 import json
+import os
 import sys
 
 import requests
@@ -108,8 +108,7 @@ def fetch_releases(page=1, per_page=50):
             )
 
         version = release["name"] or release["tag_name"]
-        if version.startswith("v"):
-            version = version[1:]
+        version = version.removeprefix("v")
         yield {
             "version": version,
             "stable": not (release["prerelease"] or release["draft"]),

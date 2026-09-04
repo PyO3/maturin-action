@@ -286,6 +286,11 @@ jobs:
               manylinux: 'musllinux_1_2',
               target: 'x86_64-unknown-linux-musl', # MUSL
               test-crate: 'maturin/test-crates/hello-world' # binary
+            },
+            {
+              manylinux: 'musllinux_1_2',
+              target: 'riscv64gc-unknown-linux-musl', # MUSL
+              test-crate: 'maturin/test-crates/hello-world' # binary
             }
           ]
         toolchain: [stable, nightly]
@@ -304,6 +309,7 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
           # Test docker-options
@@ -312,7 +318,7 @@ jobs:
             -e RUNNER_OS
           rust-toolchain: ${{ matrix.toolchain }}
           working-directory: ${{ matrix.platform.test-crate }}
-          args: -i python3.9
+          args: -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain
@@ -321,9 +327,10 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain.toml
@@ -335,9 +342,10 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain with toml content
@@ -352,9 +360,10 @@ jobs:
         uses: ./
         env:
           RUST_BACKTRACE: '1'
+          CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
 
