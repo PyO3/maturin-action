@@ -317,7 +317,7 @@ jobs:
             -e RUNNER_OS
           rust-toolchain: ${{ matrix.toolchain }}
           working-directory: ${{ matrix.platform.test-crate }}
-          args: -i python3.9
+          args: -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain
@@ -328,7 +328,7 @@ jobs:
           RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain.toml
@@ -342,7 +342,7 @@ jobs:
           RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain with toml content
@@ -359,7 +359,7 @@ jobs:
           RUST_BACKTRACE: '1'
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.9
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
 
