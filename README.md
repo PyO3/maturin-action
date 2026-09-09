@@ -54,42 +54,48 @@ take a look at the following examples:
 
 ## `manylinux` Docker container
 
-By default, this action uses the following containers for supported architectures and manylinux versions.
+If a `manylinux` version is specified and the target is a Linux target (whether set explicitly via the `target` input or implied from the host), this action will run the `maturin` command in a manylinux docker container.
 
-| Architecture | Manylinux version | Default container                                   | Note       |
-| ------------ | ----------------- | --------------------------------------------------- | ---------- |
-| x86_64       | 2010/2_12         | quay.io/pypa/manylinux2010_x86_64:latest            |            |
-| x86_64       | 2014/2_17         | quay.io/pypa/manylinux2014_x86_64:latest            |            |
-| x86_64       | 2_24              | quay.io/pypa/manylinux_2_24_x86_64:latest           | Deprecated |
-| x86_64       | 2_28              | quay.io/pypa/manylinux_2_28_x86_64:latest           |            |
-| i686         | 2010/2_12         | quay.io/pypa/manylinux2010_i686:latest              |            |
-| i686         | 2014/2_17         | quay.io/pypa/manylinux2014_i686:latest              |            |
-| i686         | 2_24              | quay.io/pypa/manylinux_2_24_i686:latest             | Deprecated |
-| i686         | 2_28              | quay.io/pypa/manylinux_2_28_i686:latest             |            |
-| aarch64      | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:aarch64      |            |
-| aarch64      | 2_24              | messense/manylinux_2_24-cross:aarch64               | Deprecated |
-| aarch64      | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:aarch64     |            |
-| armv7l       | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:armv7        |            |
-| armv7l       | 2_24              | messense/manylinux_2_24-cross:armv7                 | Deprecated |
-| armv7l       | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:armv7       |            |
-| ppc64le      | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:ppc64le      |            |
-| ppc64le      | 2_24              | messense/manylinux_2_24-cross:ppc64le               | Deprecated |
-| ppc64le      | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:ppc64le     |            |
-| ppc64        | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:ppc64        |            |
-| s390x        | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:s390x        |            |
-| s390x        | 2_24              | messense/manylinux_2_24-cross:s390x                 | Deprecated |
-| s390x        | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:s390x       |            |
-| riscv64      | 2_31              | ghcr.io/rust-cross/manylinux_2_31-cross:riscv64     |            |
-| riscv64      | 2_39              | quay.io/pypa/manylinux_2_39_riscv64:latest          |            |
-| loongarch64  | 2_36              | ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64 |            |
+For native host builds the `pypa` manylinux docker images are used. For cross compilation, images from `rust-cross` are typically used by default. This can be overridden by specifying the `container` input.
+
+Here is a table detailing examples of the default selected containers:
+
+| Target architecture | Runner architecture | manylinux version | Default container                                   | Requires QEMU |
+| ------------------- | ------------------- | ----------------- | --------------------------------------------------- | ------------- |
+| x86_64              | x86_64              | 2014/2_17         | quay.io/pypa/manylinux2014_x86_64:latest            | No            |
+| x86_64              | x86_64              | 2_28              | quay.io/pypa/manylinux_2_28_x86_64:latest           | No            |
+| x86_64              | x86_64              | 2_34              | quay.io/pypa/manylinux_2_34_x86_64:latest           | No            |
+| x86_64              | aarch64             | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:x86_64       | No            |
+| x86_64              | aarch64             | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:x86_64      | No            |
+| i686                | x86_64              | 2014/2_17         | quay.io/pypa/manylinux2014_i686:latest              | No            |
+| i686                | x86_64              | 2_28              | quay.io/pypa/manylinux_2_28_i686:latest             | No            |
+| i686                | x86_64              | 2_34              | quay.io/pypa/manylinux_2_34_i686:latest             | No            |
+| i686                | aarch64             | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:i686         | No            |
+| aarch64             | x86_64              | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:aarch64      | No            |
+| aarch64             | x86_64              | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:aarch64     | No            |
+| aarch64             | aarch64             | 2014/2_17         | quay.io/pypa/manylinux2014_aarch64:latest           | No            |
+| aarch64             | aarch64             | 2_28              | quay.io/pypa/manylinux_2_28_aarch64:latest          | No            |
+| aarch64             | aarch64             | 2_34              | quay.io/pypa/manylinux_2_34_aarch64:latest          | No            |
+| armv7l              | x86_64, aarch64     | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:armv7        | No            |
+| armv7l              | x86_64, aarch64     | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:armv7       | No            |
+| ppc64le             | x86_64, aarch64     | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:ppc64le      | No            |
+| ppc64le             | x86_64, aarch64     | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:ppc64le     | No            |
+| ppc64               | x86_64, aarch64     | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:ppc64        | No            |
+| s390x               | x86_64, aarch64     | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:s390x        | No            |
+| s390x               | x86_64, aarch64     | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:s390x       | No            |
+| riscv64             | x86_64, aarch64     | 2_31              | ghcr.io/rust-cross/manylinux_2_31-cross:riscv64     | No            |
+| riscv64             | x86_64, aarch64     | 2_39              | quay.io/pypa/manylinux_2_39_riscv64:latest          | Yes           |
+| riscv64             | riscv64             | 2_39              | quay.io/pypa/manylinux_2_39_riscv64:latest          | No            |
+| loongarch64         | x86_64, aarch64     | 2_36              | ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64 | No            |
 
 You can override it by supplying the `container` input.
-Note that if use official manylinux docker images for platforms other than `x86_64` and `i686`,
-you will need to setup QEMU before using this action, for example
+
+If you use wish to use an official manylinux image for a different architecture from the runner, you will need to
+set up QEMU before using this action, for example
 
 ```yaml
 - name: Setup QEMU
-  uses: docker/setup-qemu-action@v1
+  uses: docker/setup-qemu-action@v3
 - uses: PyO3/maturin-action@v1
   with:
     command: build
