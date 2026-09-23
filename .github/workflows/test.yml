@@ -70,7 +70,7 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y libclang-dev
       - name: maturin build with kache
-        uses: ./
+        uses: $/
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml
