@@ -48548,10 +48548,22 @@ async function findVersion(args) {
     }
     return version;
 }
+function maturinArch() {
+    switch (process.arch) {
+        case 'x64':
+            return 'x86_64';
+        case 'arm64':
+            return 'aarch64';
+        case 'riscv64':
+            return 'riscv64gc';
+        default:
+            return process.arch; // TODO handle more arches
+    }
+}
 async function downloadMaturin(tag) {
     let name;
     let zip = false;
-    const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
+    const arch = maturinArch();
     if (src_IS_WINDOWS) {
         name = `maturin-${arch}-pc-windows-msvc.zip`;
         zip = true;
@@ -48677,18 +48689,7 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     else {
         info(`Using existing ${image} Docker image`);
     }
-    const arch = (() => {
-        switch (process.arch) {
-            case 'x64':
-                return 'x86_64';
-            case 'arm64':
-                return 'aarch64';
-            case 'riscv64':
-                return 'riscv64gc';
-            default:
-                return process.arch;
-        }
-    })();
+    const arch = maturinArch();
     const url = maturinRelease === 'latest'
         ? `https://github.com/PyO3/maturin/releases/latest/download/maturin-${arch}-unknown-linux-musl.tar.gz`
         : `https://github.com/PyO3/maturin/releases/download/${maturinRelease}/maturin-${arch}-unknown-linux-musl.tar.gz`;
