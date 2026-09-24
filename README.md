@@ -13,6 +13,8 @@ GitHub Action to install and run a custom [maturin](https://github.com/PyO3/matu
     args: --release
 ```
 
+Enable a compiler cache with `cache: sccache` or `cache: kache` (or the equivalent `sccache: true` / `kache: true` booleans). Only one cache can be enabled. kache is installed from GitHub Releases and its store is persisted with GitHub Actions cache on the runner, including manylinux Docker builds.
+
 **To generate a GitHub Actions workflow for your project, try the `maturin generate-ci github` command.**
 
 ```bash
@@ -48,7 +50,10 @@ take a look at the following examples:
 | rust-toolchain      |    No    | Rust toolchain name.                                                                                               | string  | Defaults to `stable` for Docker build. To use the latest available version for the host build, the user must specify this in the CI config or repo config. |
 | rustup-components   |    No    | Rustup components                                                                                                  | string  | Defaults to empty                                                                                                                  |
 | working-directory   |    No    | The working directory to run the command in                                                                        | string  | Defaults to the root of the repository                                                                                             |
-| sccache             |    No    | Enable sccache for faster builds                                                                                   | boolean | Defaults to `false`                                                                                                                |
+| cache               |    No    | Compiler cache: `none`, `sccache`, or `kache`. When unset, the `sccache` / `kache` booleans still apply            | string  |                                                                                                                                    |
+| sccache             |    No    | Enable sccache for faster builds. Equivalent to `cache: sccache`                                                   | boolean | Defaults to `false`                                                                                                                |
+| kache               |    No    | Enable [kache](https://github.com/kunobi-ninja/kache) for faster builds. Equivalent to `cache: kache`              | boolean | Defaults to `false`                                                                                                                |
+| kache-version       |    No    | kache release to install when kache is enabled, like `v0.19.0`. Defaults to the latest GitHub release              | string  |                                                                                                                                    |
 | before-script-linux |    No    | Script to run before the maturin command on Linux                                                                  | string  |                                                                                                                                    |
 
 

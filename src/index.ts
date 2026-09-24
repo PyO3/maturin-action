@@ -1,3 +1,4 @@
+import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
@@ -308,6 +309,7 @@ const ALLOWED_ENV_PREFIXES: string[] = [
   'PYO3_',
   'RUST',
   'SCCACHE_',
+  'KACHE_',
   'TARGET_'
 ]
 
@@ -694,7 +696,7 @@ async function dockerBuild(
   const target = getRustTarget(args)
   const rustToolchain = (await getRustToolchain(args)) || 'stable'
   const dockerArgs = stringArgv(core.getInput('docker-options') || '')
-  const sccache = core.getBooleanInput('sccache')
+  const cacheProvider = getCacheProvider()
 
   const targetOrHostTriple = target ? target : DEFAULT_TARGET[process.arch]
   let image: string
@@ -832,7 +834,7 @@ async function dockerBuild(
     )
   }
 
-  if (sccache) {
+  if (cacheProvider === 'sccache') {
     commands.push(
       'echo "::group::Install sccache"',
       'uv tool install "sccache>=0.10.0"',
@@ -841,12 +843,35 @@ async function dockerBuild(
     )
     setupSccacheEnv()
   }
+  let kacheExe = ''
+  let kacheStoreDir = ''
+  if (cacheProvider === 'kache') {
+    const kacheTag = await resolveKacheReleaseTag()
+    kacheExe = await installKache(kacheTag)
+    kacheStoreDir = getKacheStoreDir()
+    await fs.mkdir(kacheStoreDir, {recursive: true})
+    // Runtime (socket, logs) stays in the container tmpfs so the persisted
+    // store does not contain a daemon.sock that tar cannot archive.
+    setupKacheEnv(kacheStoreDir, '/tmp/kache-runtime')
+    commands.push(
+      'echo "::group::Install kache"',
+      'kache --version || true',
+      'echo "::endgroup::"'
+    )
+  }
 
   commands.push(`maturin ${args.join(' ')}`)
-  if (sccache) {
+  if (cacheProvider === 'sccache') {
     commands.push(
       'echo "::group::sccache stats"',
       'sccache --show-stats',
+      'echo "::endgroup::"'
+    )
+  }
+  if (cacheProvider === 'kache') {
+    commands.push(
+      'echo "::group::kache stats"',
+      'kache stats || true',
       'echo "::endgroup::"'
     )
   }
@@ -901,6 +926,15 @@ async function dockerBuild(
 
   const workdir = getWorkingDirectory()
   const dockerVolumes = []
+
+  if (cacheProvider === 'kache') {
+    const hostStoreDir = path.join(hostHomeMount, kacheStoreDir)
+    const hostKacheExe = path.join(hostHomeMount, kacheExe)
+    dockerVolumes.push('-v')
+    dockerVolumes.push(`${hostStoreDir}:${kacheStoreDir}`)
+    dockerVolumes.push('-v')
+    dockerVolumes.push(`${hostKacheExe}:/usr/local/bin/kache`)
+  }
 
   // forward ssh agent
   const ssh_auth_sock = process.env.SSH_AUTH_SOCK
@@ -971,6 +1005,26 @@ async function dockerBuild(
         await exec.exec('sudo', ['chown', `${uid}:${gid}`, '-R', outDir], {
           ignoreReturnCode: true
         })
+      }
+    }
+    if (
+      cacheProvider === 'kache' &&
+      kacheStoreDir &&
+      existsSync(kacheStoreDir)
+    ) {
+      core.info(`Fixing file permissions for kache store: ${kacheStoreDir}`)
+      if (process.env.RUNNER_ALLOW_RUNASROOT === '1') {
+        await exec.exec('chown', [`${uid}:${gid}`, '-R', kacheStoreDir], {
+          ignoreReturnCode: true
+        })
+      } else {
+        await exec.exec(
+          'sudo',
+          ['chown', `${uid}:${gid}`, '-R', kacheStoreDir],
+          {
+            ignoreReturnCode: true
+          }
+        )
       }
     }
     core.endGroup()
@@ -1092,6 +1146,212 @@ function setupSccacheEnv(): void {
   core.exportVariable('RUSTC_WRAPPER', 'sccache')
 }
 
+type CacheProvider = 'none' | 'sccache' | 'kache'
+
+function getCacheProvider(): CacheProvider {
+  const cacheInput = (core.getInput('cache') || '').trim().toLowerCase()
+  const sccacheEnabled = core.getBooleanInput('sccache')
+  const kacheEnabled = core.getBooleanInput('kache')
+
+  if (cacheInput) {
+    if (
+      cacheInput !== 'none' &&
+      cacheInput !== 'sccache' &&
+      cacheInput !== 'kache'
+    ) {
+      throw new Error(
+        `Invalid cache provider '${cacheInput}'. Use none, sccache, or kache.`
+      )
+    }
+    if (sccacheEnabled && cacheInput !== 'sccache') {
+      throw new Error(
+        `cache: ${cacheInput} conflicts with sccache: true. Enable only one compiler cache.`
+      )
+    }
+    if (kacheEnabled && cacheInput !== 'kache') {
+      throw new Error(
+        `cache: ${cacheInput} conflicts with kache: true. Enable only one compiler cache.`
+      )
+    }
+    return cacheInput
+  }
+  if (sccacheEnabled && kacheEnabled) {
+    throw new Error(
+      'sccache and kache cannot both be enabled. Set only one, or use cache: sccache or cache: kache.'
+    )
+  }
+  if (sccacheEnabled) return 'sccache'
+  if (kacheEnabled) return 'kache'
+  return 'none'
+}
+
+function getKacheRustTarget(): string {
+  const arch =
+    process.arch === 'arm64'
+      ? 'aarch64'
+      : process.arch === 'x64'
+        ? 'x86_64'
+        : null
+  if (!arch) {
+    throw new Error(
+      `kache has no release binary for architecture ${process.arch}`
+    )
+  }
+  if (IS_WINDOWS) return `${arch}-pc-windows-msvc`
+  if (IS_MACOS) return `${arch}-apple-darwin`
+  return `${arch}-unknown-linux-musl`
+}
+
+function getKacheStoreDir(): string {
+  if (process.env.KACHE_CACHE_DIR && process.env.KACHE_CACHE_DIR.length > 0) {
+    return process.env.KACHE_CACHE_DIR
+  }
+  const tmp = process.env.RUNNER_TEMP || os.tmpdir()
+  return path.join(tmp, 'kache-store')
+}
+
+function kacheCacheKeys(version: string): {key: string; restoreKeys: string[]} {
+  const key = `maturin-action-kache-${version}-${process.platform}-${process.arch}`
+  return {
+    key,
+    restoreKeys: [`maturin-action-kache-${version}-${process.platform}-`]
+  }
+}
+
+async function resolveKacheReleaseTag(): Promise<string> {
+  if (process.env.KACHE_VERSION && process.env.KACHE_VERSION.length > 0) {
+    return process.env.KACHE_VERSION
+  }
+  let version = (core.getInput('kache-version') || '').trim()
+  if (version && version.toLowerCase() !== 'latest') {
+    if (!version.startsWith('v')) {
+      version = `v${version}`
+    }
+    process.env.KACHE_VERSION = version
+    return version
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'maturin-action'
+  }
+  if (AUTH) {
+    headers.Authorization = AUTH
+  }
+  const response = await fetch(
+    'https://api.github.com/repos/kunobi-ninja/kache/releases/latest',
+    {headers}
+  )
+  if (!response.ok) {
+    throw new Error(
+      `Failed to look up the latest kache release: HTTP ${response.status}`
+    )
+  }
+  const body = (await response.json()) as {tag_name?: string}
+  if (!body.tag_name) {
+    throw new Error('Latest kache release is missing tag_name')
+  }
+  process.env.KACHE_VERSION = body.tag_name
+  return body.tag_name
+}
+
+async function downloadKache(tag: string): Promise<string> {
+  const target = getKacheRustTarget()
+  const zip = target.includes('windows')
+  const archiveName = zip ? `kache-${target}.zip` : `kache-${target}.tar.gz`
+  const url = `https://github.com/kunobi-ninja/kache/releases/download/${tag}/${archiveName}`
+  if (url.includes('"') || url.includes("'")) {
+    throw new Error(`kache download URL contains a quote character: ${url}`)
+  }
+  core.info(`Downloading ${url}`)
+  const archivePath = await tc.downloadTool(url, undefined, AUTH)
+  const shaPath = await tc.downloadTool(`${url}.sha256`, undefined, AUTH)
+  const expected = (await fs.readFile(shaPath, 'utf8')).trim().split(/\s+/)[0]
+  const actual = await sha256(archivePath)
+  if (actual !== expected) {
+    throw new Error(
+      `Downloaded kache artifact hash mismatch for ${url}: expected ${expected}, got ${actual}`
+    )
+  }
+
+  const extracted = zip
+    ? await tc.extractZip(archivePath)
+    : await tc.extractTar(archivePath)
+  const exe = path.join(extracted, zip ? 'kache.exe' : 'kache')
+  if (!IS_WINDOWS) {
+    await fs.chmod(exe, 0o755)
+  }
+  return exe
+}
+
+async function installKache(tag: string): Promise<string> {
+  const versionSpec = tag.startsWith('v') ? tag.slice(1) : tag
+  const installDir = tc.find('kache', versionSpec, process.arch)
+  const binaryName = IS_WINDOWS ? 'kache.exe' : 'kache'
+  if (installDir) {
+    const exe = path.join(installDir, binaryName)
+    core.addPath(installDir)
+    return exe
+  }
+  const exe = await downloadKache(tag)
+  const cachedDir = await tc.cacheDir(path.dirname(exe), 'kache', versionSpec)
+  const cachedExe = path.join(cachedDir, binaryName)
+  core.addPath(cachedDir)
+  core.info(`Installed 'kache' to ${cachedExe}`)
+  return cachedExe
+}
+
+function setupKacheEnv(storeDir: string, runtimeDir: string): void {
+  // Set only for this action invocation. Do not write GITHUB_ENV — later
+  // steps must not inherit RUSTC_WRAPPER=kache when they did not ask for it.
+  process.env.RUSTC_WRAPPER = 'kache'
+  process.env.KACHE_CACHE_DIR = storeDir
+  process.env.KACHE_RUNTIME_DIR = runtimeDir
+  process.env.CC_KNOWN_WRAPPER_CUSTOM = 'kache'
+}
+
+async function restoreKacheCache(
+  storeDir: string,
+  version: string
+): Promise<void> {
+  await fs.mkdir(storeDir, {recursive: true})
+  const {key, restoreKeys} = kacheCacheKeys(version)
+  core.info(`Restoring kache store from GitHub Actions cache key ${key}`)
+  try {
+    const hit = await cache.restoreCache([storeDir], key, restoreKeys)
+    if (hit) {
+      core.info(`kache GitHub cache restored from ${hit}`)
+    } else {
+      core.info('kache GitHub cache miss')
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    core.warning(`kache GitHub cache restore failed: ${message}`)
+  }
+}
+
+async function saveKacheCache(
+  storeDir: string,
+  version: string
+): Promise<void> {
+  if (!existsSync(storeDir)) {
+    core.info('No kache store directory to save')
+    return
+  }
+  const {key} = kacheCacheKeys(version)
+  try {
+    await cache.saveCache([storeDir], key)
+    core.info(`kache GitHub cache saved with key ${key}`)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (message.includes('already exists')) {
+      core.info('kache GitHub cache already up to date')
+    } else {
+      core.warning(`kache GitHub cache save failed: ${message}`)
+    }
+  }
+}
+
 /**
  * Build on host
  * @param maturinRelease maturin release tag, ie. version
@@ -1109,7 +1369,7 @@ async function hostBuild(
   const rustToolchain = await getRustToolchain(args)
   const rustupComponents = core.getInput('rustup-components')
   const workdir = getWorkingDirectory()
-  const sccache = core.getBooleanInput('sccache')
+  const cacheProvider = getCacheProvider()
   const isUniversal2 =
     args.includes('--universal2') || target === 'universal2-apple-darwin'
 
@@ -1154,11 +1414,26 @@ async function hostBuild(
     await exec.exec('python3', ['-m', 'pip', 'install', 'ziglang'])
     core.endGroup()
   }
-  if (sccache) {
+  if (cacheProvider === 'sccache') {
     core.startGroup('Install sccache')
     await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.10.0'])
     await exec.exec('sccache', ['--version'])
     setupSccacheEnv()
+    core.endGroup()
+  }
+  if (cacheProvider === 'kache') {
+    core.startGroup('Install kache')
+    const kacheTag = await resolveKacheReleaseTag()
+    await installKache(kacheTag)
+    await exec.exec('kache', ['--version'], {ignoreReturnCode: true})
+    const storeDir = getKacheStoreDir()
+    await fs.mkdir(storeDir, {recursive: true})
+    const runtimeDir = path.join(
+      process.env.RUNNER_TEMP || os.tmpdir(),
+      'kache-runtime'
+    )
+    await fs.mkdir(runtimeDir, {recursive: true})
+    setupKacheEnv(storeDir, runtimeDir)
     core.endGroup()
   }
 
@@ -1297,9 +1572,14 @@ async function hostBuild(
     fullCommand = `${maturinPath} ${command} ${uploadArgs.join(' ')}`
   }
   const exitCode = await exec.exec(fullCommand, undefined, {env, cwd: workdir})
-  if (sccache) {
+  if (cacheProvider === 'sccache') {
     core.startGroup('sccache stats')
     await exec.exec('sccache', ['--show-stats'])
+    core.endGroup()
+  }
+  if (cacheProvider === 'kache') {
+    core.startGroup('kache stats')
+    await exec.exec('kache', ['stats'], {ignoreReturnCode: true})
     core.endGroup()
   }
   return exitCode
@@ -1376,29 +1656,43 @@ async function innerMain(): Promise<void> {
   const maturinRelease = await findVersion(args)
   args.unshift(command)
 
+  const cacheProvider = getCacheProvider()
+  let kacheTag: string | undefined
+  const kacheStoreDir = getKacheStoreDir()
+  if (cacheProvider === 'kache') {
+    kacheTag = await resolveKacheReleaseTag()
+    await restoreKacheCache(kacheStoreDir, kacheTag)
+  }
+
   let exitCode: number
-  if (useDocker) {
-    const dockerContainer = await getDockerContainer(
-      target,
-      manylinux,
-      container
-    )
-    if (dockerContainer) {
-      exitCode = await dockerBuild(
-        dockerContainer,
-        maturinRelease,
-        hostHomeMount,
-        args
+  try {
+    if (useDocker) {
+      const dockerContainer = await getDockerContainer(
+        target,
+        manylinux,
+        container
       )
+      if (dockerContainer) {
+        exitCode = await dockerBuild(
+          dockerContainer,
+          maturinRelease,
+          hostHomeMount,
+          args
+        )
+      } else {
+        core.info('No Docker container found, fallback to build on host')
+        exitCode = await hostBuild(maturinRelease, args)
+      }
     } else {
-      core.info('No Docker container found, fallback to build on host')
       exitCode = await hostBuild(maturinRelease, args)
     }
-  } else {
-    exitCode = await hostBuild(maturinRelease, args)
-  }
-  if (exitCode !== 0) {
-    throw new Error(`maturin: returned ${exitCode}`)
+    if (exitCode !== 0) {
+      throw new Error(`maturin: returned ${exitCode}`)
+    }
+  } finally {
+    if (cacheProvider === 'kache' && kacheTag) {
+      await saveKacheCache(kacheStoreDir, kacheTag)
+    }
   }
 }
 

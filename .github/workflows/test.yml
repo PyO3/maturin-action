@@ -69,6 +69,13 @@ jobs:
           before-script-linux: |
             sudo apt-get update
             sudo apt-get install -y libclang-dev
+      - name: maturin build with kache
+        uses: $/
+        with:
+          rust-toolchain: ${{ matrix.toolchain }}
+          args: -m maturin/test-crates/pyo3-pure/Cargo.toml
+          manylinux: 'auto'
+          kache: 'true'
       - name: maturin build universal2 target
         if: startsWith(matrix.os, 'macos')
         uses: ./
@@ -170,6 +177,8 @@ jobs:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml --target aarch64-unknown-linux-gnu
       - name: maturin build --zig
+        # windows-11-arm zig linking is broken on the runner image (see #471).
+        if: matrix.os != 'windows-11-arm'
         uses: ./
         with:
           rust-toolchain: ${{ matrix.toolchain }}
@@ -318,7 +327,8 @@ jobs:
             -e RUNNER_OS
           rust-toolchain: ${{ matrix.toolchain }}
           working-directory: ${{ matrix.platform.test-crate }}
-          args: -i python3.10
+          # rust-musl-cross images have no CPython; hello-world is a binary.
+          args: ${{ contains(matrix.platform.test-crate, 'hello-world') && '-v' || '-i python3.10' }}
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain
@@ -330,7 +340,7 @@ jobs:
           CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml ${{ contains(matrix.platform.test-crate, 'hello-world') && '-v' || '-i python3.10' }}
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain.toml
@@ -345,7 +355,7 @@ jobs:
           CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml ${{ contains(matrix.platform.test-crate, 'hello-world') && '-v' || '-i python3.10' }}
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
       - name: setup rust-toolchain with toml content
@@ -363,7 +373,7 @@ jobs:
           CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_MUSL_RUSTFLAGS: -C target-feature=+crt-static
         with:
           container: ${{ matrix.platform.container }}
-          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml -i python3.10
+          args: -m ${{ matrix.platform.test-crate }}/Cargo.toml ${{ contains(matrix.platform.test-crate, 'hello-world') && '-v' || '-i python3.10' }}
           manylinux: ${{ matrix.platform.manylinux }}
           target: ${{ matrix.platform.target }}
 
