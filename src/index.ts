@@ -1210,11 +1210,19 @@ function getKacheStoreDir(): string {
   return path.join(tmp, 'kache-store')
 }
 
-function kacheCacheKeys(version: string): {key: string; restoreKeys: string[]} {
-  const key = `maturin-action-kache-${version}-${process.platform}-${process.arch}`
+function kacheCacheKeys(
+  version: string,
+  target: string
+): {key: string; restoreKeys: string[]} {
+  const prefix = `maturin-action-kache-${version}-${process.platform}-${process.arch}`
+  const buildTarget = target || 'host'
+  const runId = process.env.GITHUB_RUN_ID || 'run'
+  const runAttempt = process.env.GITHUB_RUN_ATTEMPT || 'attempt'
+  const job = process.env.GITHUB_JOB || 'job'
+
   return {
-    key,
-    restoreKeys: [`maturin-action-kache-${version}-${process.platform}-`]
+    key: `${prefix}-${buildTarget}-${runId}-${runAttempt}-${job}`,
+    restoreKeys: [`${prefix}-${buildTarget}-`, `${prefix}-`]
   }
 }
 
@@ -1312,35 +1320,47 @@ function setupKacheEnv(storeDir: string, runtimeDir: string): void {
 
 async function restoreKacheCache(
   storeDir: string,
-  version: string
-): Promise<void> {
+  version: string,
+  target: string
+): Promise<string | undefined> {
   await fs.mkdir(storeDir, {recursive: true})
-  const {key, restoreKeys} = kacheCacheKeys(version)
+  const {key, restoreKeys} = kacheCacheKeys(version, target)
   core.info(`Restoring kache store from GitHub Actions cache key ${key}`)
   try {
     const hit = await cache.restoreCache([storeDir], key, restoreKeys)
     if (hit) {
       core.info(`kache GitHub cache restored from ${hit}`)
-    } else {
-      core.info('kache GitHub cache miss')
+      return hit
     }
+    core.info('kache GitHub cache miss')
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     core.warning(`kache GitHub cache restore failed: ${message}`)
   }
+  return undefined
 }
 
 async function saveKacheCache(
   storeDir: string,
-  version: string
+  version: string,
+  target: string,
+  restoredKey?: string
 ): Promise<void> {
   if (!existsSync(storeDir)) {
     core.info('No kache store directory to save')
     return
   }
-  const {key} = kacheCacheKeys(version)
+  const {key} = kacheCacheKeys(version, target)
+  if (restoredKey === key) {
+    core.info(`kache GitHub cache already holds key ${key}; skipping save`)
+    return
+  }
   try {
-    await cache.saveCache([storeDir], key)
+    const cacheId = await cache.saveCache([storeDir], key)
+    if (cacheId === -1) {
+      core.info(`kache GitHub cache save skipped for key ${key}`)
+      return
+    }
     core.info(`kache GitHub cache saved with key ${key}`)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
@@ -1658,10 +1678,11 @@ async function innerMain(): Promise<void> {
 
   const cacheProvider = getCacheProvider()
   let kacheTag: string | undefined
+  let kacheRestoredKey: string | undefined
   const kacheStoreDir = getKacheStoreDir()
   if (cacheProvider === 'kache') {
     kacheTag = await resolveKacheReleaseTag()
-    await restoreKacheCache(kacheStoreDir, kacheTag)
+    kacheRestoredKey = await restoreKacheCache(kacheStoreDir, kacheTag, target)
   }
 
   let exitCode: number
@@ -1691,7 +1712,12 @@ async function innerMain(): Promise<void> {
     }
   } finally {
     if (cacheProvider === 'kache' && kacheTag) {
-      await saveKacheCache(kacheStoreDir, kacheTag)
+      await saveKacheCache(
+        kacheStoreDir,
+        kacheTag,
+        target,
+        kacheRestoredKey
+      )
     }
   }
 }
