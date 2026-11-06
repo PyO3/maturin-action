@@ -218,7 +218,7 @@ jobs:
           manylinux: 'auto'
       - name: maturin build with sccache on host
         if: startsWith(matrix.os, 'ubuntu')
-        uses: ./
+        uses: $/
         with:
           rust-toolchain: ${{ matrix.toolchain }}
           args: -m maturin/test-crates/pyo3-pure/Cargo.toml
