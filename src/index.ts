@@ -834,13 +834,13 @@ async function dockerBuild(
     )
   }
 
+  let sccacheExe = ''
   if (cacheProvider === 'sccache') {
-    commands.push(
-      'echo "::group::Install sccache"',
-      'uv tool install "sccache>=0.10.0"',
-      'sccache --version',
-      'echo "::endgroup::"'
-    )
+    core.startGroup('Install sccache')
+    const sccacheTag = await resolveSccacheReleaseTag()
+    sccacheExe = await installSccache(sccacheTag)
+    await exec.exec(sccacheExe, ['--version'])
+    core.endGroup()
     setupSccacheEnv()
   }
   let kacheExe = ''
@@ -926,6 +926,12 @@ async function dockerBuild(
 
   const workdir = getWorkingDirectory()
   const dockerVolumes = []
+
+  if (cacheProvider === 'sccache') {
+    const hostSccacheExe = path.join(hostHomeMount, sccacheExe)
+    dockerVolumes.push('-v')
+    dockerVolumes.push(`${hostSccacheExe}:/usr/local/bin/sccache:ro`)
+  }
 
   if (cacheProvider === 'kache') {
     const hostStoreDir = path.join(hostHomeMount, kacheStoreDir)
@@ -1134,6 +1140,78 @@ async function addToolCachePythonVersionsToPath(): Promise<void> {
   for (const cpythonPath of cpythonPathsToAdd) {
     core.addPath(cpythonPath)
   }
+}
+
+async function resolveSccacheReleaseTag(): Promise<string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'maturin-action'
+  }
+  if (AUTH) {
+    headers.Authorization = AUTH
+  }
+  const response = await fetch(
+    'https://api.github.com/repos/mozilla/sccache/releases/latest',
+    {headers}
+  )
+  if (!response.ok) {
+    throw new Error(
+      `Failed to look up the latest sccache release: HTTP ${response.status}`
+    )
+  }
+  const {tag_name: tag} = (await response.json()) as {tag_name?: string}
+  if (!tag) {
+    throw new Error('Latest sccache release is missing tag_name')
+  }
+  return tag
+}
+
+async function downloadSccache(tag: string): Promise<string> {
+  const arch = maturinArch()
+  const target = IS_WINDOWS
+    ? `${arch}-pc-windows-msvc`
+    : IS_MACOS
+      ? `${arch}-apple-darwin`
+      : `${arch}-unknown-linux-musl`
+  const name = `sccache-${tag}-${target}`
+  const extension = IS_WINDOWS ? 'zip' : 'tar.gz'
+  const url = `https://github.com/mozilla/sccache/releases/download/${tag}/${name}.${extension}`
+  core.info(`Downloading ${url}`)
+  const archive = await tc.downloadTool(url, undefined, AUTH)
+  const checksum = await tc.downloadTool(`${url}.sha256`, undefined, AUTH)
+  const expected = (await fs.readFile(checksum, 'utf8')).trim().split(/\s+/)[0]
+  const actual = await sha256(archive)
+  if (actual !== expected) {
+    throw new Error(
+      `Downloaded sccache artifact hash mismatch for ${url}: expected ${expected}, got ${actual}`
+    )
+  }
+  const extracted = IS_WINDOWS
+    ? await tc.extractZip(archive)
+    : await tc.extractTar(archive)
+  const binaryName = IS_WINDOWS ? 'sccache.exe' : 'sccache'
+  const exe = path.join(extracted, name, binaryName)
+  if (!IS_WINDOWS) {
+    await fs.chmod(exe, 0o755)
+  }
+  return exe
+}
+
+async function installSccache(tag: string): Promise<string> {
+  const versionSpec = tag.startsWith('v') ? tag.slice(1) : tag
+  const installDir = tc.find('sccache', versionSpec, process.arch)
+  const binaryName = IS_WINDOWS ? 'sccache.exe' : 'sccache'
+  if (installDir) {
+    const exe = path.join(installDir, binaryName)
+    core.addPath(installDir)
+    return exe
+  }
+  const exe = await downloadSccache(tag)
+  const cachedDir = await tc.cacheDir(path.dirname(exe), 'sccache', versionSpec)
+  const cachedExe = path.join(cachedDir, binaryName)
+  core.addPath(cachedDir)
+  core.info(`Installed 'sccache' to ${cachedExe}`)
+  return cachedExe
 }
 
 function setupSccacheEnv(): void {
@@ -1416,8 +1494,9 @@ async function hostBuild(
   }
   if (cacheProvider === 'sccache') {
     core.startGroup('Install sccache')
-    await exec.exec('python3', ['-m', 'pip', 'install', 'sccache>=0.10.0'])
-    await exec.exec('sccache', ['--version'])
+    const sccacheTag = await resolveSccacheReleaseTag()
+    const sccacheExe = await installSccache(sccacheTag)
+    await exec.exec(sccacheExe, ['--version'])
     setupSccacheEnv()
     core.endGroup()
   }
