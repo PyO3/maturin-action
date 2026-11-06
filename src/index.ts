@@ -121,7 +121,7 @@ const DEFAULT_CONTAINERS: Record<
     'riscv64gc-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
       '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
+      '2_39': 'ghcr.io/rust-cross/manylinux_2_39-cross:riscv64'
     },
     'riscv64gc-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',
@@ -212,7 +212,7 @@ const DEFAULT_CONTAINERS: Record<
     'riscv64gc-unknown-linux-gnu': {
       auto: 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
       '2_31': 'ghcr.io/rust-cross/manylinux_2_31-cross:riscv64',
-      '2_39': 'quay.io/pypa/manylinux_2_39_riscv64:latest'
+      '2_39': 'ghcr.io/rust-cross/manylinux_2_39-cross:riscv64'
     },
     'riscv64gc-unknown-linux-musl': {
       auto: 'ghcr.io/rust-cross/rust-musl-cross:riscv64gc-musl',

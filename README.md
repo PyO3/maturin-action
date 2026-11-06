@@ -89,7 +89,7 @@ Here is a table detailing examples of the default selected containers:
 | s390x               | x86_64, aarch64     | 2014/2_17         | ghcr.io/rust-cross/manylinux2014-cross:s390x        | No            |
 | s390x               | x86_64, aarch64     | 2_28              | ghcr.io/rust-cross/manylinux_2_28-cross:s390x       | No            |
 | riscv64             | x86_64, aarch64     | 2_31              | ghcr.io/rust-cross/manylinux_2_31-cross:riscv64     | No            |
-| riscv64             | x86_64, aarch64     | 2_39              | quay.io/pypa/manylinux_2_39_riscv64:latest          | Yes           |
+| riscv64             | x86_64, aarch64     | 2_39              | ghcr.io/rust-cross/manylinux_2_39-cross:riscv64     | No            |
 | riscv64             | riscv64             | 2_39              | quay.io/pypa/manylinux_2_39_riscv64:latest          | No            |
 | loongarch64         | x86_64, aarch64     | 2_36              | ghcr.io/rust-cross/manylinux_2_36-cross:loongarch64 | No            |
 
