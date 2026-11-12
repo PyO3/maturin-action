@@ -107388,6 +107388,7 @@ const promises_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.ur
 
 
 
+
 function getKacheEngine(dir) {
     for (const name of ['kache-engine', 'kache-engine.exe']) {
         const engine = external_path_.join(dir, name);
@@ -107808,8 +107809,8 @@ async function sha256(filePath) {
     return hash.digest('hex');
 }
 async function readVersionsManifest() {
-    const actionPath = process.env.GITHUB_ACTION_PATH || process.cwd();
-    const manifestPath = external_path_.join(actionPath, 'versions-manifest.json');
+    const distDir = external_path_.dirname((0,external_url_.fileURLToPath)(import.meta.url));
+    const manifestPath = external_path_.join(distDir, '..', 'versions-manifest.json');
     if ((0,external_fs_namespaceObject.existsSync)(manifestPath)) {
         return JSON.parse(await external_fs_namespaceObject.promises.readFile(manifestPath, 'utf8'));
     }
