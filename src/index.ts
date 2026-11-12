@@ -698,6 +698,32 @@ function getBeforeScript(): string {
 }
 
 /**
+ * Pull a Docker image, retrying failed pulls with exponential backoff
+ * @param image Docker image to pull
+ */
+async function dockerPull(image: string): Promise<void> {
+  const maxAttempts = 5
+  for (let attempt = 1; ; attempt++) {
+    const exitCode = await exec.exec('docker', ['pull', image], {
+      ignoreReturnCode: true
+    })
+    if (exitCode === 0) {
+      return
+    }
+    if (attempt === maxAttempts) {
+      throw new Error(
+        `maturin: 'docker pull' returned ${exitCode} after ${maxAttempts} attempts`
+      )
+    }
+    const delaySeconds = 10 * 2 ** (attempt - 1)
+    core.warning(
+      `'docker pull ${image}' returned ${exitCode}, retrying in ${delaySeconds}s (attempt ${attempt} of ${maxAttempts})`
+    )
+    await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000))
+  }
+}
+
+/**
  * Build manylinux wheel using Docker
  * @param maturinRelease maturin release tag, ie. version
  * @param args Docker args
@@ -745,10 +771,7 @@ async function dockerBuild(
   if (!imageExists) {
     core.startGroup('Pull Docker image')
     core.info(`Using ${image} Docker image`)
-    const exitCode = await exec.exec('docker', ['pull', image])
-    if (exitCode !== 0) {
-      throw new Error(`maturin: 'docker pull' returned ${exitCode}`)
-    }
+    await dockerPull(image)
     core.endGroup()
   } else {
     core.info(`Using existing ${image} Docker image`)
