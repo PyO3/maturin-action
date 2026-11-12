@@ -107992,8 +107992,13 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     if (beforeScript.length > 0) {
         commands.push('echo "::group::Run before script"', ...beforeScript.split('\n'), 'echo "::endgroup::"');
     }
+    let sccacheExe = '';
     if (cacheProvider === 'sccache') {
-        commands.push('echo "::group::Install sccache"', 'uv tool install "sccache>=0.10.0"', 'sccache --version', 'echo "::endgroup::"');
+        startGroup('Install sccache');
+        const sccacheTag = await resolveSccacheReleaseTag();
+        sccacheExe = await installSccache(sccacheTag);
+        await exec_exec(sccacheExe, ['--version']);
+        endGroup();
         setupSccacheEnv();
     }
     let kacheExe = '';
@@ -108057,6 +108062,11 @@ async function dockerBuild(container, maturinRelease, hostHomeMount, args) {
     }
     const workdir = src_getWorkingDirectory();
     const dockerVolumes = [];
+    if (cacheProvider === 'sccache') {
+        const hostSccacheExe = external_path_.join(hostHomeMount, sccacheExe);
+        dockerVolumes.push('-v');
+        dockerVolumes.push(`${hostSccacheExe}:/usr/local/bin/sccache:ro`);
+    }
     if (cacheProvider === 'kache') {
         const hostStoreDir = external_path_.join(hostHomeMount, kacheStoreDir);
         const hostKacheExe = external_path_.join(hostHomeMount, kacheExe);
@@ -108230,6 +108240,68 @@ async function addToolCachePythonVersionsToPath() {
     for (const cpythonPath of cpythonPathsToAdd) {
         addPath(cpythonPath);
     }
+}
+async function resolveSccacheReleaseTag() {
+    const headers = {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'maturin-action'
+    };
+    if (AUTH) {
+        headers.Authorization = AUTH;
+    }
+    const response = await fetch('https://api.github.com/repos/mozilla/sccache/releases/latest', { headers });
+    if (!response.ok) {
+        throw new Error(`Failed to look up the latest sccache release: HTTP ${response.status}`);
+    }
+    const { tag_name: tag } = (await response.json());
+    if (!tag) {
+        throw new Error('Latest sccache release is missing tag_name');
+    }
+    return tag;
+}
+async function downloadSccache(tag) {
+    const arch = maturinArch();
+    const target = src_IS_WINDOWS
+        ? `${arch}-pc-windows-msvc`
+        : IS_MACOS
+            ? `${arch}-apple-darwin`
+            : `${arch}-unknown-linux-musl`;
+    const name = `sccache-${tag}-${target}`;
+    const extension = src_IS_WINDOWS ? 'zip' : 'tar.gz';
+    const url = `https://github.com/mozilla/sccache/releases/download/${tag}/${name}.${extension}`;
+    info(`Downloading ${url}`);
+    const archive = await downloadTool(url, undefined, AUTH);
+    const checksum = await downloadTool(`${url}.sha256`, undefined, AUTH);
+    const expected = (await external_fs_namespaceObject.promises.readFile(checksum, 'utf8')).trim().split(/\s+/)[0];
+    const actual = await sha256(archive);
+    if (actual !== expected) {
+        throw new Error(`Downloaded sccache artifact hash mismatch for ${url}: expected ${expected}, got ${actual}`);
+    }
+    const extracted = src_IS_WINDOWS
+        ? await extractZip(archive)
+        : await tool_cache_extractTar(archive);
+    const binaryName = src_IS_WINDOWS ? 'sccache.exe' : 'sccache';
+    const exe = external_path_.join(extracted, name, binaryName);
+    if (!src_IS_WINDOWS) {
+        await external_fs_namespaceObject.promises.chmod(exe, 0o755);
+    }
+    return exe;
+}
+async function installSccache(tag) {
+    const versionSpec = tag.startsWith('v') ? tag.slice(1) : tag;
+    const installDir = find('sccache', versionSpec, process.arch);
+    const binaryName = src_IS_WINDOWS ? 'sccache.exe' : 'sccache';
+    if (installDir) {
+        const exe = external_path_.join(installDir, binaryName);
+        addPath(installDir);
+        return exe;
+    }
+    const exe = await downloadSccache(tag);
+    const cachedDir = await cacheDir(external_path_.dirname(exe), 'sccache', versionSpec);
+    const cachedExe = external_path_.join(cachedDir, binaryName);
+    addPath(cachedDir);
+    info(`Installed 'sccache' to ${cachedExe}`);
+    return cachedExe;
 }
 function setupSccacheEnv() {
     exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -108454,8 +108526,9 @@ async function hostBuild(maturinRelease, args) {
     }
     if (cacheProvider === 'sccache') {
         startGroup('Install sccache');
-        await exec_exec('python3', ['-m', 'pip', 'install', 'sccache>=0.10.0']);
-        await exec_exec('sccache', ['--version']);
+        const sccacheTag = await resolveSccacheReleaseTag();
+        const sccacheExe = await installSccache(sccacheTag);
+        await exec_exec(sccacheExe, ['--version']);
         setupSccacheEnv();
         endGroup();
     }
