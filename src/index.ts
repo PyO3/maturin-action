@@ -17,6 +17,21 @@ type MaturinToolRelease = Omit<tc.IToolRelease, 'files'> & {
   files: MaturinToolReleaseFile[]
 }
 
+type KacheInstall = {
+  exe: string
+  engine?: string
+}
+
+function getKacheEngine(dir: string): string | undefined {
+  for (const name of ['kache-engine', 'kache-engine.exe']) {
+    const engine = path.join(dir, name)
+    if (existsSync(engine)) {
+      return engine
+    }
+  }
+  return undefined
+}
+
 const TOKEN = core.getInput('token') || process.env.GITHUB_TOKEN
 const AUTH = !TOKEN ? undefined : `token ${TOKEN}`
 
@@ -683,6 +698,32 @@ function getBeforeScript(): string {
 }
 
 /**
+ * Pull a Docker image, retrying failed pulls with exponential backoff
+ * @param image Docker image to pull
+ */
+async function dockerPull(image: string): Promise<void> {
+  const maxAttempts = 5
+  for (let attempt = 1; ; attempt++) {
+    const exitCode = await exec.exec('docker', ['pull', image], {
+      ignoreReturnCode: true
+    })
+    if (exitCode === 0) {
+      return
+    }
+    if (attempt === maxAttempts) {
+      throw new Error(
+        `maturin: 'docker pull' returned ${exitCode} after ${maxAttempts} attempts`
+      )
+    }
+    const delaySeconds = 10 * 2 ** (attempt - 1)
+    core.warning(
+      `'docker pull ${image}' returned ${exitCode}, retrying in ${delaySeconds}s (attempt ${attempt} of ${maxAttempts})`
+    )
+    await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000))
+  }
+}
+
+/**
  * Build manylinux wheel using Docker
  * @param maturinRelease maturin release tag, ie. version
  * @param args Docker args
@@ -730,10 +771,7 @@ async function dockerBuild(
   if (!imageExists) {
     core.startGroup('Pull Docker image')
     core.info(`Using ${image} Docker image`)
-    const exitCode = await exec.exec('docker', ['pull', image])
-    if (exitCode !== 0) {
-      throw new Error(`maturin: 'docker pull' returned ${exitCode}`)
-    }
+    await dockerPull(image)
     core.endGroup()
   } else {
     core.info(`Using existing ${image} Docker image`)
@@ -844,10 +882,13 @@ async function dockerBuild(
     setupSccacheEnv()
   }
   let kacheExe = ''
+  let kacheEngine = ''
   let kacheStoreDir = ''
   if (cacheProvider === 'kache') {
     const kacheTag = await resolveKacheReleaseTag()
-    kacheExe = await installKache(kacheTag)
+    const kacheInstall = await installKache(kacheTag)
+    kacheExe = kacheInstall.exe
+    kacheEngine = kacheInstall.engine || ''
     kacheStoreDir = getKacheStoreDir()
     await fs.mkdir(kacheStoreDir, {recursive: true})
     // Runtime (socket, logs) stays in the container tmpfs so the persisted
@@ -934,6 +975,12 @@ async function dockerBuild(
     dockerVolumes.push(`${hostStoreDir}:${kacheStoreDir}`)
     dockerVolumes.push('-v')
     dockerVolumes.push(`${hostKacheExe}:/usr/local/bin/kache`)
+
+    if (kacheEngine) {
+      const hostKacheEngine = path.join(hostHomeMount, kacheEngine)
+      dockerVolumes.push('-v')
+      dockerVolumes.push(`${hostKacheEngine}:/usr/local/bin/kache-engine`)
+    }
   }
 
   // forward ssh agent
@@ -1280,25 +1327,36 @@ async function downloadKache(tag: string): Promise<string> {
   const exe = path.join(extracted, zip ? 'kache.exe' : 'kache')
   if (!IS_WINDOWS) {
     await fs.chmod(exe, 0o755)
+
+    const engine = getKacheEngine(extracted)
+    if (engine) {
+      await fs.chmod(engine, 0o755)
+    }
   }
   return exe
 }
 
-async function installKache(tag: string): Promise<string> {
+async function installKache(tag: string): Promise<KacheInstall> {
   const versionSpec = tag.startsWith('v') ? tag.slice(1) : tag
   const installDir = tc.find('kache', versionSpec, process.arch)
   const binaryName = IS_WINDOWS ? 'kache.exe' : 'kache'
   if (installDir) {
     const exe = path.join(installDir, binaryName)
     core.addPath(installDir)
-    return exe
+    return {
+      exe,
+      engine: getKacheEngine(installDir)
+    }
   }
   const exe = await downloadKache(tag)
   const cachedDir = await tc.cacheDir(path.dirname(exe), 'kache', versionSpec)
   const cachedExe = path.join(cachedDir, binaryName)
   core.addPath(cachedDir)
   core.info(`Installed 'kache' to ${cachedExe}`)
-  return cachedExe
+  return {
+    exe: cachedExe,
+    engine: getKacheEngine(cachedDir)
+  }
 }
 
 function setupKacheEnv(storeDir: string, runtimeDir: string): void {
