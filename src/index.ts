@@ -11,6 +11,7 @@ import stringArgv from 'string-argv'
 import {JsonMap, parse as parseTOML} from '@iarna/toml'
 import {createHash} from 'crypto'
 import {pipeline} from 'stream/promises'
+import {fileURLToPath} from 'url'
 
 type MaturinToolReleaseFile = tc.IToolReleaseFile & {sha256?: string}
 type MaturinToolRelease = Omit<tc.IToolRelease, 'files'> & {
@@ -482,8 +483,11 @@ async function sha256(filePath: string): Promise<string> {
 }
 
 async function readVersionsManifest(): Promise<MaturinToolRelease[]> {
-  const actionPath = process.env.GITHUB_ACTION_PATH || process.cwd()
-  const manifestPath = path.join(actionPath, 'versions-manifest.json')
+  // GITHUB_ACTION_PATH is only set inside composite actions, where it points at
+  // the composite's directory, and the working directory is the caller's
+  // workspace, so locate the manifest relative to this bundle (dist/index.js).
+  const distDir = path.dirname(fileURLToPath(import.meta.url))
+  const manifestPath = path.join(distDir, '..', 'versions-manifest.json')
   if (existsSync(manifestPath)) {
     return JSON.parse(await fs.readFile(manifestPath, 'utf8'))
   }
